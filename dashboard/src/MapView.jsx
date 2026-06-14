@@ -136,8 +136,9 @@ export default function MapView({ intersections, filters, selectedIntersection, 
     });
 
     map.on("click", "intersections-layer", (e) => {
-      onSelectIntersection(e.features[0]);
-      map.flyTo({ center: e.features[0].geometry.coordinates, zoom: FLY_ZOOM, duration: FLY_DURATION });
+      const feat = e.features[0];
+      onSelectIntersection(feat);
+      map.flyTo({ center: feat.geometry.coordinates, zoom: FLY_ZOOM, duration: FLY_DURATION });
     });
 
     setMapReady(true);
@@ -151,17 +152,14 @@ export default function MapView({ intersections, filters, selectedIntersection, 
     if (!map || !mapReady || !intersections) return;
 
     const districtSet = new Set(filters.districts);
-    const isEmergent = (f) => Boolean(f.properties.is_known_emergent);
-
     const shown = intersections.features.filter((f) => {
       const p = f.properties;
-      // Always include known emergents so the dot layer exists under their ring
-      if (isEmergent(f)) return true;
       if (p.rank > filters.threshold) return false;
       if (districtSet.size > 0 && !districtSet.has(p.council_district)) return false;
       return true;
     });
-    const emergents = intersections.features.filter(isEmergent);
+    // Rings only appear for known positives that are within the current threshold bracket
+    const emergents = shown.filter((f) => Boolean(f.properties.is_known_emergent));
 
     map.getSource("intersections-source")?.setData({ type: "FeatureCollection", features: shown });
     map.getSource("emergents-source")?.setData({ type: "FeatureCollection", features: emergents });

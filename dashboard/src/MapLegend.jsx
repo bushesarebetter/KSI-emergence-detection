@@ -46,8 +46,8 @@ export default function MapLegend({ threshold }) {
             <circle cx="10" cy="10" r={9} fill="none" stroke="white" strokeWidth="2" />
           </svg>
           <div className="min-w-0">
-            <div className="text-xs font-medium text-slate-300 leading-tight">Known positive</div>
-            <div className="text-[10px] text-slate-600">2024 KSI confirmed</div>
+            <div className="text-xs font-medium text-slate-300 leading-tight">2024 KSI positive</div>
+            <div className="text-[10px] text-slate-600">confirmed in label window</div>
           </div>
         </div>
       </div>

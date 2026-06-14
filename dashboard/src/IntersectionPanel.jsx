@@ -16,9 +16,20 @@ function riskLabel(rank) {
   return "Moderate risk";
 }
 
+function parseProp(v) {
+  return typeof v === "string" ? JSON.parse(v) : (v ?? []);
+}
+
 export default function IntersectionPanel({ intersection, onClose }) {
   const visible = intersection !== null;
-  const p = intersection?.properties ?? {};
+  const raw = intersection?.properties ?? {};
+  // MapLibre serialises array/object properties to JSON strings on click events;
+  // parse them back here so all entry paths (map click and table click) are safe.
+  const p = {
+    ...raw,
+    crash_history: parseProp(raw.crash_history),
+    shap_features: parseProp(raw.shap_features),
+  };
   const coords = intersection?.geometry?.coordinates ?? [0, 0];
   const lon = coords[0];
   const lat = coords[1];
@@ -76,7 +87,7 @@ export default function IntersectionPanel({ intersection, onClose }) {
               )}
               {p.is_known_emergent && (
                 <span className="bg-orange-950/60 text-orange-400 text-xs font-medium px-2.5 py-1 rounded-full border border-orange-900/60">
-                  Known emergent
+                  2024 KSI positive
                 </span>
               )}
             </div>
@@ -86,7 +97,7 @@ export default function IntersectionPanel({ intersection, onClose }) {
             {/* Crash history */}
             <div>
               <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">
-                Crash History (2013–2021)
+                Crash History (2016–2024)
               </div>
               <CrashHistoryChart crash_history={p.crash_history} />
             </div>
