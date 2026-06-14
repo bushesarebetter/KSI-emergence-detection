@@ -106,8 +106,11 @@ export default function IntersectionPanel({ intersection, onClose }) {
 
             {/* SHAP features */}
             <div>
-              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">
+              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">
                 Model Signals
+              </div>
+              <div className="text-[10px] text-slate-600 mb-3">
+                All values measured as of Jan 1, 2024 (training cutoff)
               </div>
               <ShapChart shap_features={p.shap_features} />
             </div>
