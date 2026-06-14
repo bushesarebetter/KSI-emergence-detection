@@ -1,0 +1,208 @@
+{
+  "verified_run": {
+    "label": "(verified run: 2016-2021 features, 2022-2024 labels, n=22 emergent)",
+    "candidates": 81007,
+    "spearman_rho": {
+      "random_split": 0.175,
+      "spatial_split": 0.169,
+      "note": "source: milestone3a_results.json"
+    },
+    "persistence_baseline_spearman": {
+      "random_split": 0.085,
+      "spatial_split": 0.108
+    },
+    "threshold_ge2": {
+      "description": "Strong emergence: >=2 KSI events in the 3-year label window",
+      "sites": 22,
+      "total_ksi_events": 44,
+      "city_approach_recall": 0,
+      "city_approach_note": "Definitional zero: emergent sites have no prior KSI history",
+      "full_ranking_recall_at_k": {
+        "50": {
+          "hits": 5,
+          "recall": 0.2273,
+          "random_baseline_recall": 0.000617,
+          "lift_over_random": 368.2
+        },
+        "100": {
+          "hits": 6,
+          "recall": 0.2727,
+          "random_baseline_recall": 0.001234,
+          "lift_over_random": 220.9
+        },
+        "200": {
+          "hits": 8,
+          "recall": 0.3636,
+          "random_baseline_recall": 0.002469,
+          "lift_over_random": 147.3
+        },
+        "500": {
+          "hits": 13,
+          "recall": 0.5909,
+          "random_baseline_recall": 0.006172,
+          "lift_over_random": 95.7
+        },
+        "1000": {
+          "hits": 17,
+          "recall": 0.7727,
+          "random_baseline_recall": 0.012345,
+          "lift_over_random": 62.6
+        }
+      },
+      "harm": {
+        "total_ksi_events": 44,
+        "fatal_share_measured": 0.2056,
+        "blended_cost_per_event_usd": 4641771,
+        "total_harm_usd": 204237925,
+        "total_harm_readable": "$204M",
+        "fhwa_fatal_cost_2024": 15988000.0,
+        "fhwa_serious_cost_2024": 1705100.0,
+        "source": "FHWA-SA-25-021 October 2025"
+      }
+    },
+    "threshold_ge1": {
+      "description": "Any future KSI: >=1 KSI event in the 3-year label window",
+      "sites": 389,
+      "total_ksi_events": 411,
+      "city_approach_recall": 0,
+      "city_approach_note": "Same zero: all candidate sites had zero prior KSI history",
+      "full_ranking_recall_at_k": {
+        "50": {
+          "hits": 18,
+          "recall": 0.0463,
+          "random_baseline_recall": 0.000617,
+          "lift_over_random": 75.0
+        },
+        "100": {
+          "hits": 24,
+          "recall": 0.0617,
+          "random_baseline_recall": 0.001234,
+          "lift_over_random": 50.0
+        },
+        "200": {
+          "hits": 49,
+          "recall": 0.126,
+          "random_baseline_recall": 0.002469,
+          "lift_over_random": 51.0
+        },
+        "500": {
+          "hits": 89,
+          "recall": 0.2288,
+          "random_baseline_recall": 0.006172,
+          "lift_over_random": 37.1
+        },
+        "1000": {
+          "hits": 143,
+          "recall": 0.3676,
+          "random_baseline_recall": 0.012345,
+          "lift_over_random": 29.8
+        }
+      },
+      "harm": {
+        "total_ksi_events": 411,
+        "fatal_share_measured": 0.2056,
+        "blended_cost_per_event_usd": 4641771,
+        "total_harm_usd": 1907767893,
+        "total_harm_readable": "$1908M",
+        "fhwa_fatal_cost_2024": 15988000.0,
+        "fhwa_serious_cost_2024": 1705100.0,
+        "source": "FHWA-SA-25-021 October 2025"
+      }
+    }
+  },
+  "forward_run": {
+    "label": "(forward run: 2016-2023 features, 2024-2026 labels)",
+    "label_completeness_note": "label window partially complete as of June 2026 \u2014 2024 outcomes are final, 2025-2026 are not yet available",
+    "candidates": 80736,
+    "spearman_rho": {
+      "random_split": 0.0948,
+      "spatial_split": 0.1084,
+      "note": "source: forward-run milestone4.md (Set A crash-only)"
+    },
+    "threshold_ge2": {
+      "description": "Strong emergence: >=2 KSI events in label window (partial \u2014 2024 only)",
+      "sites": 0,
+      "total_ksi_events": 0,
+      "full_ranking_recall_at_k": {
+        "50": {
+          "hits": 0,
+          "recall": null,
+          "random_baseline_recall": 0.000619,
+          "lift_over_random": null
+        },
+        "100": {
+          "hits": 0,
+          "recall": null,
+          "random_baseline_recall": 0.001239,
+          "lift_over_random": null
+        },
+        "200": {
+          "hits": 0,
+          "recall": null,
+          "random_baseline_recall": 0.002477,
+          "lift_over_random": null
+        },
+        "500": {
+          "hits": 0,
+          "recall": null,
+          "random_baseline_recall": 0.006193,
+          "lift_over_random": null
+        },
+        "1000": {
+          "hits": 0,
+          "recall": null,
+          "random_baseline_recall": 0.012386,
+          "lift_over_random": null
+        }
+      },
+      "harm": null
+    },
+    "threshold_ge1": {
+      "description": "Any future KSI: >=1 KSI event in label window (2024 data only)",
+      "sites": 118,
+      "total_ksi_events": 118,
+      "full_ranking_recall_at_k": {
+        "50": {
+          "hits": 7,
+          "recall": 0.0593,
+          "random_baseline_recall": 0.000619,
+          "lift_over_random": 95.8
+        },
+        "100": {
+          "hits": 14,
+          "recall": 0.1186,
+          "random_baseline_recall": 0.001239,
+          "lift_over_random": 95.8
+        },
+        "200": {
+          "hits": 20,
+          "recall": 0.1695,
+          "random_baseline_recall": 0.002477,
+          "lift_over_random": 68.4
+        },
+        "500": {
+          "hits": 28,
+          "recall": 0.2373,
+          "random_baseline_recall": 0.006193,
+          "lift_over_random": 38.3
+        },
+        "1000": {
+          "hits": 43,
+          "recall": 0.3644,
+          "random_baseline_recall": 0.012386,
+          "lift_over_random": 29.4
+        }
+      },
+      "harm": {
+        "total_ksi_events": 118,
+        "fatal_share_measured": 0.2056,
+        "blended_cost_per_event_usd": 4641771,
+        "total_harm_usd": 547728981,
+        "total_harm_readable": "$548M",
+        "fhwa_fatal_cost_2024": 15988000.0,
+        "fhwa_serious_cost_2024": 1705100.0,
+        "source": "FHWA-SA-25-021 October 2025"
+      }
+    }
+  }
+}

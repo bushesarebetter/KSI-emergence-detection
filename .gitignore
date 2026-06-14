@@ -1,0 +1,51 @@
+# ── Data (immutable raw snapshots; not committed) ──────────────────────────────
+data/raw/**/*
+!data/raw/**/.gitkeep
+!data/raw/README.md
+data/proc/**/*
+!data/proc/.gitkeep
+data/model/**/*
+!data/model/.gitkeep
+
+# ── Reports (keep only canonical outputs; exclude working milestone docs) ──────
+reports/milestone*.md
+reports/*.png
+reports/figures/
+# Keep these:
+!reports/verified_canonical_numbers.json
+!reports/claims_audit.csv
+!reports/milestone_final.md
+
+# ── Internal working docs (not for public repo) ────────────────────────────────
+docs/PROJECT_STATE.md
+docs/ROADMAP.md
+docs/METHODOLOGY_old.md
+docs/DECISIONS_old.md
+
+# ── Claude working files ───────────────────────────────────────────────────────
+.claude/
+prompts/
+
+# ── Legacy folder (superseded by root-level results/ and docs/) ───────────────
+final_github/
+
+# ── Cache and temp ────────────────────────────────────────────────────────────
+cache/
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+.pytest_cache/
+.env
+
+# ── Conda / venv ──────────────────────────────────────────────────────────────
+.venv/
+env/
+
+# ── OS ────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── Dashboard ─────────────────────────────────────────────────────────────────
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.env

@@ -1,0 +1,137 @@
+# =====================================================================
+# SD Hotspot-Emergence — single source of runtime truth
+# Locked parameters from the Research Design Document. Do not edit
+# values casually; if reality forces a change, note the date + reason.
+# =====================================================================
+
+project:
+  name: sd-hotspot-emergence
+  rng_seed: 42
+
+crs:
+  analysis: "EPSG:2230"   # NAD83 / California State Plane Zone VI, US survey feet
+  mapping:  "EPSG:4326"   # WGS84, for maps only
+
+windows:
+  feature_start: "2016-01-01"
+  feature_end:   "2023-12-31"
+  label_start:   "2024-01-01"
+  label_end:     "2026-12-31"
+  burn_in_start: "2015-01-01"   # used for "years since last KSI" lookups only
+  feature_cutoff_date: "2024-01-01"   # HARD WALL: no feature/eligibility may read >= this
+  forward_run_note: "2016-2023 features -> 2024-2026 labels. Forward-looking operational run. 2024 labels are complete; 2025-2026 are partial as of June 2026."
+
+geometry:
+  buffer_m: 76.2               # M3a primary: 76.2 m = 250 US survey ft; M1/M2 registered 30 m (sensitivity row only)
+  buffer_m_sensitivity: 30     # original registered buffer; kept for sensitivity analysis only
+  node_merge_m: 10             # merge near-duplicate OSM nodes within this distance
+  crash_assignment: "nearest_within_buffer"   # | "all_within_buffer"
+  surface_street_only: true    # exclude motorway/motorway_link nodes from candidate set
+  exclude_state_highway: true  # exclude STATE_HWY_IND='Y' crashes from all analysis
+
+labels:
+  ksi_severity_codes: [1, 2]   # SWITRS COLLISION_SEVERITY: 1=fatal, 2=severe injury
+  positive_min_ksi: 2          # y=1 iff KSI_label >= this
+  candidate_max_ksi_feat: 2    # keep node iff KSI_feat < this (strict)
+  candidate_top_decile_drop: 0.10   # also drop top 10% by feature-window KSI density
+
+evaluation:
+  recall_at_k: [25, 50, 100]
+  bootstrap_resamples: 1000
+  spatial_cv_folds: 5
+  spatial_block: "cpa_or_grid"   # use CPA polygons if present, else ~2km grid
+  grid_tile_m: 2000
+
+paths:
+  raw: "data/raw"
+  proc: "data/proc"
+  model: "data/model"
+  reports: "reports"
+
+# ---- Milestone 2 additions -----------------------------------------------
+
+target:
+  primary: "tweedie_count"           # cᵢ = KSI_label count over label window
+  tweedie_variance_power: 1.3        # in (1,2); tune range [1.1, 1.6]
+  binary_readout_thresholds: [1, 2]  # secondary, from predicted-count ranking
+
+buffer_sweep:
+  radii_m: [30, 50, 76.2, 100]       # 76.2 m ≈ 250 ft (common intersection influence)
+  primary_m: 76.2                    # M3a primary (M1/M2 used 30 m -- see DEVIATIONS.md)
+
+features:
+  groups_this_milestone: ["crash_history", "emergence"]
+  exposure_available: false           # no ADT yet -> no per-MEV rates this milestone
+  # SWITRS code references (codebook 2024)
+  night_lighting_codes: ["B", "C", "D", "E"]   # dusk/dark conditions
+  broadside_collision_codes: ["D"]              # TYPE_OF_COLLISION D = broadside
+  left_turn_move_codes: ["E"]                   # Parties MOVE_PRE_ACC E = making left turn
+  dui_sobriety_codes: ["B", "C", "D", "G"]     # PARTY_SOBRIETY: B=had-been-drinking, C=under-influence, D=impaired-combined, G=sleep-deprived
+
+tuning:
+  n_trials: 30
+  cv_metric_tweedie: "tweedie_deviance"
+  cv_metric_binary: "auprc"
+  xgb_max_depth: [3, 5]
+  xgb_subsample: 0.8
+  xgb_colsample_bytree: 0.8
+
+# ---- Milestone 3b additions -----------------------------------------------
+
+infrastructure:
+  # Bounding box for Overpass queries: [south, west, north, east] WGS84
+  overpass_bbox: [32.50, -117.30, 33.00, -116.90]
+  # Historical OSM snapshot date for endogenous features (≤ feature_cutoff_date)
+  overpass_date: "2023-12-31T23:59:59Z"
+  overpass_timeout_s: 300
+  # Snap radii for point features (metres)
+  signal_snap_m: 40.0     # traffic_signals node within this → signal_present=1
+  stop_snap_m: 30.0       # highway=stop node within this → stop_control=1
+  # Proximity thresholds
+  transit_proximity_m: 400.0   # nearest transit stop within this = proximate
+  freeway_proximity_m: 200.0   # nearest motorway within this = near freeway
+  # Speed limit parsing
+  speed_default_kph: 40.0     # fallback if maxspeed tag missing/unparseable
+  # DEM resolution
+  dem_resolution_m: 10        # ~1/3 arc-second; used via py3dep if available
+
+# Feature group definitions for M3b ablation (cumulative)
+feature_groups:
+  crash_only:
+    - crashes_36mo
+    - crashes_72mo
+    - ped_crashes_72mo
+    - bike_crashes_72mo
+    - broadside_72mo
+    - left_turn_72mo
+    - dui_72mo
+    - night_72mo
+    - ped_row_violation_72mo
+    - years_since_last_crash
+    - distinct_crash_days_72mo
+    - worst_severity_72mo
+    - crash_trend_slope
+    - emergence_velocity
+    - emergence_acceleration
+    - mann_kendall_tau
+    - changepoint_prob
+    - ewma_crashes
+    - momentum_ratio
+    - covid_period_share
+  geometry:
+    - edge_count
+    - lane_count
+    - approach_asymmetry
+    - intersection_type
+  control:               # endogenous — 2021 vintage
+    - signal_present
+    - stop_control
+  roadway:
+    - functional_class   # static
+    - freeway_proximity  # static (metres to nearest motorway/trunk)
+    - speed_limit        # endogenous — 2021 vintage (kph)
+  active_transport:
+    - bike_lane_present  # endogenous — 2021 vintage
+    - transit_proximity  # GTFS stops; ~static
+  terrain:               # static — USGS 3DEP
+    - slope_pct

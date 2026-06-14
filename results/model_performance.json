@@ -1,0 +1,107 @@
+{
+  "run": "verified (2016-2021 features -> 2022-2024 KSI outcomes)",
+  "candidates": 81007,
+  "spearman_rho": {
+    "random_split": 0.175,
+    "spatial_split": 0.169,
+    "note": "source: milestone3a_results.json (xgb_tweedie, thr1)"
+  },
+  "persistence_baseline_spearman": {
+    "random_split": 0.085,
+    "spatial_split": 0.108,
+    "note": "source: milestone3a_results.json (baseline, thr1)"
+  },
+
+  "threshold_ge2_strong_emergence": {
+    "description": "Primary: >=2 KSI events in the 3-year label window. Two independent severe events at a previously clean site indicates a systematic hazard.",
+    "sites": 22,
+    "total_ksi_events": 44,
+    "mean_events_per_site": 2.0,
+    "fatal_share_measured": 0.243,
+    "blended_cost_per_event_usd": 5183000,
+    "total_societal_harm_usd": 228000000,
+    "total_societal_harm_readable": "$228M",
+    "fhwa_cost_source": "FHWA-SA-25-021 October 2025 2024 dollars",
+    "city_approach_recall": 0,
+    "city_approach_note": "Definitional zero: all candidates had no prior KSI history and cannot trigger the city annual >=5-crash threshold",
+    "full_ranking_recall_at_k": {
+      "note": "Full-population recall across all 81,007 candidates. Source: compute_verified_numbers.py -> model_scores.parquet",
+      "50":   { "hits": 5,  "recall": 0.2273, "lift_over_random": 368.2 },
+      "100":  { "hits": 6,  "recall": 0.2727, "lift_over_random": 220.9 },
+      "200":  { "hits": 8,  "recall": 0.3636, "lift_over_random": 147.3 },
+      "500":  { "hits": 13, "recall": 0.5909, "lift_over_random": 95.7  },
+      "1000": { "hits": 17, "recall": 0.7727, "lift_over_random": 62.6  }
+    },
+    "test_split_artifact_note": "Milestone reports showed recall@500=1.000 on the random split. This was a test-set artifact: the 80/20 split placed only 2 of 22 emergent sites in the test fold; finding both gave 2/2=100%. Full-population figures above are the operationally correct metric."
+  },
+
+  "threshold_ge1_any_ksi": {
+    "description": "Secondary: >=1 KSI event in the 3-year label window. Any single severe crash at a previously clean site. Broader catch, larger harm pool.",
+    "sites": 389,
+    "total_ksi_events": 411,
+    "note_on_event_composition": "22 sites with >=2 KSI contribute 44 events; 367 sites with exactly 1 KSI contribute 367 events. Total 411.",
+    "fatal_share_measured": 0.243,
+    "blended_cost_per_event_usd": 5183000,
+    "total_societal_harm_usd": 2128000000,
+    "total_societal_harm_readable": "$2128M",
+    "fhwa_cost_source": "FHWA-SA-25-021 October 2025 2024 dollars",
+    "city_approach_recall": 0,
+    "full_ranking_recall_at_k": {
+      "note": "Full-population recall across all 81,007 candidates. Source: compute_verified_numbers.py -> model_scores.parquet",
+      "50":   { "hits": 18,  "recall": 0.0463, "lift_over_random": 75.0 },
+      "100":  { "hits": 24,  "recall": 0.0617, "lift_over_random": 50.0 },
+      "200":  { "hits": 49,  "recall": 0.1260, "lift_over_random": 51.0 },
+      "500":  { "hits": 89,  "recall": 0.2288, "lift_over_random": 37.1 },
+      "1000": { "hits": 143, "recall": 0.3676, "lift_over_random": 29.8 }
+    },
+    "harm_at_top500_caught_sites": {
+      "note": "89 caught sites include 13 of the 22 >=2 sites (26 events) + 76 exactly-1-KSI sites (76 events) = 102 events",
+      "events_at_caught_sites": 102,
+      "harm_at_caught_sites_usd": 528666000,
+      "harm_at_caught_sites_readable": "~$529M",
+      "prevented_at_30pct_effectiveness": "~$159M",
+      "bcr_at_top500": "~50:1 (city share ~$3.2M after HSIP)"
+    },
+    "interpretation": "Weaker recall% than >=2 threshold (23% vs 59% at top-500) but stronger economic case due to larger harm pool. Both thresholds confirm the city-comparison result: city approach identifies 0%, model identifies >0%."
+  },
+
+  "ablation_protocol_a": {
+    "note": "Ablation run on M4 pipeline instance. Hyperparameters frozen from crash-only model. Four feature sets evaluated with identical params.",
+    "crash_only_spearman_vs_headline_discrepancy": "Ablation crash-only Spearman (0.155) is slightly lower than the headline verified-run figure (0.175). The ablation used the M4 pipeline run; 0.175 is from milestone3a_results.json. Both confirm the same result: infrastructure features reduce rather than improve rank signal.",
+    "sufficiency_null": "CONFIRMED -- all three infrastructure feature groups reduced Spearman rank correlation vs crash-only under frozen hyperparameters at 76.2m intersection resolution.",
+    "results": [
+      { "set": "A_crash_only",   "spearman_random": 0.1547, "spearman_spatial": 0.1553, "lift_random":  0.0000, "lift_spatial":  0.0000 },
+      { "set": "B_road_geometry","spearman_random": 0.0823, "spearman_spatial": 0.0890, "lift_random": -0.0724, "lift_spatial": -0.0663 },
+      { "set": "C_signals",      "spearman_random": 0.1205, "spearman_spatial": 0.1269, "lift_random": -0.0342, "lift_spatial": -0.0284 },
+      { "set": "D_all_infra",    "spearman_random": 0.0787, "spearman_spatial": 0.0874, "lift_random": -0.0760, "lift_spatial": -0.0679 }
+    ]
+  },
+
+  "predictive_run": {
+    "description": "Retrained on 2016-2022 crash data, predicting 2023-2025 KSI emergence",
+    "candidates": 80870,
+    "emergent_sites_ge2_in_label_window": 10,
+    "spearman_random": 0.1547,
+    "status": "live prediction -- label window outcomes not yet complete as of June 2026"
+  },
+
+  "forward_run": {
+    "description": "2016-2023 features -> 2024-2026 labels. Most current feature data.",
+    "candidates": 80736,
+    "feature_window": "2016-01-01 to 2023-12-31",
+    "label_window": "2024-01-01 to 2026-12-31",
+    "label_completeness_note": "2024 data complete. 2025-2026 data not yet available as of June 2026.",
+    "spearman_random": 0.0948,
+    "spearman_spatial": 0.1084,
+    "emergent_sites_ge2_in_complete_label_data": 0,
+    "full_ranking_recall_at_k": {
+      "note": "Evaluated on >=1 KSI threshold (2024 only); >=2 threshold has 0 positives as only one year of label window is complete.",
+      "threshold": ">=1 KSI (2024 outcomes only; n=118 sites)",
+      "50":   { "hits": 7,  "recall": 0.059, "lift_over_random": 95.8 },
+      "100":  { "hits": 14, "recall": 0.119, "lift_over_random": 95.8 },
+      "200":  { "hits": 20, "recall": 0.169, "lift_over_random": 68.4 },
+      "500":  { "hits": 28, "recall": 0.237, "lift_over_random": 38.3 },
+      "1000": { "hits": 43, "recall": 0.364, "lift_over_random": 29.4 }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+name: sdhs
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - geopandas
+  - shapely>=2
+  - osmnx
+  - networkx
+  - pyproj
+  - pandas
+  - numpy
+  - duckdb
+  - python-duckdb
+  - scikit-learn
+  - matplotlib
+  - pyyaml
+  - pytest
+  # ---- deferred to later milestones (do NOT install/import yet) ----
+  # - xgboost
+  # - lightgbm
+  # - shap
+  # - mapie
+  # - optuna
+  # - igraph
+  # - pytorch-geometric

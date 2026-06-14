@@ -1,0 +1,7 @@
+geopandas>=0.14
+pandas>=2.0
+shapely>=2.0
+xgboost>=2.0
+shap>=0.44
+osmnx>=1.9
+click>=8.1
