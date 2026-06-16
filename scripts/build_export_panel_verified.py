@@ -46,10 +46,10 @@ COUNCIL_DISTRICT_JUR_FIELD = "JUR_NAME"
 COUNCIL_DISTRICT_JUR_VALUE = "SAN DIEGO"
 TOP_N = 1000
 
-# Verified run constants (immutable)
-VERIFIED_EXPECTED_CANDIDATES = 81007
-VERIFIED_EXPECTED_EMERGENT_GE2 = 22
-VERIFIED_EXPECTED_EMERGENT_GE1 = 389
+# Verified run constants — updated for 2025-label retrain (SWITRS 20260615)
+VERIFIED_EXPECTED_CANDIDATES = 80618
+VERIFIED_EXPECTED_EMERGENT_GE2 = 2
+VERIFIED_EXPECTED_EMERGENT_GE1 = 111
 CANDIDATE_TOLERANCE = 5
 
 DISPLAY_LABEL_TEMPLATES: dict[str, str] = {
@@ -260,9 +260,10 @@ def build_crash_history(
 ) -> dict[str, list[dict]]:
     crashes_raw = gpd.read_parquet(root / cfg["paths"]["proc"] / "crashes_4326.parquet")
     feature_start = pd.Timestamp(cfg["windows"]["feature_start"])
-    feature_end = pd.Timestamp(cfg["windows"]["feature_end"])
+    # Include the first label year so crash history shows it in the chart
+    history_end = pd.Timestamp(cfg["windows"]["label_start"]) + pd.DateOffset(years=1) - pd.Timedelta(days=1)
     crashes_raw = crashes_raw[
-        (crashes_raw["date"] >= feature_start) & (crashes_raw["date"] <= feature_end)
+        (crashes_raw["date"] >= feature_start) & (crashes_raw["date"] <= history_end)
     ].copy()
 
     crashes_2230 = crashes_raw.to_crs("EPSG:2230")
@@ -296,7 +297,7 @@ def build_crash_history(
 
     feature_years = list(range(
         pd.Timestamp(cfg["windows"]["feature_start"]).year,
-        pd.Timestamp(cfg["windows"]["feature_end"]).year + 1,
+        history_end.year + 1,
     ))
 
     sev_dfs = []
@@ -383,7 +384,7 @@ def assemble_export_panel(
     df = merged.copy()
     df["node_id"] = df["osm_id"].fillna(0).astype("int64")
     df["tweedie_score"] = df["_score"].astype("float64")
-    df["is_known_emergent"] = (df["KSI_label"] >= 2)
+    df["is_known_emergent"] = (df["KSI_label"] >= 1)
     df["is_crash_active"] = (df["crashes_72mo"].fillna(0) > 0)
     df["crashes_training"] = df["crashes_72mo"].fillna(0).round().astype("int64")
 

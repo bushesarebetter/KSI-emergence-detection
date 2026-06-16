@@ -73,7 +73,7 @@ export default function FilterBar({ filters, onFiltersChange, intersections }) {
               <span className="text-orange-400 font-semibold">{caught}</span>
               {" of "}
               <span className="text-slate-400">{total}</span>
-              {" 2024 KSI positives in top "}
+              {" 2025 KSI positives in top "}
               <span className="text-slate-400">{filters.threshold}</span>
             </div>
           </div>

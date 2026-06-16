@@ -50,7 +50,7 @@ export default function IntersectionPanel({ intersection, onClose }) {
                 <span className="text-2xl font-bold tabular-nums" style={{ color }}>
                   #{p.rank}
                 </span>
-                <span className="text-xs text-slate-600">of 81,007</span>
+                <span className="text-xs text-slate-600">of 80,618</span>
               </div>
               <div className="text-xs font-medium" style={{ color: color + "bb" }}>
                 {riskLabel(p.rank)} · {formatPercentile(p.percentile)} pct.
@@ -87,7 +87,7 @@ export default function IntersectionPanel({ intersection, onClose }) {
               )}
               {p.is_known_emergent && (
                 <span className="bg-orange-950/60 text-orange-400 text-xs font-medium px-2.5 py-1 rounded-full border border-orange-900/60">
-                  2024 KSI positive
+                  2025 KSI positive
                 </span>
               )}
             </div>
@@ -97,7 +97,7 @@ export default function IntersectionPanel({ intersection, onClose }) {
             {/* Crash history */}
             <div>
               <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">
-                Crash History (2016–2024)
+                Crash History (2016–2025)
               </div>
               <CrashHistoryChart crash_history={p.crash_history} />
             </div>
@@ -110,7 +110,7 @@ export default function IntersectionPanel({ intersection, onClose }) {
                 Model Signals
               </div>
               <div className="text-[10px] text-slate-600 mb-3">
-                All values measured as of Jan 1, 2024 (training cutoff)
+                All values measured as of Jan 1, 2025 (training cutoff)
               </div>
               <ShapChart shap_features={p.shap_features} />
             </div>

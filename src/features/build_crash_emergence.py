@@ -189,7 +189,7 @@ def _build_node_features(grp: pd.DataFrame,
     """
     feat: dict[str, Any] = {}
     feat_start  = pd.Timestamp("2016-01-01")
-    mo36_start  = pd.Timestamp("2019-07-01")
+    mo36_start  = cutoff - pd.DateOffset(months=36)
 
     grp = grp[grp["date"] < cutoff]
     w72 = grp[grp["date"] >= feat_start]
@@ -216,7 +216,7 @@ def _build_node_features(grp: pd.DataFrame,
     sev = pd.to_numeric(w72["severity"], errors="coerce").dropna()
     feat["worst_severity_72mo"] = int(sev.min()) if len(sev) > 0 else 5
 
-    years = range(2016, 2022)
+    years = range(2016, cutoff.year)
     annual = _annual_counts(grp["date"], years)
 
     feat["crash_trend_slope"]       = _theil_sen_slope(annual)
@@ -342,7 +342,7 @@ def _write_feature_dictionary(feat_df: pd.DataFrame, model_dir: Path,
         rows.append({
             "feature_name": col,
             "source_table": "Crashes.csv / Parties.csv (SWITRS)",
-            "window_used": "feature_window [2016-01-01, 2022-01-01)",
+            "window_used": f"feature_window [2016-01-01, {cutoff.strftime('%Y-%m-%d')})",
             "max_source_date": (cutoff - pd.Timedelta(days=1)).strftime("%Y-%m-%d"),
             "missing_rate": f"{s.isna().mean():.4f}",
             "variance": f"{s.dropna().var():.6f}",

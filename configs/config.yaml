@@ -14,12 +14,12 @@ crs:
 
 windows:
   feature_start: "2016-01-01"
-  feature_end:   "2023-12-31"
-  label_start:   "2024-01-01"
-  label_end:     "2026-12-31"
+  feature_end:   "2024-12-31"
+  label_start:   "2025-01-01"
+  label_end:     "2027-12-31"
   burn_in_start: "2015-01-01"   # used for "years since last KSI" lookups only
-  feature_cutoff_date: "2024-01-01"   # HARD WALL: no feature/eligibility may read >= this
-  forward_run_note: "2016-2023 features -> 2024-2026 labels. Forward-looking operational run. 2024 labels are complete; 2025-2026 are partial as of June 2026."
+  feature_cutoff_date: "2025-01-01"   # HARD WALL: no feature/eligibility may read >= this
+  forward_run_note: "2016-2024 features -> 2025-2027 labels. Retrained on SWITRS 20260615. 2025 labels are complete; 2026-2027 are future (forward prediction)."
 
 geometry:
   buffer_m: 76.2               # M3a primary: 76.2 m = 250 US survey ft; M1/M2 registered 30 m (sensitivity row only)

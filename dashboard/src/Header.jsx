@@ -1,8 +1,8 @@
 import { useState } from "react";
 
 const RUN_CHIPS = [
-  { label: "Train", value: "2016–2023" },
-  { label: "Predict", value: "2024–2026" },
+  { label: "Train", value: "2016–2024" },
+  { label: "Predict", value: "2025–2027" },
   { label: "Mode", value: "Forward run" },
 ];
 
@@ -61,8 +61,8 @@ export default function Header() {
             <div className="space-y-3 text-sm text-slate-400 leading-relaxed">
               <p>
                 Predictions from a gradient-boosted model trained on San Diego crash records
-                2016–2023. The label window is 2024–2026; 2024 outcomes are now available
-                and partially validate the model. 2025–2026 outcomes will be available by 2028.
+                2016–2024. The label window is 2025–2027; 2025 outcomes are now complete and
+                validate the model. 2026–2027 outcomes will be available by 2029.
               </p>
               <p>
                 The model's primary signals are crash-timing features: how recently an intersection
