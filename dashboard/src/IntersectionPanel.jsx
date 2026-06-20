@@ -50,7 +50,7 @@ export default function IntersectionPanel({ intersection, onClose }) {
                 <span className="text-2xl font-bold tabular-nums" style={{ color }}>
                   #{p.rank}
                 </span>
-                <span className="text-xs text-slate-600">of 80,618</span>
+                <span className="text-xs text-slate-600">of 26,045</span>
               </div>
               <div className="text-xs font-medium" style={{ color: color + "bb" }}>
                 {riskLabel(p.rank)} · {formatPercentile(p.percentile)} pct.

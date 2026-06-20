@@ -369,3 +369,26 @@ correct window. Only the README prose and `results/top500_forward_2024_2026.csv`
 to `top500_forward_2025_2027.csv` and regenerated from the OOF scores) were actually wrong.
 The archive is now internally consistent (all three files from one pipeline pass) even
 though the headline numbers didn't move.
+
+---
+
+## D13 — Infrastructure-feature lift (D8) replicates on the forward run
+
+D8 found a small, consistent positive Spearman delta from infrastructure features (B, D)
+on the verified run, once the candidate-set scope bug was fixed. Re-tested on the forward
+run panel (2016-2024 features, 2025-only partial labels) with the same frozen hyperparameters,
+genuine 5-fold OOF (`scripts/refit_protocol_a_forward_oof.py`):
+
+| Set | Δ random ρ | Δ spatial ρ | recall@500 (≥1, random/spatial) |
+|---|---|---|---|
+| A: crash-only | — | — | 20/108 · 23/108 |
+| B: + road geometry | +0.0101 | +0.0088 | 21/108 · 22/108 |
+| C: + signals | +0.0019 | +0.0009 | 22/108 · 20/108 |
+| D: + all infrastructure | +0.0101 | +0.0092 | 21/108 · 25/108 |
+
+B and D show the same consistent-on-both-splits pattern as the verified run, proportionally
+similar in size (~15% relative lift here vs. ~16% on the verified run). recall@500 movement
+is small and mixed (a 1-2 site swing on 108 positives, noise-level), so this doesn't change
+the operational shortlist yet, but the Spearman consistency across two independent runs is
+real evidence the D8 lift isn't a one-dataset fluke. Still not strong enough to add an
+infrastructure-data requirement to the reported model.

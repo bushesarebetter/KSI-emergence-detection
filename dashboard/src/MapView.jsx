@@ -67,7 +67,7 @@ export default function MapView({ intersections, filters, selectedIntersection, 
       },
     });
 
-    // All 111 emergent sites — white ring always visible regardless of threshold
+    // All 108 emergent sites (>=1 KSI), white ring always visible regardless of threshold
     map.addSource("emergents-source", { type: "geojson", data: EMPTY_FC });
     map.addLayer({
       id: "emergents-layer",

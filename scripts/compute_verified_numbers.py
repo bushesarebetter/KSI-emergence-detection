@@ -260,17 +260,25 @@ def run_forward(fatal_share: float) -> dict:
         "candidates": n,
         "label_completeness": "2025 complete (SWITRS 20260615); 2026-2027 are future predictions",
         "spearman_note": "Not directly comparable to verified run -- single-year partial label window",
+        "IN_SAMPLE_WARNING": (
+            "The recall@K figures below are scored by the production model fit on ALL "
+            "available labels, including the ones being counted as hits -- they are NOT a "
+            "validated accuracy claim and will look better than reality. Do not quote these "
+            "in any doc, deck, or dashboard. The genuinely held-out (out-of-fold) figures are "
+            "in results/oof_forward_run_results.json: recall@500 (>=1 KSI) = 21/108 (19.4%, "
+            "random split) / 24/108 (22.2%, spatial split). Use those instead."
+        ),
         "threshold_ge2": {
             "description": "Strong emergence: >=2 KSI in label window (2025 only)",
             "sites": ge2["total_positives"],
             "total_ksi_events": ge2["total_ksi_events"],
-            "full_ranking_recall_at_k": {k: v for k, v in ge2.items() if k.isdigit()},
+            "full_ranking_recall_at_k_IN_SAMPLE_DO_NOT_QUOTE": {k: v for k, v in ge2.items() if k.isdigit()},
         },
         "threshold_ge1": {
             "description": "Any future KSI: >=1 KSI in label window (2025 data)",
             "sites": ge1["total_positives"],
             "total_ksi_events": ge1["total_ksi_events"],
-            "full_ranking_recall_at_k": {k: v for k, v in ge1.items() if k.isdigit()},
+            "full_ranking_recall_at_k_IN_SAMPLE_DO_NOT_QUOTE": {k: v for k, v in ge1.items() if k.isdigit()},
         },
     }
 

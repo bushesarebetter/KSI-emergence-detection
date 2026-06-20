@@ -112,11 +112,12 @@
     "candidates": 26045,
     "label_completeness": "2025 complete (SWITRS 20260615); 2026-2027 are future predictions",
     "spearman_note": "Not directly comparable to verified run -- single-year partial label window",
+    "IN_SAMPLE_WARNING": "The recall@K figures below are scored by the production model fit on ALL available labels, including the ones being counted as hits -- they are NOT a validated accuracy claim and will look better than reality. Do not quote these in any doc, deck, or dashboard. The genuinely held-out (out-of-fold) figures are in results/oof_forward_run_results.json: recall@500 (>=1 KSI) = 21/108 (19.4%, random split) / 24/108 (22.2%, spatial split). Use those instead.",
     "threshold_ge2": {
       "description": "Strong emergence: >=2 KSI in label window (2025 only)",
       "sites": 2,
       "total_ksi_events": 4,
-      "full_ranking_recall_at_k": {
+      "full_ranking_recall_at_k_IN_SAMPLE_DO_NOT_QUOTE": {
         "50": {
           "hits": 1,
           "recall": 0.5,
@@ -153,7 +154,7 @@
       "description": "Any future KSI: >=1 KSI in label window (2025 data)",
       "sites": 108,
       "total_ksi_events": 110,
-      "full_ranking_recall_at_k": {
+      "full_ranking_recall_at_k_IN_SAMPLE_DO_NOT_QUOTE": {
         "50": {
           "hits": 8,
           "recall": 0.0741,

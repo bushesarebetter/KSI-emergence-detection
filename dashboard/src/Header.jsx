@@ -68,13 +68,15 @@ export default function Header() {
                 The model's primary signals are crash-timing features: how recently an intersection
                 had its last crash, and whether crash frequency structurally accelerated from a
                 previously stable baseline (changepoint detection). Cumulative crash volume
-                outweighs short-term recency. Built-environment features were tested and found to
-                add no predictive signal at this resolution.
+                outweighs short-term recency. Built-environment features (road geometry, signals)
+                show a small but consistent positive signal on top of crash history alone, though
+                the sample is still too small to require them, so the model reported here stays
+                crash-history only.
               </p>
               <p>
                 San Diego's current annual safety review identifies intersections with five or more
-                prior crashes — by definition, none of the 22 emergent sites would appear on that
-                list. This tool identifies the sites the current approach cannot see.
+                prior crashes, by definition, none of the 21 confirmed emergent sites would appear on
+                that list. This tool identifies the sites the current approach cannot see.
               </p>
               <p className="text-xs text-slate-600 italic">Publication forthcoming.</p>
             </div>

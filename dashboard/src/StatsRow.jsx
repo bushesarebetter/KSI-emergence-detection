@@ -18,9 +18,9 @@ export default function StatsRow({ intersections, filters }) {
   const topEntry = Object.entries(districtCounts).sort((a, b) => b[1] - a[1])[0];
 
   const stats = [
-    { label: "Window", value: "2024–26" },
+    { label: "Window", value: "2025–27" },
     { label: "Sites shown", value: shown.length },
-    { label: "Emergent", value: emergentCount, accent: true },
+    { label: "Emergent (≥1 KSI)", value: emergentCount, accent: true },
     { label: "Top district", value: topEntry ? `D${topEntry[0]}` : "—" },
   ];
 
