@@ -97,17 +97,17 @@ history features, with hyperparameters chosen by nested cross-validation, evalua
 genuine 5-fold out-of-fold (OOF) scoring: every reported prediction comes from a fold that
 never saw that row during training.
 
-**These numbers are stated below as last corrected (D11); see D11 for the candidate-set fix
-that superseded an earlier version of this section.**
+**These numbers are stated below as last corrected (D11, D15); see those entries for what
+superseded earlier versions of this section.**
 
 Spearman ρ = **0.128** (random split) / **0.131** (spatial split). A no-fitting persistence
 baseline (rank by recent crash count and trend) scores **0.133** — still slightly ahead,
 statistically the same as the tuned model given n=21 positives. At the ≥2-KSI threshold,
-recall@500 is **10/21 (47.6%)** on both splits, an exact tie with the baseline's 10/21. At
-the ≥1-KSI threshold the model shows a real, consistent edge over the baseline: **75/378
-(19.8%)** random split / **73/378 (19.3%)** spatial split, vs. the baseline's 61/378
-(16.1%). Full numbers and methodology in `scripts/refit_verified_run_oof.py` and
-`results/oof_verified_run_results.json`.
+recall@500 is **10/21 (47.6%)** on the random split, ties the baseline; **9/21 (42.9%)** on
+the spatial split, the baseline edges ahead there. At the ≥1-KSI threshold the model shows a
+real, consistent edge over the baseline: **74/378 (19.6%)** random split / **71/378 (18.8%)**
+spatial split, vs. the baseline's 61/378 (16.1%). Full numbers and methodology in
+`scripts/refit_verified_run_oof.py` and `results/oof_verified_run_results.json`.
 
 The honest framing: crash-history trend is a real, useful signal, and a one-line heuristic
 captures it just as well at the severe (≥2-KSI) threshold. The tuned model's clearest
@@ -115,11 +115,11 @@ validated contribution is at the broader (≥1-KSI) threshold.
 
 **Forward run (2016–2024 features → 2025–2027 labels):** the operational prediction.
 Feature window extends through 2024 to include the most recent available crash history.
-Label window is 2025–2027; 2025 is complete, 2026–2027 are pending. Spearman ρ = **0.066**
+Label window is 2025–2027; 2025 is complete, 2026–2027 are pending. Spearman ρ = **0.069**
 (random) / **0.068** (spatial), again tied with the persistence baseline (0.072). Treat all
 forward-run numbers as provisional: only one of three label years is in, and there are only
 2 positives at the ≥2-KSI threshold so far, too few for that threshold to mean anything yet.
-recall@500 at the ≥1-KSI threshold (108 positives): 19.4% random split / 22.2% spatial
+recall@500 at the ≥1-KSI threshold (108 positives): 18.5% random split / 21.3% spatial
 split, vs. the baseline's 22.2% (baseline edges ahead here). Full numbers in
 `results/oof_forward_run_results.json`.
 
@@ -417,3 +417,83 @@ eligibility screen (excluding any site with KSI through 2024, not just through 2
 a few already-risky sites from the denominator and a few resulting hits from the numerator;
 it doesn't change the conclusion. Updated in `README.md`, `reports/milestone_final.md`, and
 the Notion outreach materials.
+
+---
+
+## D15 — Verified-run recall@K hit counts didn't match the canonical OOF results file
+
+A comprehensive audit (two independent reviews, one cross-checking every numeric claim
+against source files, one auditing the pipeline code) found that the recall@K hit counts
+quoted in `README.md`, `reports/milestone_final.md`, this file's own D6 section, and every
+Notion outreach page (Project Writeup, Cost-Benefit Analysis, Pitch Deck, Outreach &
+Connections) did not match `results/oof_verified_run_results.json` — the file every one of
+them cites as its source. Spearman ρ was correct everywhere; only the recall@K hit counts,
+and everything computed from them (harm, BCR), had drifted.
+
+**Re-running `scripts/refit_verified_run_oof.py` reproduces the actual file deterministically**
+(same code, same `random_state=42`, same candidate panel), confirming the published numbers
+were stale relative to the current, correct, post-D11 verified-run archive — not a one-off
+typo, and not something this session introduced (the archive predates this session; the docs
+were apparently never reconciled against it after some earlier rebuild).
+
+**Corrected ≥2-KSI recall@500:** random 10/21 (47.6%, unchanged, still ties the persistence
+baseline), **spatial 9/21 (42.9%, was published as 10/21 — the baseline now edges ahead of
+the model on this split, it does not tie it.** ≥2-KSI BCR: 9.6:1 random (was 9.7:1, minor) /
+**8.7:1 spatial (was claimed tied at ~9.7:1)**.
+
+**Corrected ≥1-KSI recall@500:** random 74/378 (19.6%, was published as 75/378) / spatial
+71/378 (18.8%, was published as 73/378). ≥1-KSI BCR: 40.4:1 random (was 41.2:1) / 38.5:1
+spatial (was 40.3:1). At K=200, the random split now exactly ties the baseline (27/378 both)
+rather than showing a small edge (the published "29 (random)" was also wrong).
+
+**Separate fix:** `scripts/refit_verified_run_oof.py` computed persistence-baseline scores
+but never wrote the baseline's own recall@K into its JSON output — the baseline numbers in
+every doc were being hand-computed separately (correctly, as it turned out) with no way to
+spot-check them against the canonical file. Added a `persistence_baseline` block to the
+script's output alongside `random`/`spatial`, so the file is now self-contained.
+
+Updated: `README.md`, `reports/milestone_final.md`, this file's D6, and the Notion Project
+Writeup, Cost-Benefit Analysis, Pitch Deck, and Outreach & Connections pages.
+
+---
+
+## D16 — Forward-run OOF script hardcoded a third, different hyperparameter set
+
+The project's Protocol A discipline (D5) is to tune hyperparameters once on the crash-only
+model, freeze them, and reuse them unchanged everywhere, so any difference between
+comparisons is attributable to the data, not to re-tuning noise. Every OOF script follows
+this by loading `data/model/frozen_params.json` directly: `refit_verified_run_oof.py`,
+`refit_protocol_a_oof.py`, `refit_protocol_a_forward_oof.py`, `fit_frozen.py`.
+
+`scripts/refit_forward_run_oof.py` was the one exception: it hardcoded a literal copy of a
+hyperparameter dict, commented as coming from "the project's best model in the verified-run
+bake-off (`results/final_chosen_model_oof.json`)." Three problems with this, found in a
+comprehensive audit: (1) `results/final_chosen_model_oof.json` is itself just a saved copy
+of `scripts/model_bakeoff_oof.py`'s "freshly nested-CV-tuned XGBoost" result, a one-off
+architecture-comparison data point, not Protocol A's frozen model. (2) The hardcoded copy
+in `refit_forward_run_oof.py` didn't even match that file correctly — three different
+hyperparameter sets existed across the project (`frozen_params.json`: variance_power=1.12,
+depth=3, n_estimators=171; the hardcoded copy: variance_power=1.59, depth=4, n_estimators=53;
+`final_chosen_model_oof.json`: variance_power=1.46, depth=3, n_estimators=85), and none of
+the three agreed. (3) Separately, `model_bakeoff_oof.py`'s "freshly tuned" XGBoost result
+(used in the README's architecture-comparison narrative, which claims it "is the model
+reported above") doesn't actually match what `refit_verified_run_oof.py` computes for the
+verified-run headline numbers either — that script has always used the frozen Protocol-A
+params, not the bake-off's fresh tune. The README's claim that the freshly-tuned model is
+"the model reported" was never true of the actual headline-number-generating script.
+
+**Fix:** `refit_forward_run_oof.py` now loads `frozen_params.json` directly, the same as
+every other OOF script, eliminating the hardcoded copy and the drift risk permanently. The
+architecture-comparison framing in README/Pitch Deck/Project Writeup was corrected to
+describe the freshly-tuned XGBoost as one data point in the bake-off (it performs about the
+same as the frozen model, Spearman 0.1279 vs. 0.1279 random on the verified run, recall
+within a site or two), not as the model actually used for any headline number.
+
+**Result, forward run (≥1 KSI, genuine OOF):** Spearman ρ random 0.0661 → **0.069**
+(spatial unchanged at 0.068). recall@500: random 21/108 (19.4%) → **20/108 (18.5%)**,
+spatial 24/108 (22.2%) → **23/108 (21.3%)**. The OOF-based hit/miss ring on the live
+dashboard map dropped from 21 to **20 white rings**. The verified run's own headline numbers
+were unaffected (it was already loading `frozen_params.json` correctly) — this was purely a
+forward-run and architecture-comparison-narrative fix. Updated: `README.md`,
+`reports/milestone_final.md`, this file's D6, the Notion Project Writeup and Pitch Deck, and
+`dashboard/src/FilterBar.jsx`'s static OOF lookup table.

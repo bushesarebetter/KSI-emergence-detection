@@ -3,11 +3,11 @@ Export dashboard data for either the verified or forward pipeline run.
 
   --run verified  (default)
       Uses model_scores.parquet + embedded labels (2016-2021 -> 2022-2024).
-      Validation gate: expects exactly 81,007 candidates, 22 emergent(>=2), 389 (>=1).
+      Validation gate: expects exactly 26,423 candidates, 21 emergent(>=2), 378 (>=1).
 
   --run forward
       Uses frozen_scores.parquet (Set A crash-only) + candidate_panel.parquet labels
-      (2016-2023 -> 2024-2026 partial window).
+      (2016-2024 -> 2025-2027 partial window).
       Validation gate: n_candidates within 1000 of forward panel count (flexible).
 
 Usage:
@@ -203,7 +203,7 @@ def validate_gate_forward(merged: gpd.GeoDataFrame) -> None:
         sys.exit(1)
     # Print positives but don't assert fixed numbers — label window is partial
     print(f"  Note: emergent(>=2)={n_emergent_ge2}, emergent(>=1)={n_emergent_ge1} "
-          f"(label window partially complete; 2025-2026 data not yet available)")
+          f"(label window partially complete; 2026-2027 data not yet available)")
 
 
 def compute_rank_and_percentile(merged: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
@@ -211,6 +211,23 @@ def compute_rank_and_percentile(merged: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     merged = merged.copy()
     merged["rank"] = (-merged["_score"]).rank(method="first").astype(int)
     merged["percentile"] = ((1 - (merged["rank"] - 1) / n) * 100).clip(0, 100)
+    return merged
+
+
+def add_oof_hit_flag(merged: gpd.GeoDataFrame, run_mode: str, root: Path, k: int = 500) -> gpd.GeoDataFrame:
+    """Flag known emergent sites (KSI_label >= 1) as caught or missed by the model, using
+    genuine out-of-fold scoring -- NOT the live production rank ('_score'/'rank' above),
+    which is fit on all available labels and would overstate accuracy if used for this.
+    A site only gets marked 'caught' if a model that never saw its label still ranked it
+    in the top-K. See docs/DECISIONS.md D12 and the OOF-only convention used throughout
+    the dashboard (FilterBar's out-of-fold catch-rate stat).
+    """
+    run_dir = root / "data" / "model" / ("verified_run" if run_mode == "verified" else "forward_run")
+    oof = pd.read_parquet(run_dir / "oof_scores.parquet", columns=["intersection_id", "oof_score_random"])
+    oof = oof.sort_values("oof_score_random", ascending=False).reset_index(drop=True)
+    oof["oof_rank"] = oof.index + 1
+    merged = merged.merge(oof[["intersection_id", "oof_rank"]], on="intersection_id", how="left")
+    merged["oof_predicted_correctly"] = (merged["KSI_label"] >= 1) & (merged["oof_rank"] <= k)
     return merged
 
 
@@ -423,7 +440,7 @@ def assemble_export_panel(
         "intersection_id", "node_id", "lon", "lat",
         "tweedie_score", "percentile", "rank",
         "council_district",
-        "is_known_emergent", "is_crash_active", "crashes_training",
+        "is_known_emergent", "oof_predicted_correctly", "is_crash_active", "crashes_training",
         "crash_history_json", "shap_json",
     ]
     return df[keep_cols].reset_index(drop=True)
@@ -483,6 +500,7 @@ def main() -> None:
 
         logging.info("Step 3: computing rank and percentile...")
         merged = compute_rank_and_percentile(merged)
+        merged = add_oof_hit_flag(merged, run_mode, root)
 
         logging.info("Step 4: loading council districts...")
         districts = load_council_districts(root)
@@ -522,7 +540,7 @@ def main() -> None:
 
         print(f"\n{run_mode.upper()} RUN exported successfully:")
         if run_mode == "verified":
-            print("  Candidates: 81,007 | Emergent (>=2): 22 | Emergent (>=1): 389")
+            print("  Candidates: 26,423 | Emergent (>=2): 21 | Emergent (>=1): 378")
             print(f"  Top-{TOP_N} written to {out_dir}/")
             print_recall_at_k_verified(merged)
         else:

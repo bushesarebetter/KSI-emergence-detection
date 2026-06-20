@@ -5,11 +5,12 @@ are most likely to become severe-injury (KSI: killed or seriously injured) sites
 three years, before they accumulate any severe-crash history.
 
 **Bottom line:** a top-500 shortlist built from crash records alone catches about 48% of
-the intersections that go on to become severe-crash sites (10 of 21), sites San Diego's
-current review process can't identify at all. The estimated benefit-cost ratio is about
-9.7:1 after federal HSIP funding at that threshold, and closer to 40:1 at the broader
-any-injury threshold. A prospective test against unseen 2025 outcomes recovered 26 of 112
-future KSI sites at K=500 (12x random), so the model generalizes past its training window.
+the intersections that go on to become severe-crash sites (10 of 21 on the random split,
+9 of 21 on the spatial split), sites San Diego's current review process can't identify at
+all. The estimated benefit-cost ratio is about 9.6:1 after federal HSIP funding at that
+threshold, and closer to 40:1 at the broader any-injury threshold. A prospective test
+against unseen 2025 outcomes recovered 24 of 108 future KSI sites at K=500 (11.6x random),
+so the model generalizes past its training window.
 
 A simple, no-ML baseline (just rank intersections by recent crash count and trend) gets
 the exact same result at the severe-emergence threshold. The model's clearest validated
@@ -51,41 +52,44 @@ recall@K tables below with that in mind.
 
 | Shortlist | Sites found (random / spatial split) | Recall | Persistence baseline | vs. city (0%) |
 |---|---|---|---|---|
-| Top 50 | 2 / 1 | 4.8-9.5% | 3/21 (14.3%) | 0% → 5-10% |
-| Top 100 | 2 / 1 | 4.8-9.5% | 4/21 (19.0%) | 0% → 5-10% |
+| Top 50 | 1 / 1 | 4.8% | 3/21 (14.3%) | 0% → 4.8% |
+| Top 100 | 3 / 1 | 4.8-14.3% | 4/21 (19.0%) | 0% → 5-14% |
 | Top 200 | 5 / 5 | 23.8% | 6/21 (28.6%) | 0% → 24% |
-| **Top 500** | **10 / 10** | **47.6%** | **10/21 (47.6%)** | **0% → 48%** |
-| Top 1,000 | 14 / 13 | 61.9-66.7% | 13/21 (61.9%) | 0% → 62-67% |
+| **Top 500** | **10 / 9** | **42.9-47.6%** | **10/21 (47.6%)** | **0% → 43-48%** |
+| Top 1,000 | 16 / 15 | 71.4-76.2% | 13/21 (61.9%) | 0% → 71-76% |
 
-95% bootstrap CI on recall@500: [28.6%, 71.4%] (random split), wide because there are only
-21 positives total. **The persistence baseline ties the tuned model exactly at top-500**
-(10/21 both), and beats it at every K below that. This threshold doesn't show an
+95% bootstrap CI on recall@500: [28.6%, 71.4%] (random split) / [23.8%, 61.9%] (spatial
+split), wide because there are only 21 positives total. **The persistence baseline ties the
+tuned model exactly on the random split at top-500** (10/21 both); on the spatial split the
+baseline edges ahead (10/21 vs. the model's 9/21). This threshold doesn't show an
 ML-specific advantage at this sample size, and we'd rather say that plainly than oversell
 it.
 
-20 KSI events were caught in the model's top-500 (same for both splits and the baseline, an
-exact tie all around at this threshold). Harm at those caught sites: about $103.5M
-(FHWA-SA-25-021, 2024 dollars, fatal share 24.3%, measured directly from raw SWITRS crashes
-in the 2022-2024 label window). Prevented at 30% treatment effectiveness: about $31.1M.
-City program cost after 90% HSIP federal funding: about $3.2M (a program-cost assumption,
-not something this analysis verifies). **BCR: about 9.7:1.**
+20 KSI events were caught in the model's top-500 on the random split (same as the baseline,
+an exact tie there); 18 on the spatial split. Harm at those caught sites: about $103.5M
+(random split) / $93.2M (spatial split) (FHWA-SA-25-021, 2024 dollars, fatal share 24.3%,
+measured directly from raw SWITRS crashes in the 2022-2024 label window). Prevented at 30%
+treatment effectiveness: about $31.1M (random) / $27.9M (spatial). City program cost after
+90% HSIP federal funding: about $3.2M (a program-cost assumption, not something this
+analysis verifies). **BCR: about 9.6:1 (random) / 8.7:1 (spatial)**, vs. the baseline's
+9.6:1.
 
 ### Secondary threshold — ≥1 KSI: 378 sites
 
 | Shortlist | Sites found | Recall | Persistence baseline |
 |---|---|---|---|
-| Top 200 | 29 (random) | 7.7% | 27/378 (7.1%) |
-| **Top 500** | **75 (random) / 73 (spatial)** | **19.3-19.8%** | **61/378 (16.1%)** |
-| Top 1,000 | 128 (random) | 33.9% | 114/378 (30.2%) |
+| Top 200 | 27 (random) / 30 (spatial) | 7.1-7.9% | 27/378 (7.1%, ties random) |
+| **Top 500** | **74 (random) / 71 (spatial)** | **18.8-19.6%** | **61/378 (16.1%)** |
+| Top 1,000 | 128 (random) / 123 (spatial) | 32.5-33.9% | 114/378 (30.2%) |
 
-Here the model has a real, consistent edge over the baseline at every K shown. This is the
-clearest evidence in the whole project that the model adds value beyond the trivial
-heuristic.
+The model has a consistent edge over the baseline at K=500 and K=1000; at K=200 the random
+split exactly ties the baseline (27/378 both), so the edge isn't universal at every K, but
+it is real and the largest gap in the project at the K that matters operationally (top-500).
 
-85 KSI events caught in the top-500 (random split; 83 on the spatial split, 71 for the
-baseline). Harm at those sites: about $440M random / $430M spatial. Prevented at 30%
-effectiveness: about $132.0M / $128.9M. **BCR: about 41.2:1 (random) / 40.3:1 (spatial)**,
-vs. the baseline's 34.4:1.
+84 KSI events caught in the top-500 on the random split (80 on the spatial split, 71 for the
+baseline). Harm at those sites: about $434.8M random / $414.1M spatial. Prevented at 30%
+effectiveness: about $130.4M / $124.2M. **BCR: about 40.4:1 (random) / 38.5:1 (spatial)**,
+vs. the baseline's 34.2:1.
 
 ### How the model compares to simpler alternatives
 
@@ -102,8 +106,11 @@ What we found:
   nowhere near enough data for a network with that many parameters to learn anything
   stable, no matter how it's regularized.
 - Random Forest performed about the same as XGBoost.
-- A freshly nested-CV-tuned XGBoost on crash-only features was the most consistently
-  competitive setup, and it's the model reported above.
+- A freshly nested-CV-tuned XGBoost on crash-only features performed about the same as the
+  frozen Protocol-A hyperparameters used for the headline numbers above (Spearman 0.1279
+  vs. 0.1279 random split, recall@500 within a site or two either way). Re-tuning didn't
+  buy anything; the model reported above stays the frozen Protocol-A version, for
+  consistency with every other comparison in this project (see `docs/DECISIONS.md` D16).
 - No architecture we tried clearly and reliably beats the persistence baseline at the
   severe (≥2-KSI) threshold. Crash-history trend is a real signal, and a one-line heuristic
   captures all of it there. The model's validated value-add is real, but it's concentrated
@@ -236,9 +243,9 @@ live prediction covering 2025-2027. 2025 outcomes are complete; 2026-2027 will l
 the next SWITRS export is released. The forward-run top-500 is in
 `results/top500_forward_2025_2027.csv`.
 
-Spearman ρ: **0.066** (random split) / **0.068** (spatial split), against a persistence
+Spearman ρ: **0.069** (random split) / **0.068** (spatial split), against a persistence
 baseline of 0.072, the same tied-or-trailing pattern as the verified run. recall@500 at the
-≥1-KSI threshold (108 positives): 21/108 (19.4%, random split) / 24/108 (22.2%, spatial
+≥1-KSI threshold (108 positives): 20/108 (18.5%, random split) / 23/108 (21.3%, spatial
 split), vs. the baseline's 24/108 (the baseline ties or edges ahead here too). Treat every
 forward-run number as provisional: only one of the three label years is complete, and with
 just 2 positives at the ≥2-KSI threshold so far, no recall figure at that threshold means

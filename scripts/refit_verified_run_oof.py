@@ -244,7 +244,7 @@ def main() -> None:
         "fatal_share_measured": round(fatal_share, 4),
     }
 
-    for split_name, scores in [("random", oof_random), ("spatial", oof_spatial)]:
+    for split_name, scores in [("random", oof_random), ("spatial", oof_spatial), ("persistence_baseline", baseline_scores)]:
         order = np.argsort(-scores)
         ranked_label = y_count[order]
         split_results = {}

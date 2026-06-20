@@ -23,22 +23,24 @@ D11 for the full candidate-set definition.
 - **21 confirmed emergent sites** (≥2 KSI in label window).
 - **Recall@K, ≥2 KSI threshold, random split:**
 
-| K | Hits | Recall | Persistence baseline |
+| K | Hits (random/spatial) | Recall | Persistence baseline |
 |---|---|---|---|
-| 50 | 2/21 | 9.5% | 3/21 (14.3%) |
-| 100 | 2/21 | 9.5% | 4/21 (19.0%) |
-| 200 | 5/21 | 23.8% | 6/21 (28.6%) |
-| 500 | 10/21 | 47.6% (spatial split: same) | 10/21 (47.6%) |
-| 1,000 | 14/21 | 66.7% (spatial split: 61.9%) | 13/21 (61.9%) |
+| 50 | 1/21 · 1/21 | 4.8% | 3/21 (14.3%) |
+| 100 | 3/21 · 1/21 | 4.8-14.3% | 4/21 (19.0%) |
+| 200 | 5/21 · 5/21 | 23.8% | 6/21 (28.6%) |
+| 500 | 10/21 · 9/21 | 42.9-47.6% | 10/21 (47.6%) |
+| 1,000 | 16/21 · 15/21 | 71.4-76.2% | 13/21 (61.9%) |
 
-The persistence baseline ties the tuned model exactly at K=500 and beats it at every K
-below that. This threshold doesn't show an ML-specific advantage at this sample size.
+The persistence baseline ties the tuned model exactly at K=500 on the random split (10/21
+both); on the spatial split the baseline edges ahead (10/21 vs. the model's 9/21). This
+threshold doesn't show a clear ML-specific advantage at this sample size.
 
-- **BCR (top-500, ≥2 threshold, 30% treatment effectiveness): about 9.7:1**, identical for
-  the model and the baseline at this threshold (both catch the same 20 events). Fatal share
-  24.3%, measured directly from raw SWITRS crashes in the 2022-2024 label window.
-- **BCR (top-500, ≥1 threshold): about 41.2:1 (random) / 40.3:1 (spatial)**, vs. the
-  baseline's 34.4:1. This is the model's clearest validated edge over the trivial heuristic.
+- **BCR (top-500, ≥2 threshold, 30% treatment effectiveness): about 9.6:1 (random) / 8.7:1
+  (spatial)**, vs. the baseline's 9.6:1 (the model and baseline catch the same 20 events on
+  the random split). Fatal share 24.3%, measured directly from raw SWITRS crashes in the
+  2022-2024 label window.
+- **BCR (top-500, ≥1 threshold): about 40.4:1 (random) / 38.5:1 (spatial)**, vs. the
+  baseline's 34.2:1. This is the model's clearest validated edge over the trivial heuristic.
 - **Infrastructure feature test:** road geometry and the full infrastructure set show a
   **consistent** positive delta on both splits (+0.020 to +0.021 Spearman ρ). This is a
   promising finding, not yet a settled one given n=21 positives; see `docs/DECISIONS.md` D8.
@@ -60,16 +62,16 @@ The current operational prediction. The dashboard runs on this. 2025 labels are 
 (SWITRS 20260615); 2026-2027 are future. Sources: 20260608 (primary, includes 2015 burn-in)
 + 20260615 (2025 crash data), deduplicated on CASE_ID.
 
-- **Spearman ρ (OOF):** 0.066 (random) / 0.068 (spatial), against a persistence baseline of
+- **Spearman ρ (OOF):** 0.069 (random) / 0.068 (spatial), against a persistence baseline of
   0.072. Lower than the verified run, expected, since only one year of the three-year label
   window is complete as of this writing.
 - **Emergent sites ≥2 KSI:** 2 (2025 data only, the 2025-2027 window is incomplete).
 - **Sites ≥1 KSI (2025 data):** 108.
-- **Recall@K, ≥1 KSI, random split:**
+- **Recall@K, ≥1 KSI:**
 
-| K | Hits | Recall | Persistence baseline |
+| K | Hits (random/spatial) | Recall | Persistence baseline |
 |---|---|---|---|
-| 500 | 21/108 | 19.4% | 24/108 (22.2%) |
+| 500 | 20/108 · 23/108 | 18.5-21.3% | 24/108 (22.2%) |
 
 The baseline edges ahead of the model here too. Treat this run's numbers as provisional.
 Only one of three label years is in, and there are too few ≥2-KSI positives so far for that
@@ -92,7 +94,7 @@ haven't happened yet.
 - **Spearman ρ** (random and spatial splits, verified run, genuine out-of-fold scoring):
   0.128 / 0.131, statistically tied with (and slightly behind) the persistence baseline.
 - **Full-population recall@K** (verified run, all 26,423 City-of-San-Diego candidates):
-  47.6% of the 21 emergent sites caught in the top-500.
+  47.6% of the 21 emergent sites caught in the top-500 (random split; 42.9% spatial split).
 - **Candidate-set scope** (D11): restricted to the actual City of San Diego (26,423
   candidates).
 - **Infrastructure feature test** (frozen hyperparameters, Protocol A, Sets A-D and
@@ -132,7 +134,7 @@ Sources: 20260608 (2015-2024) + 20260615 (2025), deduplicated on CASE_ID.
 
 | K | Hits | Recall |
 |---|---|---|
-| 500 | 21/108 | 19.4% |
+| 500 | 20/108 | 18.5% |
 
 Sets B-D (infrastructure feature groups) haven't been re-evaluated on the forward-run
 window; see `results/ablation_results.csv` for the verified-run feature-set comparison.
@@ -142,12 +144,12 @@ window; see `results/ablation_results.csv` for the verified-run feature-set comp
 ## 4. Recommended Next Steps (non-modeling)
 
 **a. Lead outreach with the numbers in this document.**
-The verified-run model catches 48% of severe-emergence sites at the top-500 (BCR about
-9.7:1, tied with the trivial baseline at this threshold), and a stronger 19-20% / ~41:1 BCR
-at the broader any-injury threshold. The honest framing, that a simple crash-trend ranking
-gets the exact same result at the severe threshold, is a stronger pitch than an unqualified
-ML claim: it's auditable, explainable to a non-technical audience, and the city isn't doing
-either version today.
+The verified-run model catches 43-48% of severe-emergence sites at the top-500 (BCR about
+8.7-9.6:1, tied with the trivial baseline on the random split at this threshold), and a
+stronger 19-20% / ~38-40:1 BCR at the broader any-injury threshold. The honest framing,
+that a simple crash-trend ranking gets close to the same result at the severe threshold, is
+a stronger pitch than an unqualified ML claim: it's auditable, explainable to a
+non-technical audience, and the city isn't doing either version today.
 
 **b. Outreach to Vision Zero SD and UCSD TREDS.**
 Templates live in Notion under Outreach & Connections. Update them with the numbers in

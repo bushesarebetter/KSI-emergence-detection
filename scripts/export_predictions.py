@@ -10,7 +10,7 @@ OUTPUT_DIR = os.path.join("dashboard", "public", "data")
 
 REQUIRED_PANEL_COLUMNS = [
     "node_id", "lon", "lat", "tweedie_score", "percentile",
-    "council_district", "is_known_emergent", "is_crash_active",
+    "council_district", "is_known_emergent", "oof_predicted_correctly", "is_crash_active",
     "crashes_training", "crash_history_json", "shap_json",
 ]
 
@@ -70,6 +70,7 @@ def write_geojson(
             "council_district": district,
             "percentile": round(float(row["percentile"]), 4),
             "is_known_emergent": bool(row["is_known_emergent"]),
+            "oof_predicted_correctly": bool(row["oof_predicted_correctly"]),
             "is_crash_active": bool(row["is_crash_active"]),
             "crashes_training": int(row["crashes_training"]),
             "crash_history": crash_history,

@@ -14,9 +14,9 @@ const THRESHOLD_OPTIONS = [
 // years land.
 const OOF_CATCH_STATS = {
   50: { caught: 1, total: 108 },
-  100: { caught: 5, total: 108 },
-  200: { caught: 9, total: 108 },
-  500: { caught: 21, total: 108 },
+  100: { caught: 2, total: 108 },
+  200: { caught: 6, total: 108 },
+  500: { caught: 20, total: 108 },
 };
 
 export default function FilterBar({ filters, onFiltersChange }) {

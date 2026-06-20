@@ -75,8 +75,9 @@ export default function Header() {
               </p>
               <p>
                 San Diego's current annual safety review identifies intersections with five or more
-                prior crashes, by definition, none of the 21 confirmed emergent sites would appear on
-                that list. This tool identifies the sites the current approach cannot see.
+                prior crashes, by definition, none of the 108 confirmed 2025 emergent sites shown on
+                this map would appear on that list. This tool identifies the sites the current
+                approach cannot see.
               </p>
               <p className="text-xs text-slate-600 italic">Publication forthcoming.</p>
             </div>

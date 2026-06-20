@@ -1,4 +1,22 @@
 """
+*** DEPRECATED as of D15 (docs/DECISIONS.md) -- DO NOT TRUST THIS SCRIPT'S OUTPUT. ***
+
+Every STATED constant and source file below (milestone3a_results.json, milestone4.md,
+milestone5_prewriting.md, model_scores.parquet) is from before the D6/D10/D11/D15 fixes --
+pre-county-restriction candidate counts (81,007/22), pre-fatal-share-fix harm figures, and
+file paths that may no longer exist. Running this will produce false "NO"/"REVIEW" flags
+against numbers that are now CORRECT, and would silently pass numbers that are now WRONG
+(it never reads reports/verified_canonical_numbers.json or any results/oof_*.json file --
+the actual current sources of truth).
+
+For an up-to-date claims check, cross-reference README.md / reports/milestone_final.md /
+the Notion outreach pages directly against reports/verified_canonical_numbers.json and
+results/oof_verified_run_results.json, results/oof_forward_run_results.json,
+results/recall_evaluation.json. This script is kept for reference only and should be
+rewritten against those files (or deleted) before being run again.
+
+Original docstring follows:
+
 Claims audit: recompute every headline figure directly from source files and
 compare against the values currently asserted in the pitch deck, one-pager,
 cost analysis, and Notion.

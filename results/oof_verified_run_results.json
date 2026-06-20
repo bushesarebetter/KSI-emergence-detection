@@ -250,5 +250,127 @@
         "total_harm_readable": "$93M"
       }
     }
+  },
+  "persistence_baseline": {
+    ">=1": {
+      "n_positives": 378,
+      "50": {
+        "hits": 8,
+        "recall": 0.0212,
+        "ci95": [
+          0.0079,
+          0.037
+        ],
+        "random_baseline_recall": 0.001892,
+        "lift_over_random": 11.2
+      },
+      "100": {
+        "hits": 11,
+        "recall": 0.0291,
+        "ci95": [
+          0.0132,
+          0.0476
+        ],
+        "random_baseline_recall": 0.003785,
+        "lift_over_random": 7.7
+      },
+      "200": {
+        "hits": 27,
+        "recall": 0.0714,
+        "ci95": [
+          0.0476,
+          0.0979
+        ],
+        "random_baseline_recall": 0.007569,
+        "lift_over_random": 9.4
+      },
+      "500": {
+        "hits": 61,
+        "recall": 0.1614,
+        "ci95": [
+          0.127,
+          0.1984
+        ],
+        "random_baseline_recall": 0.018923,
+        "lift_over_random": 8.5
+      },
+      "1000": {
+        "hits": 114,
+        "recall": 0.3016,
+        "ci95": [
+          0.2566,
+          0.3492
+        ],
+        "random_baseline_recall": 0.037846,
+        "lift_over_random": 8.0
+      },
+      "harm_at_top500_caught_sites": {
+        "total_ksi_events": 71,
+        "fatal_share_measured": 0.243,
+        "blended_cost_per_event_usd": 5175524,
+        "total_harm_usd": 367462185,
+        "total_harm_readable": "$367M"
+      }
+    },
+    ">=2": {
+      "n_positives": 21,
+      "50": {
+        "hits": 3,
+        "recall": 0.1429,
+        "ci95": [
+          0.0,
+          0.2857
+        ],
+        "random_baseline_recall": 0.001892,
+        "lift_over_random": 75.5
+      },
+      "100": {
+        "hits": 4,
+        "recall": 0.1905,
+        "ci95": [
+          0.0476,
+          0.381
+        ],
+        "random_baseline_recall": 0.003785,
+        "lift_over_random": 50.3
+      },
+      "200": {
+        "hits": 6,
+        "recall": 0.2857,
+        "ci95": [
+          0.0952,
+          0.4762
+        ],
+        "random_baseline_recall": 0.007569,
+        "lift_over_random": 37.7
+      },
+      "500": {
+        "hits": 10,
+        "recall": 0.4762,
+        "ci95": [
+          0.2381,
+          0.6667
+        ],
+        "random_baseline_recall": 0.018923,
+        "lift_over_random": 25.2
+      },
+      "1000": {
+        "hits": 13,
+        "recall": 0.619,
+        "ci95": [
+          0.381,
+          0.8095
+        ],
+        "random_baseline_recall": 0.037846,
+        "lift_over_random": 16.4
+      },
+      "harm_at_top500_caught_sites": {
+        "total_ksi_events": 20,
+        "fatal_share_measured": 0.243,
+        "blended_cost_per_event_usd": 5175524,
+        "total_harm_usd": 103510475,
+        "total_harm_readable": "$104M"
+      }
+    }
   }
 }

@@ -67,7 +67,10 @@ export default function MapView({ intersections, filters, selectedIntersection, 
       },
     });
 
-    // All 108 emergent sites (>=1 KSI), white ring always visible regardless of threshold
+    // All 108 emergent sites (>=1 KSI), ring always visible regardless of threshold.
+    // Ring color reflects genuine out-of-fold scoring (oof_predicted_correctly), NOT the
+    // live production rank -- white = a model that never saw this site's label still
+    // ranked it in its top-500; black = the model missed it. See docs/DECISIONS.md D12.
     map.addSource("emergents-source", { type: "geojson", data: EMPTY_FC });
     map.addLayer({
       id: "emergents-layer",
@@ -77,7 +80,12 @@ export default function MapView({ intersections, filters, selectedIntersection, 
         "circle-radius": ["step", ["get", "rank"], 11, 51, 10, 101, 9, 201, 8],
         "circle-color": "rgba(0,0,0,0)",
         "circle-stroke-width": 2,
-        "circle-stroke-color": "#ffffff",
+        "circle-stroke-color": [
+          "case",
+          ["==", ["get", "oof_predicted_correctly"], true],
+          "#ffffff",
+          "#000000",
+        ],
       },
     });
 

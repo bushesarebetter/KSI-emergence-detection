@@ -2,16 +2,19 @@
 
 Same evaluation standard as the verified run (see scripts/refit_verified_run_oof.py).
 The forward-run frozen_scores.parquet (data/model/forward_run/) is the model
-currently live on the dashboard, fit on the full 80,618-candidate panel, which
-is correct for production scoring. This script provides the genuinely held-out
+currently live on the dashboard, fit on the full candidate panel, which is
+correct for production scoring. This script provides the genuinely held-out
 performance evaluation that production scoring alone doesn't give you.
 
 This script applies the same approach: genuine 5-fold OOF scoring, crash-only
-features, using the SAME nested-CV-tuned hyperparameters chosen as the
-project's best model in scripts/model_bakeoff_oof.py (kept consistent across
-the verified and forward runs rather than re-tuned per-window, which is more
-stable given only 2 >=2-KSI positives in the forward run's partial 2024-only
-label window).
+features, using the SAME frozen Protocol-A hyperparameters from
+data/model/frozen_params.json that every other OOF script in this project uses
+(refit_verified_run_oof.py, refit_protocol_a_oof.py, refit_protocol_a_forward_oof.py,
+fit_frozen.py) -- loaded directly from that file rather than hardcoded, so this
+can't silently drift from the rest of the project if frozen_params.json is ever
+regenerated. (D16: this script previously hardcoded a third, different
+hyperparameter set that matched neither frozen_params.json nor the bake-off's
+freshly-tuned model it claimed to mirror; see docs/DECISIONS.md D16.)
 
 NOTE: the forward run's label window (2025-2027) is only partially complete
 (2024 done; 2025-2026 pending), so the numbers here are provisional and will
@@ -50,24 +53,28 @@ KS = [50, 100, 200, 500, 1000]
 THRESHOLDS = [1, 2]
 RNG = np.random.RandomState(42)
 
-# Same hyperparameters chosen as the project's best model in the verified-run
-# bake-off (results/final_chosen_model_oof.json) -- reused here for
-# consistency rather than re-tuned, since the forward run only has 2
-# >=2-KSI positives (too few to tune against without instability).
-TUNED_PARAMS = {
-    "tweedie_variance_power": 1.5888579172320472,
-    "max_depth": 4,
-    "learning_rate": 0.04661392174994625,
-    "n_estimators": 53,
-    "reg_alpha": 1.7175482489007377,
-    "reg_lambda": 8.744542699901878,
-    "min_child_weight": 19,
-    "objective": "reg:tweedie",
-    "subsample": 0.8,
-    "colsample_bytree": 0.8,
-    "random_state": 42,
-    "verbosity": 0,
-}
+def _load_frozen_params() -> dict:
+    """Load the same frozen Protocol-A crash-only hyperparameters every other
+    OOF script in this project uses, directly from the source file (no hardcoded
+    copy that can drift)."""
+    raw = json.loads((MODEL_DIR / "frozen_params.json").read_text())["frozen"]
+    return {
+        "objective": raw["objective"],
+        "tweedie_variance_power": float(raw["tweedie_variance_power"]),
+        "max_depth": int(raw["max_depth"]),
+        "learning_rate": float(raw["learning_rate"]),
+        "n_estimators": int(raw["n_estimators"]),
+        "reg_alpha": float(raw["reg_alpha"]),
+        "reg_lambda": float(raw["reg_lambda"]),
+        "min_child_weight": int(raw["min_child_weight"]),
+        "subsample": float(raw["subsample"]),
+        "colsample_bytree": float(raw["colsample_bytree"]),
+        "random_state": 42,
+        "verbosity": 0,
+    }
+
+
+TUNED_PARAMS = _load_frozen_params()
 
 
 def oof_predict(X, y, groups, mode):
