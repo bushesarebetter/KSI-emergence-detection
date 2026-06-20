@@ -1,0 +1,68 @@
+{
+  "prospective_2025": {
+    "model": "xgb_tweedie (verified-run recipe, refit in-memory, frozen_params.json crash_only)",
+    "feature_window_applied": "2016-2023",
+    "label_year": "2025",
+    "candidates": 26160,
+    "positives_ge1": 112,
+    "positives_ge2": 2,
+    "recall_at_k": {
+      ">=1": {
+        "n_positives": 112,
+        "50": {
+          "hits": 3,
+          "recall": 0.0268,
+          "ci95": [
+            0.0,
+            0.0625
+          ],
+          "random_baseline_recall": 0.001911,
+          "lift_over_random": 14.0
+        },
+        "100": {
+          "hits": 3,
+          "recall": 0.0268,
+          "ci95": [
+            0.0,
+            0.0625
+          ],
+          "random_baseline_recall": 0.003823,
+          "lift_over_random": 7.0
+        },
+        "200": {
+          "hits": 9,
+          "recall": 0.0804,
+          "ci95": [
+            0.0357,
+            0.1339
+          ],
+          "random_baseline_recall": 0.007645,
+          "lift_over_random": 10.5
+        },
+        "500": {
+          "hits": 26,
+          "recall": 0.2321,
+          "ci95": [
+            0.1605,
+            0.3125
+          ],
+          "random_baseline_recall": 0.019113,
+          "lift_over_random": 12.1
+        },
+        "1000": {
+          "hits": 47,
+          "recall": 0.4196,
+          "ci95": [
+            0.3304,
+            0.5092
+          ],
+          "random_baseline_recall": 0.038226,
+          "lift_over_random": 11.0
+        }
+      }
+    },
+    "sanity_check_against_verified_canonical": {
+      "note": "in-memory refit scored against its OWN training data (2016-2021/2022-2024) to confirm it reproduces reports/verified_canonical_numbers.json"
+    }
+  }
+}

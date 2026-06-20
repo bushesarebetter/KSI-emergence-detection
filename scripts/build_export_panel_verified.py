@@ -46,10 +46,13 @@ COUNCIL_DISTRICT_JUR_FIELD = "JUR_NAME"
 COUNCIL_DISTRICT_JUR_VALUE = "SAN DIEGO"
 TOP_N = 1000
 
-# Verified run constants — updated for 2025-label retrain (SWITRS 20260615)
-VERIFIED_EXPECTED_CANDIDATES = 80618
-VERIFIED_EXPECTED_EMERGENT_GE2 = 2
-VERIFIED_EXPECTED_EMERGENT_GE1 = 111
+# Verified run constants — 2016-2021 features -> 2022-2024 labels
+# Corrected 2026-06-20: candidate set restricted to City of San Diego only (was
+# accidentally county-wide, see docs/DECISIONS.md D11). 81007/22/389 were the
+# county-wide figures.
+VERIFIED_EXPECTED_CANDIDATES = 26423
+VERIFIED_EXPECTED_EMERGENT_GE2 = 21
+VERIFIED_EXPECTED_EMERGENT_GE1 = 378
 CANDIDATE_TOLERANCE = 5
 
 DISPLAY_LABEL_TEMPLATES: dict[str, str] = {
@@ -77,8 +80,19 @@ DISPLAY_LABEL_TEMPLATES: dict[str, str] = {
 
 
 def load_panels_verified(cfg: dict, root: Path) -> gpd.GeoDataFrame:
-    """Load verified run: model_scores.parquet with embedded KSI_label."""
-    scores = pd.read_parquet(root / cfg["paths"]["model"] / "model_scores.parquet")
+    """Load verified run: model_scores_verified_run.parquet with embedded KSI_label."""
+    model_dir = root / cfg["paths"]["model"]
+    # Try the renamed artifact first, fall back to the legacy name
+    for fname in ("model_scores_verified_run.parquet", "model_scores.parquet"):
+        scores_path = model_dir / fname
+        if scores_path.exists():
+            break
+    else:
+        raise FileNotFoundError(
+            "Neither model_scores_verified_run.parquet nor model_scores.parquet found. "
+            "Run scripts/restore_verified_artifacts.py first."
+        )
+    scores = pd.read_parquet(scores_path)
     score_col = "xgb_tweedie_score"
     if score_col not in scores.columns:
         raise ValueError(f"Score column '{score_col}' not found in model_scores.parquet")
@@ -180,7 +194,8 @@ def validate_gate_forward(merged: gpd.GeoDataFrame) -> None:
     )
 
     # Flexible gate: within 1000 of expected forward panel count
-    expected_approx = 80736
+    # Corrected 2026-06-20: City of San Diego only (was ~80736 county-wide, see D11)
+    expected_approx = 26045
     if abs(n_candidates - expected_approx) > 1000:
         print(
             f"  FAIL: candidates={n_candidates} deviates from expected ~{expected_approx} by >1000"
@@ -349,7 +364,16 @@ def build_shap_features(
     cfg: dict,
     root: Path,
 ) -> dict[str, list[dict]]:
-    model_path = root / cfg["paths"]["model"] / "xgb_tweedie.pkl"
+    model_dir = root / cfg["paths"]["model"]
+    for fname in ("xgb_tweedie_verified_run.pkl", "xgb_tweedie.pkl"):
+        model_path = model_dir / fname
+        if model_path.exists():
+            break
+    else:
+        raise FileNotFoundError(
+            "Neither xgb_tweedie_verified_run.pkl nor xgb_tweedie.pkl found. "
+            "Run scripts/restore_verified_artifacts.py first."
+        )
     with open(model_path, "rb") as f:
         model = pickle.load(f)
 

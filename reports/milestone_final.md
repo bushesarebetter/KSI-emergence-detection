@@ -1,6 +1,6 @@
 # Milestone Final — Project Wrap-Up
 
-**Date:** 2026-06-14
+**Date:** 2026-06-20
 **Status:** RESEARCH COMPLETE
 
 ---
@@ -9,133 +9,167 @@
 
 ### Verified Run (primary scientific result)
 
-**Feature window: 2016-2021 → Label window: 2022-2024 | 81,007 candidates**
+**Feature window: 2016-2021 → Label window: 2022-2024 | 26,423 candidates, City of San Diego only**
 
-This is the fully validated result and is the basis for all paper claims.
+Model: XGBoost Tweedie regression, crash-only features, hyperparameters chosen by nested
+cross-validation. Every figure below comes from genuine 5-fold out-of-fold scoring: each
+prediction is made by a fold that never saw that row during training. The candidate set is
+restricted to intersections actually inside City of San Diego limits; see `docs/DECISIONS.md`
+D11 for the full candidate-set definition.
 
-- **Spearman ρ:** 0.175 (random) / 0.169 (spatial). CI-separated above persistence baseline (0.085/0.108). Both splits.
-- **22 confirmed emergent sites** (≥2 KSI in label window).
-- **Recall@K (verified run, ≥2 KSI threshold):**
+- **Spearman ρ (OOF):** 0.128 (random) / 0.131 (spatial). Statistically tied with (and
+  slightly behind) the persistence baseline (ρ = 0.133, no fitting required, rank by recent
+  crash count and trend).
+- **21 confirmed emergent sites** (≥2 KSI in label window).
+- **Recall@K, ≥2 KSI threshold, random split:**
 
-| K | Hits | Recall | Lift |
+| K | Hits | Recall | Persistence baseline |
 |---|---|---|---|
-| 50 | 5/22 | 22.7% | 368× |
-| 100 | 6/22 | 27.3% | 221× |
-| 200 | 8/22 | 36.4% | 147× |
-| 500 | 13/22 | 59.1% | 96× |
-| 1,000 | 17/22 | 77.3% | 63× |
+| 50 | 2/21 | 9.5% | 3/21 (14.3%) |
+| 100 | 2/21 | 9.5% | 4/21 (19.0%) |
+| 200 | 5/21 | 23.8% | 6/21 (28.6%) |
+| 500 | 10/21 | 47.6% (spatial split: same) | 10/21 (47.6%) |
+| 1,000 | 14/21 | 66.7% (spatial split: 61.9%) | 13/21 (61.9%) |
 
-- **BCR (top-500, ≥2 threshold, 30% treatment effectiveness): ~13:1**
-- **Sufficiency null (Protocol A):** CONFIRMED. All three infrastructure feature groups reduce Spearman rank correlation vs crash-only under frozen hyperparameters. Crash history alone is sufficient.
-- **Leakage audit:** 9/9 PASS.
-- **Geocoding correction:** verified — POINT_X/POINT_Y used throughout.
+The persistence baseline ties the tuned model exactly at K=500 and beats it at every K
+below that. This threshold doesn't show an ML-specific advantage at this sample size.
+
+- **BCR (top-500, ≥2 threshold, 30% treatment effectiveness): about 9.7:1**, identical for
+  the model and the baseline at this threshold (both catch the same 20 events). Fatal share
+  24.3%, measured directly from raw SWITRS crashes in the 2022-2024 label window.
+- **BCR (top-500, ≥1 threshold): about 41.2:1 (random) / 40.3:1 (spatial)**, vs. the
+  baseline's 34.4:1. This is the model's clearest validated edge over the trivial heuristic.
+- **Infrastructure feature test:** road geometry and the full infrastructure set show a
+  **consistent** positive delta on both splits (+0.020 to +0.021 Spearman ρ). This is a
+  promising finding, not yet a settled one given n=21 positives; see `docs/DECISIONS.md` D8.
+- **Architecture comparison:** XGBoost (frozen and freshly tuned), Random Forest, and a
+  PyTorch MLP neural network were all compared on the same genuine out-of-fold protocol
+  (`scripts/model_bakeoff_oof.py`). The neural network was consistently the weakest
+  performer, too few positive examples (n=21) for deep learning to find anything stable.
+  No architecture decisively beat the persistence baseline at the ≥2-KSI threshold.
+- **Leakage audit:** 9/9 PASS (temporal and feature leakage checks specific to the feature
+  pipeline; separate from the out-of-fold evaluation protocol used for the headline
+  metrics above, and separate from the candidate-set scope issue in D11).
+- **Geocoding correction:** verified, POINT_X/POINT_Y used throughout.
 
 ### Forward Run (operational prediction)
 
-**Feature window: 2016-2023 → Label window: 2024-2026 | 80,736 candidates**
+**Feature window: 2016-2024 → Label window: 2025-2027 | 26,045 candidates, City of San Diego only**
 
-Most current operational prediction. Dashboard is live on this run. 2024 labels are complete and provide partial prospective validation.
+The current operational prediction. The dashboard runs on this. 2025 labels are complete
+(SWITRS 20260615); 2026-2027 are future. Sources: 20260608 (primary, includes 2015 burn-in)
++ 20260615 (2025 crash data), deduplicated on CASE_ID.
 
-- **Spearman ρ:** 0.0948 (random) / 0.1084 (spatial). Lower than verified run — expected, as only one year of the three-year label window is complete.
-- **Emergent sites ≥2 KSI:** 0 (insufficient label data — two complete years required for ≥2 threshold).
-- **Sites ≥1 KSI (2024 data):** 118.
-- **Recall@K (forward run, ≥1 KSI, 2024 data only):**
+- **Spearman ρ (OOF):** 0.066 (random) / 0.068 (spatial), against a persistence baseline of
+  0.072. Lower than the verified run, expected, since only one year of the three-year label
+  window is complete as of this writing.
+- **Emergent sites ≥2 KSI:** 2 (2025 data only, the 2025-2027 window is incomplete).
+- **Sites ≥1 KSI (2025 data):** 108.
+- **Recall@K, ≥1 KSI, random split:**
 
-| K | Hits | Recall | Lift |
+| K | Hits | Recall | Persistence baseline |
 |---|---|---|---|
-| 50 | 7/118 | 5.9% | 96× |
-| 100 | 14/118 | 11.9% | 96× |
-| 200 | 20/118 | 16.9% | 68× |
-| 500 | 28/118 | 23.7% | 38× |
-| 1,000 | 43/118 | 36.4% | 29× |
+| 500 | 21/108 | 19.4% | 24/108 (22.2%) |
+
+The baseline edges ahead of the model here too. Treat this run's numbers as provisional.
+Only one of three label years is in, and there are too few ≥2-KSI positives so far for that
+threshold to mean anything yet.
 
 ### Dashboard
 
-Live on the forward run. GeoJSON exported to `dashboard/public/data/`. Vintage badge updated: "Forward run | 2016-2023 features | Predicting 2024-2026".
-
-### Claims Audit
-
-Clean. All figures sourced from `reports/verified_canonical_numbers.json`. Number provenance tracked in `reports/claims_audit.csv`.
+Live on the forward run. GeoJSON exported to `dashboard/public/data/`. Feature window
+2016-2024, predicting 2025-2027. The live predictions don't depend on the evaluation
+methodology above: the deployed model is fit on all available historical data, which is
+correct, since there's no future label to leak when scoring intersections whose outcomes
+haven't happened yet.
 
 ---
 
-## 2. What Has Been Validated vs What Is Pending
+## 2. What Has Been Validated vs. What Is Pending
 
 ### Validated
 
-- **Spearman ρ** (random and spatial splits, verified run): 0.175 / 0.169, CI-separated from persistence baseline.
-- **Full-ranking recall@K** (verified run, all 81,007 candidates): 59.1% of 22 emergent sites in top-500.
-- **Sufficiency null** (Protocol A, frozen hyperparameters): infrastructure features do not add independent signal at 76.2m intersection resolution.
+- **Spearman ρ** (random and spatial splits, verified run, genuine out-of-fold scoring):
+  0.128 / 0.131, statistically tied with (and slightly behind) the persistence baseline.
+- **Full-population recall@K** (verified run, all 26,423 City-of-San-Diego candidates):
+  47.6% of the 21 emergent sites caught in the top-500.
+- **Candidate-set scope** (D11): restricted to the actual City of San Diego (26,423
+  candidates).
+- **Infrastructure feature test** (frozen hyperparameters, Protocol A, Sets A-D and
+  extended Groups E/G/H): a consistent, if small, positive signal on the candidate set.
+  Group F (ACS demographics) is the only one not yet re-tested, see `docs/DECISIONS.md` D9.
+- **Prospective 2025 evaluation**: 26/112 (23.2%) at K=500.
+- **Dashboard data**: `dashboard/public/data/` reflects the 26,045 City-of-San-Diego
+  forward-run candidates; Council district assignment matches every candidate (0
+  unassigned).
 - **All leakage audit checks (A1-A9):** 9/9 green on both pipeline runs.
-- **Geocoding correction:** POINT_X/POINT_Y verified as the correct coordinate source; LATITUDE/LONGITUDE confirmed as freeway-biased and rejected.
-- **Coordinate-bug correction:** M1/M2 results were freeway-contaminated; all published figures use the corrected M2.5+ pipeline.
+- **Geocoding:** POINT_X/POINT_Y used throughout, the SafeTREC street-intersection
+  geocoded coordinates.
 
 ### Pending
 
-- **True prospective validation:** Compare forward-run top-500 against 2025-2027 SWITRS outcomes when available. This is the study's strongest prospective test.
-- **2025-2026 label completion:** The ≥2 KSI threshold on the forward run cannot be evaluated until 2025 and 2026 SWITRS data are released (~early 2027 and 2028 respectively).
-- **Engineering effectiveness:** Whether intervention at flagged sites reduces subsequent KSI outcomes. Requires tracking which sites receive treatment and their 2028+ outcomes.
+- **True prospective validation on the forward run:** compare the forward-run top-500
+  against 2025-2027 SWITRS outcomes once they're available. This will be the study's
+  strongest prospective test once it's possible.
+- **2025-2026 label completion:** the ≥2-KSI threshold on the forward run can't be
+  evaluated until 2025 and 2026 SWITRS data are released (roughly early 2027 and 2028).
+- **Engineering effectiveness:** whether intervention at flagged sites actually reduces
+  subsequent KSI outcomes. This needs tracking which sites get treated and their 2028+
+  outcomes.
+- **Group F (ACS demographics) re-test:** needs a Census API key supplied again; not
+  stored anywhere in this repo by design.
 
 ---
 
-## 3. Forward-Run Results (from pipeline output)
+## 3. Forward-Run Results
 
-**Panel:** 80,736 candidates | 0 emergent (≥2 KSI, partial) | 118 (≥1 KSI, 2024 only)
+**Panel:** 26,045 candidates (City of San Diego only) | 2 emergent (≥2 KSI, 2025 data) | 108 (≥1 KSI, 2025 data)
 
-**Protocol A (frozen M3a hyperparameters):**
+Sources: 20260608 (2015-2024) + 20260615 (2025), deduplicated on CASE_ID.
 
-| Set | Random ρ | Spatial ρ | Lift (R) | Lift (S) |
-|---|---|---|---|---|
-| A_crash_only | 0.0948 | 0.1084 | — | — |
-| B_road_geometry | 0.0497 | 0.0570 | -0.0451 | -0.0514 |
-| C_signals | 0.0750 | 0.0856 | -0.0198 | -0.0228 |
-| D_all_infra | 0.0537 | 0.0594 | -0.0410 | -0.0490 |
+**Recall@K, ≥1 KSI threshold, 2025 data only, random split:**
 
-Verdict: NULL CONFIRMED. Best set: A_crash_only. Consistent with verified-run Protocol A result.
+| K | Hits | Recall |
+|---|---|---|
+| 500 | 21/108 | 19.4% |
 
-**Recall@K (forward run, ≥1 KSI threshold, 2024 data only):**
-
-| K | Hits | Recall | Lift |
-|---|---|---|---|
-| 50 | 7/118 | 5.9% | 96× |
-| 100 | 14/118 | 11.9% | 96× |
-| 200 | 20/118 | 16.9% | 68× |
-| 500 | 28/118 | 23.7% | 38× |
-| 1,000 | 43/118 | 36.4% | 29× |
-
-**Dashboard export (forward run):**
-- 80,736 candidates | 0 emergent (≥2) | 118 (≥1)
-- Recall@200 (≥1 KSI): 16.9% (68× random)
-- Unnamed intersections: 0
-- Nodes outside district polygons in top-1000: 127
+Sets B-D (infrastructure feature groups) haven't been re-evaluated on the forward-run
+window; see `results/ablation_results.csv` for the verified-run feature-set comparison.
 
 ---
 
 ## 4. Recommended Next Steps (non-modeling)
 
-**a. Submit TMLR paper using verified-run results.**
-Lead claim: crash-history-only model detects emerging KSI hotspots at previously-clean
-intersections with CI-separated rank signal (Spearman ρ=0.175); recall@500=59% on 22
-confirmed emergent sites; infrastructure features add no independent signal (sufficiency null).
-Secondary: operational framing of the recall@K shortlist. Target: TMLR (no page limit, open access).
+**a. Lead outreach with the numbers in this document.**
+The verified-run model catches 48% of severe-emergence sites at the top-500 (BCR about
+9.7:1, tied with the trivial baseline at this threshold), and a stronger 19-20% / ~41:1 BCR
+at the broader any-injury threshold. The honest framing, that a simple crash-trend ranking
+gets the exact same result at the severe threshold, is a stronger pitch than an unqualified
+ML claim: it's auditable, explainable to a non-technical audience, and the city isn't doing
+either version today.
 
 **b. Outreach to Vision Zero SD and UCSD TREDS.**
-Emails and contacts in Notion > Outreach & Connections. Lead with the BCR (13:1) and the
-city-comparison framing (0% vs 59% at top-500).
+Templates live in Notion under Outreach & Connections. Update them with the numbers in
+this document before sending anything.
 
-**c. Share dashboard with City Traffic Engineering as the pitch tool.**
-The forward run is live and shows the 2016-2023 feature-trained rankings for the 2024-2026
-prediction horizon. Offer to present alongside the verified-run validation numbers.
+**c. Share the dashboard with City Traffic Engineering as the pitch tool.**
+The forward run is live and shows the 2016-2024 feature-trained rankings for the
+2025-2027 prediction horizon. Offer to present alongside the verified-run validation
+numbers above.
 
-**d. When 2025 SWITRS data is released (~early 2027):**
-Run `python scripts/compute_verified_numbers.py` to update the forward-run recall@K.
-This is the prospective validation moment — the first time the forward-run top-500 can be
-compared against actual outcomes. If the model performs at verified-run levels, the prospective
-validation is complete.
+**d. When 2025-2026 SWITRS data is released:**
+Re-run `scripts/refit_forward_run_oof.py` and `scripts/compute_verified_numbers.py` to
+update the forward-run recall@K with genuine out-of-fold scoring. This is the moment the
+forward-run top-500 can finally be checked against real outcomes.
 
-**e. If city conducts engineering reviews at flagged sites:**
-Track which sites receive treatment and compare 2028 outcomes — the study's strongest
-possible validation. Document treatment type, date, and cost for BCR computation.
+**e. If the city conducts engineering reviews at flagged sites:**
+Track which sites get treated and compare 2028+ outcomes. This would be the strongest
+possible validation available to the project. Document treatment type, date, and cost for
+the BCR computation.
+
+**f. Follow up on the infrastructure-feature finding (D8).**
+A consistent positive signal, worth re-checking once 2025-2026 forward-run labels grow the
+positive count beyond the current 21.
 
 ---
 
@@ -143,15 +177,84 @@ possible validation. Document treatment type, date, and cost for BCR computation
 
 | File | Role |
 |---|---|
-| `data/model/model_scores.parquet` | Verified run scores (immutable — do not modify) |
-| `data/model/frozen_scores.parquet` | Forward run scores (Set A–D, 80,736 candidates) |
-| `data/model/xgb_tweedie.pkl` | Verified run model (M3a frozen hyperparameters) |
-| `data/model/candidate_panel.parquet` | Forward run panel with 2024-2026 labels |
-| `reports/verified_canonical_numbers.json` | All canonical figures, both runs |
-| `reports/claims_audit.csv` | Number provenance audit |
-| `reports/milestone4.md` | M4 Protocol A ablation + recall@K results |
-| `dashboard/public/data/` | Forward run GeoJSON for live dashboard |
-| `final_github/results/top500_verified_2022_2024.csv` | Validated top-500 (immutable) |
-| `final_github/results/top500_forward_2024_2026.csv` | Forward run top-500 |
-| `final_github/results/model_performance.json` | All metrics, all runs |
-| `final_github/README.md` | Public-facing documentation |
+| `data/model/verified_run/` | Verified run archive, City of San Diego only (frozen_scores.parquet, candidate_panel.parquet, feature_table.parquet, oof_scores.parquet) |
+| `data/model/verified_run/candidate_panel_COUNTYWIDE_backup.parquet` | Pre-D11 county-wide candidate set, kept for reference |
+| `data/model/forward_run/` | Forward run archive, City of San Diego only |
+| `scripts/restrict_candidates_to_city_limits.py` | Restricts the candidate set to City of San Diego limits (D11) |
+| `reports/verified_canonical_numbers.json` | All canonical figures, both runs, genuine out-of-fold scoring |
+| `results/oof_verified_run_results.json` | Full verified-run out-of-fold results |
+| `results/oof_forward_run_results.json` | Full forward-run out-of-fold results |
+| `results/protocol_a_oof_results.json` | Infrastructure feature-set comparison, genuine OOF |
+| `results/model_bakeoff_oof_results.json` | Architecture comparison (XGBoost/RF/MLP), genuine OOF |
+| `results/ablation_results.csv` | Infrastructure feature-set comparison, Sets A-D |
+| `dashboard/public/data/` | Forward run GeoJSON for the live dashboard |
+| `results/top500_verified_2022_2024.csv` | Verified-run top-500 shortlist |
+| `results/top500_forward_2024_2026.csv` | Forward-run top-500 shortlist |
+| `results/model_performance.json` | All metrics, all runs |
+
+---
+
+## 6. Evaluation Methodology
+
+This section explains how the headline figures should and shouldn't be interpreted.
+
+### Recall@K is a full-population figure
+
+The recall@K figures reported throughout (for example, 47.6% of 21 emergent sites in the
+top-500 for the verified run) are full-ranking figures: every one of the 26,423 candidates
+is scored by a model that never trained on it (via out-of-fold scoring) and recall is
+computed across the whole population. No candidates are excluded from the ranking itself,
+only from training the specific fold that scores them.
+
+A single random 80/20 test split can show misleadingly high recall by chance, if few
+emergent sites happen to land in that one held-out fold. The out-of-fold protocol used
+throughout this project avoids that by scoring the entire population, not a single small
+held-out slice.
+
+### What out-of-fold scoring means here
+
+For both the random-stratified and spatial-block splits, the panel is divided into 5
+folds. For each fold, the model is fit on the other 4 folds only and used to predict that
+fold. Every candidate ends up with exactly one prediction from a model that never saw its
+label. Hyperparameters are tuned once via nested cross-validation and reused across folds,
+they aren't re-tuned per fold.
+
+### The candidate set is the City of San Diego, not San Diego County
+
+The candidate set (`src/ingest/osm_loader.py`, restricted via
+`scripts/restrict_candidates_to_city_limits.py`) is limited to intersections inside the
+City of San Diego boundary, not the broader county. See `docs/DECISIONS.md` D11 for the
+full candidate-set definition.
+
+### Forward run vs. live dashboard predictions
+
+The forward run's operational top-500 list (feature window 2016-2024, label window
+2025-2027) is a genuine prospective prediction: scores are locked using only data through
+2024, and 2025-2027 outcomes are checked against that fixed ranking as they arrive. The
+2025 SWITRS data (20260615) is used only for label computation, not for feature
+construction or training. 2026-2027 outcomes are still in the future as of this writing.
+
+The dashboard's live predictions are produced by a model fit on all available historical
+data, which is the correct approach for a deployed model: there's no future label to leak
+when scoring intersections whose outcomes haven't happened yet. The out-of-fold evaluation
+methodology above governs how much confidence to place in the model's claimed accuracy,
+not what it predicts.
+
+### SWITRS data sources
+
+| Run | Primary source | Secondary source | Feature window | Label window |
+|---|---|---|---|---|
+| Verified | 20260608 (2015-2024) | — | 2016-2021 | 2022-2024 |
+| Forward | 20260608 (2015-2024) | 20260615 (2025, deduplicated on CASE_ID) | 2016-2024 | 2025-2027 |
+
+2015 records in 20260608 are used only for `years_since_last_crash` burn-in; they
+contribute no KSI feature counts (the feature window starts 2016-01-01). All
+STATE_HWY_IND='Y' crashes are excluded from both runs.
+
+### Test suite uses synthetic data
+
+The pytest suite (`tests/`) tests pipeline logic on synthetically generated data. Tests
+that load real pipeline artifacts (parquet files in `data/model/`) are marked
+`@pytest.mark.integration` and skip if those artifacts are absent. No test-suite result
+should be read as evidence of model performance on real crash data. To run only the unit
+tests: `pytest -m "not integration"`.

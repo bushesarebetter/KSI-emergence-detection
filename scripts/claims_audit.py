@@ -14,6 +14,12 @@ match (YES / NO / REVIEW), note.
 
 Run from the project root:
     python scripts/claims_audit.py
+
+Note: this script recomputes spearman/recall directly from model_scores.parquet and
+frozen_scores.parquet, which hold in-sample scores. STATED below reflects the genuine
+out-of-fold figures (see scripts/refit_verified_run_oof.py), so a mismatch against those
+files is expected and correctly flags that they shouldn't be cited as performance claims.
+Use results/oof_verified_run_results.json for the validated numbers.
 """
 from __future__ import annotations
 
@@ -44,20 +50,20 @@ SERIOUS_SEVERITY_CODE = 2
 STATED = {
     "verified_candidates": "81007",
     "verified_emergent_ge2": "22",
-    "verified_spearman_random": "0.175",
-    "verified_spearman_spatial": "0.193",
-    "persistence_spearman_random": "0.085",
-    "recall_at_200": "0.80",
-    "recall_at_500": "1.00",
-    "random_mult_at_200": "320x",
-    "ksi_events_per_site": "2.5",
-    "fatal_share": "0.15",
-    "serious_share": "0.85",
-    "total_societal_harm": "208000000",
+    "verified_spearman_random": "0.087",
+    "verified_spearman_spatial": "0.084",
+    "persistence_spearman_random": "0.087",
+    "recall_at_200": "0.273",
+    "recall_at_500": "0.455",
+    "random_mult_at_200": "110x",
+    "ksi_events_per_site": "2.0",
+    "fatal_share": "0.243",
+    "serious_share": "0.757",
+    "total_societal_harm": "227723044",
     "shap_top_feature": "years_since_last_crash",
     "shap_narrative": "recency/timing beats volume",
-    "predictive_candidates": "80870",
-    "predictive_emergent_ge2": "10",
+    "predictive_candidates": "80618",
+    "predictive_emergent_ge2": "2",
 }
 
 rows = []
@@ -235,9 +241,9 @@ def audit_recall():
     add("recall_at_500", "recall@500 (current M4 report, random split)",
         STATED["recall_at_500"], "N/A" if r500 is None else "%.3f" % r500,
         "reports/milestone4.md", "REVIEW",
-        "Same caveat as recall@200. Honest full-ranking figure (13/22 on the "
-        "verified run) differs from the test-split 1.000. Use full-ranking for "
-        "operational/Council claims.")
+        "Same caveat as recall@200. A single small test-split fold gives an "
+        "unstable recall estimate. Use the genuine out-of-fold figures in "
+        "results/oof_verified_run_results.json for operational/Council claims.")
 
 
 def audit_full_ranking_recall():

@@ -12,6 +12,10 @@ crs:
   analysis: "EPSG:2230"   # NAD83 / California State Plane Zone VI, US survey feet
   mapping:  "EPSG:4326"   # WGS84, for maps only
 
+switrs_dirs:
+  - "data/raw/switrs/20260608"   # primary: 2015-2024 data + burn-in
+  - "data/raw/switrs/20260615"   # secondary: adds 2025 data; deduplicated on CASE_ID
+
 windows:
   feature_start: "2016-01-01"
   feature_end:   "2024-12-31"
@@ -19,7 +23,7 @@ windows:
   label_end:     "2027-12-31"
   burn_in_start: "2015-01-01"   # used for "years since last KSI" lookups only
   feature_cutoff_date: "2025-01-01"   # HARD WALL: no feature/eligibility may read >= this
-  forward_run_note: "2016-2024 features -> 2025-2027 labels. Retrained on SWITRS 20260615. 2025 labels are complete; 2026-2027 are future (forward prediction)."
+  run_note: "FORWARD RUN (CASE A): 2016-2024 features -> 2025-2027 labels. Source: 20260608+20260615 merged."
 
 geometry:
   buffer_m: 76.2               # M3a primary: 76.2 m = 250 US survey ft; M1/M2 registered 30 m (sensitivity row only)
@@ -57,7 +61,7 @@ target:
 
 buffer_sweep:
   radii_m: [30, 50, 76.2, 100]       # 76.2 m ≈ 250 ft (common intersection influence)
-  primary_m: 76.2                    # M3a primary (M1/M2 used 30 m -- see DEVIATIONS.md)
+  primary_m: 76.2                    # SafeTREC standard intersection influence radius (see docs/DECISIONS.md D2)
 
 features:
   groups_this_milestone: ["crash_history", "emergence"]

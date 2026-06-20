@@ -50,8 +50,12 @@ def write_geojson(
     output_dir = Path(output_dir)
     df = panel.copy()
     df = df.merge(names[["intersection_id", "intersection_name"]], on="intersection_id", how="left")
-    df = df.sort_values("tweedie_score", ascending=False).head(top_n).reset_index(drop=True)
+    df = df.sort_values("tweedie_score", ascending=False).reset_index(drop=True)
     df["rank"] = df.index + 1
+    # Include top_n ranked sites + ALL emergent sites (so missed positives are visible on the map)
+    in_top_n = df["rank"] <= top_n
+    is_emergent = df["is_known_emergent"].astype(bool)
+    df = df[in_top_n | is_emergent].reset_index(drop=True)
 
     features = []
     for _, row in df.iterrows():

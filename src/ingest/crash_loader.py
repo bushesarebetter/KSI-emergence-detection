@@ -140,24 +140,63 @@ def _load_sdpd_fallback() -> pd.DataFrame:
 
 
 def load_crashes(cfg: dict[str, Any]) -> tuple[gpd.GeoDataFrame, str]:
-    """Load crash data; return GeoDataFrame (EPSG:4326) + source tag."""
-    raw = project_root() / cfg["paths"]["raw"] / "switrs"
-    candidates = sorted(raw.glob("*/Crashes.csv"), reverse=True)
-    exclude_state_hwy = cfg.get("geometry", {}).get("exclude_state_highway", True)
+    """Load crash data; return GeoDataFrame (EPSG:4326) + source tag.
 
-    if candidates:
-        csv_path = candidates[0]
-        log.info("Loading SWITRS crashes from %s", csv_path)
+    Directory selection priority:
+      1. cfg["switrs_dirs"]  — list of explicit directories; deduplicates on CASE_ID
+      2. cfg["switrs_dir"]   — single explicit directory
+      3. auto-glob: picks most-recent snapdate subdirectory under data/raw/switrs/
+      4. SDPD open-data fallback (development scaffold only)
+    """
+    exclude_state_hwy = cfg.get("geometry", {}).get("exclude_state_highway", True)
+    snap_dir = None
+
+    # --- Multiple explicit directories (forward run merge case) ---
+    if "switrs_dirs" in cfg:
+        dirs = [project_root() / d for d in cfg["switrs_dirs"]]
+        log.info("Loading SWITRS from %d explicit directories: %s", len(dirs), dirs)
+        frames = []
+        for d in dirs:
+            csv_path = d / "Crashes.csv"
+            if not csv_path.exists():
+                raise FileNotFoundError(f"Crashes.csv not found in {d}")
+            df_i, _ = _load_switrs(csv_path, exclude_state_hwy)
+            frames.append(df_i)
+        df = pd.concat(frames, ignore_index=True)
+        n_before = len(df)
+        df = df.drop_duplicates(subset=["id"]).reset_index(drop=True)
+        log.info("Merged %d records; dropped %d duplicates; %d remain",
+                 n_before, n_before - len(df), len(df))
+        source = "SWITRS_MERGED"
+        snap_dir = dirs[-1]
+        stats = {"coord_source": "POINT_X/POINT_Y", "merged_dirs": [str(d) for d in dirs]}
+
+    # --- Single explicit directory ---
+    elif "switrs_dir" in cfg:
+        snap_dir = project_root() / cfg["switrs_dir"]
+        csv_path = snap_dir / "Crashes.csv"
+        log.info("Loading SWITRS crashes from explicit dir: %s", csv_path)
         df, stats = _load_switrs(csv_path, exclude_state_hwy)
         source = "SWITRS"
-        snap_dir = csv_path.parent
+
+    # --- Auto-glob: pick most-recent subdirectory ---
     else:
-        df = _load_sdpd_fallback()
-        stats = {"coord_source": "SDPD_FALLBACK"}
-        source = "SDPD_FALLBACK"
-        today = datetime.date.today().strftime("%Y%m%d")
-        snap_dir = project_root() / cfg["paths"]["raw"] / "sdpd" / today
-        snap_dir.mkdir(parents=True, exist_ok=True)
+        raw = project_root() / cfg["paths"]["raw"] / "switrs"
+        auto_candidates = sorted(raw.glob("*/Crashes.csv"), reverse=True)
+        if auto_candidates:
+            csv_path = auto_candidates[0]
+            log.info("Loading SWITRS crashes from %s (auto-selected)", csv_path)
+            df, stats = _load_switrs(csv_path, exclude_state_hwy)
+            source = "SWITRS"
+            snap_dir = csv_path.parent
+        else:
+            # SDPD fallback
+            df = _load_sdpd_fallback()
+            stats = {"coord_source": "SDPD_FALLBACK"}
+            source = "SDPD_FALLBACK"
+            today = datetime.date.today().strftime("%Y%m%d")
+            snap_dir = project_root() / cfg["paths"]["raw"] / "sdpd" / today
+            snap_dir.mkdir(parents=True, exist_ok=True)
 
     gdf = gpd.GeoDataFrame(
         df,
@@ -167,18 +206,20 @@ def load_crashes(cfg: dict[str, Any]) -> tuple[gpd.GeoDataFrame, str]:
     log.info("Loaded %d crash records from %s", len(gdf), source)
 
     # Write/update manifest with coordinate provenance
-    manifest_path = snap_dir / "manifest.json"
-    if not manifest_path.exists() and candidates:
-        entries = [
-            {
-                "file": candidates[0].name,
-                "source": "SWITRS / UC Berkeley SafeTREC",
-                "fetch_timestamp": "user-supplied",
-                "row_count": len(gdf),
-                "sha256": sha256_file(candidates[0]),
-                **stats,
-            }
-        ]
-        write_manifest(snap_dir, entries)
+    if snap_dir is not None:
+        manifest_path = snap_dir / "manifest.json"
+        if not manifest_path.exists():
+            csv_file = snap_dir / "Crashes.csv"
+            entries = [
+                {
+                    "file": "Crashes.csv",
+                    "source": "SWITRS / UC Berkeley SafeTREC",
+                    "fetch_timestamp": "user-supplied",
+                    "row_count": len(gdf),
+                    "sha256": sha256_file(csv_file) if csv_file.exists() else "n/a",
+                    **stats,
+                }
+            ]
+            write_manifest(snap_dir, entries)
 
     return gdf, source

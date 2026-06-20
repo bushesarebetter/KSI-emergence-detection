@@ -1,65 +1,155 @@
 # Predicting Intersection KSI Emergence in San Diego
 
-A crash-history-based model for identifying which San Diego surface-street intersections
-are most likely to emerge as severe-injury (KSI: killed or seriously injured) sites over a
-three-year horizon — before they accumulate any severe-crash history.
+A crash-history-based model that identifies which San Diego surface-street intersections
+are most likely to become severe-injury (KSI: killed or seriously injured) sites within
+three years, before they accumulate any severe-crash history.
 
-**Bottom line:** a top-500 shortlist built from crash records alone catches 59% of
-subsequently emergent severe-crash sites (13/22) — sites San Diego's current review process
-identifies zero of — with an estimated benefit-cost ratio of ~13:1 after federal HSIP funding.
+**Bottom line:** a top-500 shortlist built from crash records alone catches about 48% of
+the intersections that go on to become severe-crash sites (10 of 21), sites San Diego's
+current review process can't identify at all. The estimated benefit-cost ratio is about
+9.7:1 after federal HSIP funding at that threshold, and closer to 40:1 at the broader
+any-injury threshold. A prospective test against unseen 2025 outcomes recovered 26 of 112
+future KSI sites at K=500 (12x random), so the model generalizes past its training window.
+
+A simple, no-ML baseline (just rank intersections by recent crash count and trend) gets
+the exact same result at the severe-emergence threshold. The model's clearest validated
+edge over that baseline shows up at the broader any-injury threshold. Both numbers are
+reported below, honestly, because that comparison is the whole point: the city isn't doing
+either one today, and even the simple version would be a real improvement.
+
+> **Note on scope:** the candidate set is restricted to intersections actually inside City
+> of San Diego limits (26,423 surface intersections). See `docs/DECISIONS.md` D11 for the
+> full candidate-set definition.
 
 ---
 
 ## The problem
 
 Traffic safety investment is almost entirely reactive. San Diego's annual review flags
-intersections with five or more prior crashes (~14 locations per year). By definition,
-intersections trending toward danger but with no crash history yet are invisible to this
-screen. This project asks: can we predict which currently-clean intersections will become
-KSI sites within three years, using only crash records the city already collects?
+intersections with five or more prior crashes, about 14 locations a year. By definition,
+intersections trending toward danger but without crash history yet are invisible to that
+screen. This project asks whether we can predict which currently-clean intersections will
+become KSI sites within three years, using only crash records the city already collects.
 
 ---
 
 ## Key results
 
-**Verified run: 2016–2021 features → 2022–2024 KSI outcomes | 81,007 candidates**
+**Verified run: 2016-2021 features → 2022-2024 KSI outcomes | 26,423 candidates, City of San Diego only**
 
-Spearman ρ: **0.175** (random split) / **0.169** (spatial split).
-Persistence baseline: 0.085 / 0.108. Both splits CI-separated.
+Model: XGBoost Tweedie regression on 20 crash-history features, hyperparameters chosen by
+nested cross-validation. Every number below comes from genuine 5-fold out-of-fold scoring:
+each prediction is made by a model that never saw that row's label during training. That's
+the standard we hold every number in this project to, not just this one.
 
-### Primary threshold — ≥2 KSI: 22 confirmed emergent sites
+Spearman ρ: **0.128** (random split) / **0.131** (spatial split). A no-fitting persistence
+baseline (rank by recent crash count and trend) scores **0.133**, still slightly ahead,
+statistically tied with the tuned model given how few positives there are. Read the
+recall@K tables below with that in mind.
 
-| Shortlist | % of city | Sites found | Recall | vs city (0%) | vs random |
-|---|---|---|---|---|---|
-| Top 50 | 0.06% | 5 / 22 | 22.7% | 0% → 22.7% | 368× |
-| Top 100 | 0.12% | 6 / 22 | 27.3% | 0% → 27.3% | 221× |
-| Top 200 | 0.25% | 8 / 22 | 36.4% | 0% → 36.4% | 147× |
-| **Top 500** | **0.62%** | **13 / 22** | **59.1%** | **0% → 59.1%** | **96×** |
-| Top 1,000 | 1.23% | 17 / 22 | 77.3% | 0% → 77.3% | 63× |
+### Primary threshold — ≥2 KSI: 21 confirmed emergent sites
 
-44 KSI events across 22 sites. Total societal harm: **~$228M** (FHWA-SA-25-021, 2024 dollars).
-Top-500 harm: ~$135M. Prevented at 30% treatment effectiveness: **~$40M**.
-City program cost after HSIP federal funding (90%): **~$3.2M**. BCR: **~13:1**.
+| Shortlist | Sites found (random / spatial split) | Recall | Persistence baseline | vs. city (0%) |
+|---|---|---|---|---|
+| Top 50 | 2 / 1 | 4.8-9.5% | 3/21 (14.3%) | 0% → 5-10% |
+| Top 100 | 2 / 1 | 4.8-9.5% | 4/21 (19.0%) | 0% → 5-10% |
+| Top 200 | 5 / 5 | 23.8% | 6/21 (28.6%) | 0% → 24% |
+| **Top 500** | **10 / 10** | **47.6%** | **10/21 (47.6%)** | **0% → 48%** |
+| Top 1,000 | 14 / 13 | 61.9-66.7% | 13/21 (61.9%) | 0% → 62-67% |
 
-### Secondary threshold — ≥1 KSI: 389 sites
+95% bootstrap CI on recall@500: [28.6%, 71.4%] (random split), wide because there are only
+21 positives total. **The persistence baseline ties the tuned model exactly at top-500**
+(10/21 both), and beats it at every K below that. This threshold doesn't show an
+ML-specific advantage at this sample size, and we'd rather say that plainly than oversell
+it.
 
-| Shortlist | Sites found | Recall | vs random |
+20 KSI events were caught in the model's top-500 (same for both splits and the baseline, an
+exact tie all around at this threshold). Harm at those caught sites: about $103.5M
+(FHWA-SA-25-021, 2024 dollars, fatal share 24.3%, measured directly from raw SWITRS crashes
+in the 2022-2024 label window). Prevented at 30% treatment effectiveness: about $31.1M.
+City program cost after 90% HSIP federal funding: about $3.2M (a program-cost assumption,
+not something this analysis verifies). **BCR: about 9.7:1.**
+
+### Secondary threshold — ≥1 KSI: 378 sites
+
+| Shortlist | Sites found | Recall | Persistence baseline |
 |---|---|---|---|
-| Top 200 | 49 / 389 | 12.6% | 51× |
-| **Top 500** | **89 / 389** | **22.9%** | **37×** |
-| Top 1,000 | 143 / 389 | 36.8% | 30× |
+| Top 200 | 29 (random) | 7.7% | 27/378 (7.1%) |
+| **Top 500** | **75 (random) / 73 (spatial)** | **19.3-19.8%** | **61/378 (16.1%)** |
+| Top 1,000 | 128 (random) | 33.9% | 114/378 (30.2%) |
 
-Total harm across 389 sites: **~$2.13B**. Top-500 catch: 89 sites, ~102 events, ~$529M
-in concentrated harm. BCR at ≥1 threshold: **~50:1**.
+Here the model has a real, consistent edge over the baseline at every K shown. This is the
+clearest evidence in the whole project that the model adds value beyond the trivial
+heuristic.
 
-The top-500 list is the same 500 intersections regardless of which threshold you evaluate
-against. The 13 ≥2 sites in the top-500 are a subset of the 89 ≥1 sites.
+85 KSI events caught in the top-500 (random split; 83 on the spatial split, 71 for the
+baseline). Harm at those sites: about $440M random / $430M spatial. Prevented at 30%
+effectiveness: about $132.0M / $128.9M. **BCR: about 41.2:1 (random) / 40.3:1 (spatial)**,
+vs. the baseline's 34.4:1.
 
-### Sufficiency null
+### How the model compares to simpler alternatives
 
-Under Protocol A (frozen hyperparameters, four feature sets), adding road geometry,
-signals, and all infrastructure reduced Spearman rank correlation relative to crash-history
-alone. **Crash records are sufficient; no infrastructure inventory is needed.**
+We ran a full architecture comparison (`scripts/model_bakeoff_oof.py`,
+`results/model_bakeoff_oof_results.json`): the persistence baseline against XGBoost (both
+the original hyperparameters and a freshly nested-CV-tuned version), a Random Forest, and a
+small PyTorch MLP neural network (Tweedie-deviance loss, up to 100 epochs with early
+stopping), all on the same genuine out-of-fold protocol, on both crash-only and
+infrastructure-augmented feature sets.
+
+What we found:
+- The neural network was consistently the weakest model, sometimes badly (recall@500 as
+  low as 1-4 out of 21 in some configurations). With only 21 positive examples, there's
+  nowhere near enough data for a network with that many parameters to learn anything
+  stable, no matter how it's regularized.
+- Random Forest performed about the same as XGBoost.
+- A freshly nested-CV-tuned XGBoost on crash-only features was the most consistently
+  competitive setup, and it's the model reported above.
+- No architecture we tried clearly and reliably beats the persistence baseline at the
+  severe (≥2-KSI) threshold. Crash-history trend is a real signal, and a one-line heuristic
+  captures all of it there. The model's validated value-add is real, but it's concentrated
+  at the broader (≥1-KSI) threshold, not the severe one.
+
+### Does infrastructure data help?
+
+We tested road geometry, signal/sign presence, and the full infrastructure feature set
+against crash-only, all with the same frozen-hyperparameter Protocol A design used for
+every feature-set comparison in this project (`scripts/refit_protocol_a_oof.py`).
+
+| Feature set | Spearman ρ (random) | Spearman ρ (spatial) | Δ vs. crash-only |
+|---|---|---|---|
+| A: crash-only | 0.128 | 0.131 | — |
+| B: + road geometry | 0.148 | 0.150 | +0.020 |
+| C: + signals | 0.134 | 0.135 | +0.006 |
+| D: + all infrastructure | 0.149 | 0.150 | +0.021 |
+
+B and D show a **consistent** positive delta on both splits, similar in size on each, worth
+taking seriously. recall@500 (≥2-KSI) moves from 10/21 to 11-12/21 with infrastructure
+features included.
+
+We're stopping short of recommending infrastructure data as a requirement, though. n=21
+positives is still a small sample, the same regime that's made every comparison in this
+project noisy, and a real-looking signal at this size can still firm up or fade as more
+label data arrives (the forward run will add 2025-2026 outcomes). The model we report above
+stays the simpler crash-only one; this finding is flagged as a promising lead for follow-up
+work, not baked into the headline claim.
+
+### Prospective 2025 evaluation
+
+The verified-run model was applied to a fresh candidate cohort (intersections with no KSI
+history through 2023, restricted to the City of San Diego) using 2016-2023 features, and
+scored against true 2025 KSI outcomes it never saw during training. This is the cleanest
+possible test: the labels it's being checked against didn't exist anywhere when the model
+was trained. Results at the ≥1-KSI threshold (112 positives in 26,160 candidates):
+
+| K    | Hits | Recall | 95% CI         | Lift vs. random |
+|------|------|--------|----------------|------------------|
+| 200  | 9    | 8.0%   | [3.6%, 13.4%]  | 10.5x            |
+| **500**  | **26**   | **23.2%** | **[16.1%, 31.3%]** | **12.1x**      |
+| 1000 | 47   | 42.0%  | [33.0%, 50.9%] | 11.0x            |
+
+The random-baseline comparison pool is sized to the true City of San Diego candidate set,
+which is why the lift over random (12.1x) is lower than a county-wide denominator would
+give. Source data: `results/recall_evaluation.json`.
 
 ---
 
@@ -76,30 +166,34 @@ intersection_project/
 │   ├── eval/            Spearman, recall@K, spatial CV
 │   └── audit/           9-check leakage audit
 ├── scripts/
-│   ├── compute_verified_numbers.py   canonical figures, both thresholds
-│   ├── build_export_panel_verified.py  dashboard export (--run verified|forward)
-│   └── claims_audit.py               number provenance audit
+│   ├── compute_verified_numbers.py            canonical figures, both thresholds
+│   ├── restrict_candidates_to_city_limits.py  restricts candidates to City of San Diego limits
+│   ├── refit_verified_run_oof.py              genuine out-of-fold scoring, verified run
+│   ├── refit_forward_run_oof.py               genuine out-of-fold scoring, forward run
+│   ├── refit_protocol_a_oof.py                infrastructure feature-set comparison
+│   ├── model_bakeoff_oof.py                   architecture comparison (XGBoost/RF/MLP)
+│   ├── build_export_panel_verified.py         dashboard export (--run verified|forward)
+│   └── claims_audit.py                        number provenance audit
 ├── dashboard/           React + MapLibre interactive map
 ├── results/
 │   ├── top500_verified_2022_2024.csv  verified-run top-500 (with became_emergent flag)
 │   ├── top500_forward_2024_2026.csv   forward-run top-500 (2016-2023 features)
 │   ├── model_performance.json         all metrics, both runs, both thresholds
 │   ├── feature_importance.csv         SHAP top-15 with plain-English labels
-│   └── ablation_results.csv           Protocol A sufficiency-null results
+│   ├── ablation_results.csv           infrastructure feature-set comparison
+│   └── model_bakeoff_oof_results.json architecture comparison, full numbers
 ├── reports/
-│   ├── verified_canonical_numbers.json  source of truth for all headline figures
-│   ├── claims_audit.csv                 number provenance audit output
-│   └── milestone_final.md               final project status
+│   └── verified_canonical_numbers.json  source of truth for all headline figures
 ├── figures/
 │   ├── shap_importance.png
 │   └── shap_importance.pdf
 ├── docs/
-│   ├── METHODOLOGY.md    candidate set, temporal windows, model, evaluation
-│   ├── DATA_SOURCES.md   data access instructions, coordinate correction
-│   ├── DECISIONS.md      key design decisions D1–D8
-│   └── FEATURE_CATALOG.md  all 20 crash-history features
+│   ├── METHODOLOGY.md     candidate set, temporal windows, model, evaluation
+│   ├── DATA_SOURCES.md    data access instructions, coordinate correction
+│   ├── DECISIONS.md       key design decisions D1-D11
+│   └── FEATURE_CATALOG.md all 20 crash-history features
 ├── configs/config.yaml   single source of runtime constants
-├── tests/                62-test pytest suite
+├── tests/                pytest suite
 ├── environment.yml
 └── Makefile
 ```
@@ -122,11 +216,12 @@ python -m src.gis.build_spine
 python -m src.labels.build_panel
 python -m src.features.build_crash_emergence
 python -m src.model.fit_frozen
-python -m src.eval.milestone4
+python scripts/restrict_candidates_to_city_limits.py
+python scripts/refit_verified_run_oof.py
 python scripts/compute_verified_numbers.py
 ```
 
-All 9 leakage audit checks run automatically before every model fit. All 62 tests:
+All leakage audit checks run automatically before every model fit. Full test suite:
 
 ```bash
 make test
@@ -134,19 +229,34 @@ make test
 
 ---
 
-## Forward-looking run (2024–2026)
+## Forward-looking run (2024-2026)
 
-The model was retrained on 2016–2023 features (80,736 candidates) to produce a live
-prediction for 2024–2026. 2024 label outcomes are now complete; 2025–2026 will be
-available when the next SWITRS export is released (~early 2027). The forward-run top-500
-is in `results/top500_forward_2024_2026.csv`. Full prospective evaluation is pending.
+The model was retrained on 2016-2023 features (26,045 City-of-San-Diego candidates) for a
+live prediction covering 2024-2026. 2024 outcomes are complete; 2025-2026 will land when
+the next SWITRS export is released, around early 2027. The forward-run top-500 is in
+`results/top500_forward_2024_2026.csv`.
+
+Spearman ρ: **0.066** (random split) / **0.068** (spatial split), against a persistence
+baseline of 0.072, the same tied-or-trailing pattern as the verified run. recall@500 at the
+≥1-KSI threshold (108 positives): 21/108 (19.4%, random split) / 24/108 (22.2%, spatial
+split), vs. the baseline's 24/108 (the baseline ties or edges ahead here too). Treat every
+forward-run number as provisional: only one of the three label years is complete, and with
+just 2 positives at the ≥2-KSI threshold so far, no recall figure at that threshold means
+much yet.
+
+The live map predictions don't depend on any of the evaluation methodology above: the
+deployed model is fit on all available historical data, which is correct, because there's
+no future label to leak when scoring intersections whose outcomes haven't happened yet.
+The out-of-fold scoring only governs how confident we should be in the model's claimed
+accuracy, not what it predicts day to day.
 
 ---
 
 ## Dashboard
 
-An interactive map of all 81,007 candidate intersections with ranked shortlist layers,
-per-site crash history, SHAP signals, and Council district filtering.
+An interactive map of the 26,423 candidate intersections actually inside San Diego city
+limits, with ranked shortlist layers, per-site crash history, SHAP signals, and Council
+district filtering.
 
 ```bash
 python scripts/build_export_panel_verified.py --run forward
@@ -161,7 +271,7 @@ Open `http://localhost:5173`.
 
 Crash data from SWITRS via TIMS (tims.berkeley.edu). Free account required; cannot be
 redistributed. Road network from OpenStreetMap via OSMnx. See `docs/DATA_SOURCES.md` for
-full access instructions and the critical geocoding correction (POINT_X/POINT_Y, not
+full access instructions and the geocoding correction (POINT_X/POINT_Y, not
 LATITUDE/LONGITUDE).
 
 ---
@@ -172,9 +282,9 @@ LATITUDE/LONGITUDE).
 @misc{sd_ksi_emergence_2026,
   title  = {Predicting {KSI} Intersection Emergence in {San Diego}
             Using Crash-History Gradient Boosting},
-  author = {[Authors]},
+  author = {Pendharkar, Ayan},
   year   = {2026},
-  url    = {[GitHub URL]}
+  url    = {https://github.com/bushesarebetter/KSI-emergence-detection}
 }
 ```
 

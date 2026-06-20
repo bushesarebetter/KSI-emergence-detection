@@ -9,25 +9,25 @@ data/model/**/*
 
 # ── Reports (keep only canonical outputs; exclude working milestone docs) ──────
 reports/milestone*.md
+reports/DEVIATIONS.md
 reports/*.png
 reports/figures/
 # Keep these:
 !reports/verified_canonical_numbers.json
-!reports/claims_audit.csv
 !reports/milestone_final.md
 
 # ── Internal working docs (not for public repo) ────────────────────────────────
 docs/PROJECT_STATE.md
 docs/ROADMAP.md
-docs/METHODOLOGY_old.md
-docs/DECISIONS_old.md
 
-# ── Claude working files ───────────────────────────────────────────────────────
+# ── Claude / tooling working files ─────────────────────────────────────────────
 .claude/
-prompts/
+CLAUDE.md
+graphify-out/
+*.obsidian/
 
-# ── Legacy folder (superseded by root-level results/ and docs/) ───────────────
-final_github/
+# ── Debug / probe scratch work (not part of the documented pipeline) ──────────
+data/probe/
 
 # ── Cache and temp ────────────────────────────────────────────────────────────
 cache/

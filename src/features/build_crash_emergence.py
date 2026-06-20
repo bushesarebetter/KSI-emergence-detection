@@ -54,47 +54,98 @@ DROPPED_FEATURES = [
 # Data loading
 # ---------------------------------------------------------------------------
 
+def _switrs_csv_path(cfg: dict, filename: str = "Crashes.csv") -> Path:
+    """Resolve the SWITRS CSV path respecting switrs_dir/switrs_dirs config keys."""
+    raw = project_root() / cfg["paths"]["raw"] / "switrs"
+    if "switrs_dirs" in cfg:
+        # Multiple directories: use the first one for feature building (burn-in source)
+        return project_root() / cfg["switrs_dirs"][0] / filename
+    if "switrs_dir" in cfg:
+        return project_root() / cfg["switrs_dir"] / filename
+    # Auto-glob fallback
+    paths = sorted(raw.glob(f"*/{filename}"), reverse=True)
+    if not paths:
+        raise FileNotFoundError(f"No {filename} found under {raw}")
+    return paths[0]
+
+
 def _load_all_crashes(cfg: dict) -> pd.DataFrame:
     """Load all-severity crashes using POINT_X/POINT_Y (M3a coordinate fix).
 
     STATE_HWY_IND=Y crashes are excluded when exclude_state_highway=True in config.
+    Respects switrs_dir/switrs_dirs config keys for explicit directory selection.
+    When switrs_dirs is set, loads from ALL listed directories and deduplicates on CASE_ID
+    so that the burn-in period (2015) from the primary dir is included.
     """
-    raw = project_root() / cfg["paths"]["raw"] / "switrs"
-    path = sorted(raw.glob("*/Crashes.csv"), reverse=True)[0]
-    log.info("Loading crashes from %s (POINT_X/POINT_Y primary)", path)
-    df = pd.read_csv(path, usecols=[
+    exclude_state_hwy = cfg.get("geometry", {}).get("exclude_state_highway", True)
+
+    usecols = [
         "CASE_ID", "COLLISION_DATE", "COLLISION_SEVERITY",
-        "POINT_X", "POINT_Y",           # primary geocode (SafeTREC)
-        "STATE_HWY_IND",                # surface-street filter
+        "POINT_X", "POINT_Y", "STATE_HWY_IND",
         "TYPE_OF_COLLISION", "LIGHTING", "ALCOHOL_INVOLVED",
         "PEDESTRIAN_ACCIDENT", "BICYCLE_ACCIDENT",
         "PCF_VIOL_CATEGORY",
-    ], low_memory=False)
-    df = df.rename(columns={
-        "COLLISION_DATE": "date", "COLLISION_SEVERITY": "severity",
-        "POINT_X": "lon", "POINT_Y": "lat",
-    })
-    df["date"] = pd.to_datetime(df["date"], errors="coerce")
+    ]
 
-    exclude_state_hwy = cfg.get("geometry", {}).get("exclude_state_highway", True)
-    if exclude_state_hwy:
+    def _read_one(path: Path) -> pd.DataFrame:
+        log.info("Loading crashes from %s (POINT_X/POINT_Y primary)", path)
+        d = pd.read_csv(path, usecols=usecols, low_memory=False)
+        d = d.rename(columns={
+            "COLLISION_DATE": "date", "COLLISION_SEVERITY": "severity",
+            "POINT_X": "lon", "POINT_Y": "lat",
+        })
+        d["date"] = pd.to_datetime(d["date"], errors="coerce")
+        if exclude_state_hwy:
+            n_before = len(d)
+            d = d[d["STATE_HWY_IND"] != "Y"].copy()
+            log.info("STATE_HWY_IND filter: removed %d freeway crashes", n_before - len(d))
+        d = d.dropna(subset=["lat", "lon", "date"])
+        d = d[d["lat"].between(-90, 90) & d["lon"].between(-180, 180)]
+        return d
+
+    if "switrs_dirs" in cfg:
+        frames = []
+        for d in cfg["switrs_dirs"]:
+            p = project_root() / d / "Crashes.csv"
+            frames.append(_read_one(p))
+        df = pd.concat(frames, ignore_index=True)
         n_before = len(df)
-        df = df[df["STATE_HWY_IND"] != "Y"].copy()
-        log.info("STATE_HWY_IND filter: removed %d freeway crashes", n_before - len(df))
+        df = df.drop_duplicates(subset=["CASE_ID"]).reset_index(drop=True)
+        log.info("Merged %d crash records; dropped %d duplicates; %d remain",
+                 n_before, n_before - len(df), len(df))
+    elif "switrs_dir" in cfg:
+        path = project_root() / cfg["switrs_dir"] / "Crashes.csv"
+        df = _read_one(path)
+    else:
+        raw = project_root() / cfg["paths"]["raw"] / "switrs"
+        paths = sorted(raw.glob("*/Crashes.csv"), reverse=True)
+        if not paths:
+            raise FileNotFoundError(f"No Crashes.csv found under {raw}")
+        df = _read_one(paths[0])
 
-    df = df.dropna(subset=["lat", "lon", "date"])
-    df = df[df["lat"].between(-90, 90) & df["lon"].between(-180, 180)]
     log.info("Crashes loaded (surface-street, with coords): %d", len(df))
     return df
 
 
 def _load_left_turn_ids(cfg: dict) -> set:
-    raw = project_root() / cfg["paths"]["raw"] / "switrs"
-    paths = sorted(raw.glob("*/Parties.csv"), reverse=True)
-    if not paths:
+    # Respect switrs_dir/switrs_dirs config keys
+    if "switrs_dirs" in cfg:
+        party_paths = [project_root() / d / "Parties.csv" for d in cfg["switrs_dirs"]]
+    elif "switrs_dir" in cfg:
+        party_paths = [project_root() / cfg["switrs_dir"] / "Parties.csv"]
+    else:
+        raw = project_root() / cfg["paths"]["raw"] / "switrs"
+        party_paths = sorted(raw.glob("*/Parties.csv"), reverse=True)
+
+    if not party_paths or not party_paths[0].exists():
         log.warning("No Parties.csv found; left_turn_72mo will be 0 for all nodes")
         return set()
-    df = pd.read_csv(paths[0], usecols=["CASE_ID", "MOVE_PRE_ACC"], low_memory=False)
+
+    frames = []
+    for p in party_paths:
+        if p.exists():
+            frames.append(pd.read_csv(p, usecols=["CASE_ID", "MOVE_PRE_ACC"], low_memory=False))
+    df = pd.concat(frames, ignore_index=True).drop_duplicates(subset=["CASE_ID", "MOVE_PRE_ACC"])
     ids = set(df.loc[df["MOVE_PRE_ACC"].isin(_LEFT_TURN_CODES), "CASE_ID"].astype(str))
     log.info("Left-turn crash IDs: %d", len(ids))
     return ids

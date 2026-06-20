@@ -30,38 +30,15 @@ export default function MapView({ intersections, filters, selectedIntersection, 
   const containerRef = useRef(null);
   const popupRef = useRef(null);
   const [mapReady, setMapReady] = useState(false);
-  const [showHeatmap, setShowHeatmap] = useState(false);
-  const showHeatmapRef = useRef(false);
 
   const setupSources = useCallback((map) => {
-    ["heatmap-layer", "intersections-halo-layer", "intersections-layer", "emergents-layer"]
+    ["intersections-halo-layer", "intersections-layer", "emergents-layer"]
       .forEach((id) => { if (map.getLayer(id)) map.removeLayer(id); });
     ["intersections-source", "emergents-source"]
       .forEach((id) => { if (map.getSource(id)) map.removeSource(id); });
 
     // Main source for ranked intersections
     map.addSource("intersections-source", { type: "geojson", data: EMPTY_FC });
-
-    // Heatmap layer (below circles, toggled via opacity)
-    map.addLayer({
-      id: "heatmap-layer",
-      type: "heatmap",
-      source: "intersections-source",
-      paint: {
-        "heatmap-weight": ["interpolate", ["linear"], ["get", "rank"], 1, 1.0, 500, 0.05],
-        "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 8, 1, 14, 3],
-        "heatmap-color": [
-          "interpolate", ["linear"], ["heatmap-density"],
-          0,   "rgba(0,0,0,0)",
-          0.2, "rgba(239,68,68,0.3)",
-          0.5, "rgba(249,115,22,0.7)",
-          0.8, "rgba(251,191,36,0.9)",
-          1.0, "#fde68a",
-        ],
-        "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 8, 24, 14, 48],
-        "heatmap-opacity": 0,
-      },
-    });
 
     // Soft shadow halo under each dot (depth separation from basemap)
     map.addLayer({
@@ -90,14 +67,13 @@ export default function MapView({ intersections, filters, selectedIntersection, 
       },
     });
 
-    // Known-emergent: single tight ring, radius scaled to match each dot tier
+    // All 111 emergent sites — white ring always visible regardless of threshold
     map.addSource("emergents-source", { type: "geojson", data: EMPTY_FC });
     map.addLayer({
       id: "emergents-layer",
       type: "circle",
       source: "emergents-source",
       paint: {
-        // 3px outside each dot tier (dots are 8/7/6/5 px)
         "circle-radius": ["step", ["get", "rank"], 11, 51, 10, 101, 9, 201, 8],
         "circle-color": "rgba(0,0,0,0)",
         "circle-stroke-width": 2,
@@ -158,23 +134,12 @@ export default function MapView({ intersections, filters, selectedIntersection, 
       if (districtSet.size > 0 && !districtSet.has(p.council_district)) return false;
       return true;
     });
-    // Rings only appear for known positives that are within the current threshold bracket
+
     const emergents = shown.filter((f) => Boolean(f.properties.is_known_emergent));
 
     map.getSource("intersections-source")?.setData({ type: "FeatureCollection", features: shown });
     map.getSource("emergents-source")?.setData({ type: "FeatureCollection", features: emergents });
   }, [intersections, filters, mapReady]);
-
-  // Toggle heatmap
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map || !mapReady) return;
-    showHeatmapRef.current = showHeatmap;
-    map.setPaintProperty("heatmap-layer", "heatmap-opacity", showHeatmap ? 0.78 : 0);
-    map.setPaintProperty("intersections-layer", "circle-opacity", showHeatmap ? 0.45 : 0.92);
-    map.setPaintProperty("intersections-halo-layer", "circle-opacity", showHeatmap ? 0 : 1);
-    map.setPaintProperty("emergents-layer", "circle-stroke-opacity", showHeatmap ? 0.4 : 1);
-  }, [showHeatmap, mapReady]);
 
   // Fly to selected
   useEffect(() => {
@@ -190,24 +155,6 @@ export default function MapView({ intersections, filters, selectedIntersection, 
   return (
     <div className="relative w-full h-full">
       <div ref={containerRef} className="w-full h-full" />
-
-      {/* Top-left controls */}
-      <div className="absolute top-3 left-3 z-10 flex gap-2">
-        <button
-          onClick={() => setShowHeatmap((h) => !h)}
-          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-md font-medium transition-all shadow-lg ${
-            showHeatmap
-              ? "bg-orange-500 text-white shadow-orange-500/30"
-              : "bg-slate-900/90 text-slate-300 border border-slate-700 hover:bg-slate-800 hover:text-slate-100"
-          }`}
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-            <circle cx="6" cy="6" r="5" fill="currentColor" opacity="0.25" />
-            <circle cx="6" cy="6" r="2.5" fill="currentColor" />
-          </svg>
-          Heatmap
-        </button>
-      </div>
 
       {/* Risk legend */}
       <MapLegend threshold={filters.threshold} />

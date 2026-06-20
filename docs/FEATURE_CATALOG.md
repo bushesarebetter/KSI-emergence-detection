@@ -66,11 +66,10 @@ Missing flags: `bike_lane_missing`, `transit_prox_missing`.
 ## Group 7 — Terrain  [done: M3b, partial — slope 60.1% coverage]
 
 `slope_pct` (rise/run × 100, mean=4.93%, sd=26.95%), `slope_pct_missing`.
-Source: USGS 3DEP 1m DEM via py3dep (static — safe).
-Coverage: 48,693/81,007 nodes (60.1% of candidates). DEM returned in EPSG:5070
-(Albers metres); CRS bug corrected in dem_loader.py.
-Note: DEM CRS fix applied after primary ablation panel was loaded; terrain step results
-reflect slope_pct=NaN. A supplemental terrain-only ablation is run post-hoc.
+Source: USGS 3DEP 1m DEM via py3dep (static — safe), returned in EPSG:5070 (Albers metres).
+Coverage: 48,693/81,007 nodes (60.1%), measured against the county-wide candidate set;
+pending re-measurement against the corrected 26,423-candidate City-of-San-Diego-only set.
+A supplemental terrain-only ablation is run separately from the primary ablation panel.
 
 ## Group 8 — Demographics / land use  [deferred]
 
@@ -84,7 +83,7 @@ to the graph milestone (also KSI-sparse on the candidate set).
 
 ## Modeling discipline
 
-Positives are scarce (~389 nonzero count nodes, ~22 at ≥2). Keep total feature count
+Positives are scarce (~389 nonzero count nodes, 21 at ≥2). Keep total feature count
 disciplined; prefer **group-level ablation** over a kitchen-sink model; strong
 regularization; rely on spatial-block CV to expose overfitting. New feature groups must
 show **incremental Tweedie Spearman lift over the crash-only model** in *both* splits,

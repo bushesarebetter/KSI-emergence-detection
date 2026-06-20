@@ -14,8 +14,9 @@ interest for proactive intervention — we removed any intersection in the top d
 feature-window KSI density and any intersection with two or more KSI crashes in the feature
 window. This exclusion is by design: the candidate set collapses to nodes with approximately
 zero KSI history, which forces signal to come from all-severity crash counts and temporal
-patterns rather than past KSI incidents. The result is a candidate set of 81,007 surface
-intersections for the original verified run.
+patterns rather than past KSI incidents. The result is a candidate set of 26,423 surface
+intersections within City of San Diego limits for the verified run (see
+`docs/DECISIONS.md` D11 for the full candidate-set definition).
 
 ## Temporal Windows
 
@@ -44,30 +45,25 @@ tuned via Optuna on the crash-only feature set and then frozen for all subsequen
 
 We considered binary classification (label ≥ 2 KSI) as the primary target in the original
 research design, but the pre-registered adequacy floor of approximately 300 positives was not
-met (the corrected candidate set produced 22 sites with ≥2 KSI, well below the floor). Per
+met (the candidate set produced 21 sites with ≥2 KSI, well below the floor). Per
 the pre-registered fallback, the primary target was switched to the count/rate. Binary
 thresholds (≥1 KSI and ≥2 KSI) are retained as secondary readouts; the ≥2-KSI threshold
 is used only for the recall@K evaluation operating point.
 
-## Geocoding Correction
+## Geocoding
 
-An important correction was applied between Milestone 2 and Milestone 3a. Early runs used
-the SWITRS `LATITUDE`/`LONGITUDE` fields, which contain officer-reported GPS coordinates
-with only approximately 44% coverage and approximately 98.5% freeway bias. The correct
-field is `POINT_X`/`POINT_Y`, which provides SafeTREC street-intersection geocoded
-coordinates with approximately 96–97% coverage and negligible freeway skew. All Milestone 1
-and Milestone 2 numeric results were superseded by this correction; only Milestone 3a and
-later results are considered valid.
+Crashes are geocoded using the SWITRS `POINT_X`/`POINT_Y` fields, which provide SafeTREC
+street-intersection geocoded coordinates with approximately 96–97% coverage and negligible
+freeway skew.
 
 ## Frozen-Parameter Ablation Protocol (Protocol A)
 
 To test whether built-environment features (road geometry, traffic signals, bike lanes, etc.)
 add independent predictive signal beyond crash history, we designed a one-variable-at-a-time
 ablation in which the XGBoost hyperparameters are frozen to the values tuned on the
-crash-only model. This is Protocol A. It eliminates hyperparameter confounding that corrupted
-an earlier ablation (Protocol B, M3b): when Optuna re-tunes hyperparameters at each step
-against Tweedie deviance while reporting Spearman rank correlation, adding features that
-improve deviance can paradoxically reduce Spearman, producing false negatives.
+crash-only model. This is Protocol A. Because hyperparameters are frozen across feature sets,
+any apparent lift or loss in Spearman rank correlation can be attributed to the features
+themselves rather than to per-step re-tuning.
 
 Protocol A tests four cumulative feature sets: A (crash history only, 20 features), B (A plus
 road geometry and class), C (A plus signals and stop signs), and D (A plus all infrastructure).
@@ -88,7 +84,7 @@ appear in the model's top-K ranked intersections. This metric is operationally c
 agency deploying this model as a prioritization tool wants to know how many of the
 subsequently dangerous sites would be captured by inspecting a shortlist of K intersections.
 We report recall@K for K ∈ {50, 100, 200, 500, 1000} with bootstrap 95% confidence intervals
-obtained by resampling the 22-positive evaluation set with replacement. With only 22 positives,
+obtained by resampling the 21-positive evaluation set with replacement. With only 21 positives,
 the CIs are wide by construction and should be read as directional evidence rather than
 precise estimates.
 
@@ -101,11 +97,11 @@ All bootstrap CIs are computed with 1,000 resamples.
 ## Spatial Resolution and Buffer Sensitivity
 
 Crashes are assigned to intersections using a nearest-within-buffer rule with a 76.2 m (250
-US survey feet) radius in EPSG:2230 (California State Plane Zone VI). This buffer was widened
-from an initial 30 m after a parameter sweep showed that positive coverage grew substantially
-with radius, and because the SafeTREC geocoder systematically offsets crash coordinates a
-short distance from the intersection center. A 30 m sensitivity run (applying the locked model
-to features re-computed at 30 m) confirmed that full-population recall@200 is equivalent at
-both buffer sizes (8/22, 36.4%), while recall@500 favors the 76.2 m buffer (13/22, 59.1%).
-The 76.2 m choice is grounded in the original Spearman optimization (D2 in the decisions
-log), not in recall@K.
+US survey feet) radius in EPSG:2230 (California State Plane Zone VI). A parameter sweep over 30-100 m showed
+that positive coverage grows substantially with radius, because the SafeTREC geocoder
+systematically offsets crash coordinates a short distance from the intersection center. A 30 m
+sensitivity run (applying the locked
+model to features re-computed at 30 m) showed recall@K in the same broad range at both
+buffer sizes, with no consistent winner once evaluated on genuinely held-out data (see
+D6/D8 in the decisions log for the held-out evaluation methodology). The 76.2 m choice is
+grounded in the original Spearman optimization (D2 in the decisions log), not in recall@K.

@@ -12,6 +12,8 @@ Tests:
 """
 from __future__ import annotations
 
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -185,27 +187,27 @@ class TestFeatureDeterminism:
 # ---------------------------------------------------------------------------
 
 class TestAllSeverityVsKSI:
+    @pytest.mark.integration
     def test_ksi_feat_variance_zero_on_candidates(self):
         """KSI_feat must be constant-zero on the candidate set."""
+        if not Path("data/model/model_scores.parquet").exists():
+            pytest.skip("real pipeline output not present")
         cfg = load_config()
-        try:
-            panel = pd.read_parquet("data/model/candidate_panel.parquet")
-            ksi_var = float(np.var(panel["KSI_feat"].values))
-            assert ksi_var == 0.0, (
-                f"KSI_feat has non-zero variance on candidates: {ksi_var}. "
-                "This invalidates the zero-variance drop of KSI features."
-            )
-        except FileNotFoundError:
-            pytest.skip("candidate_panel.parquet not present; run make data first")
+        panel = pd.read_parquet("data/model/candidate_panel.parquet")
+        ksi_var = float(np.var(panel["KSI_feat"].values))
+        assert ksi_var == 0.0, (
+            f"KSI_feat has non-zero variance on candidates: {ksi_var}. "
+            "This invalidates the zero-variance drop of KSI features."
+        )
 
+    @pytest.mark.integration
     def test_crashes_72mo_varies_on_candidates(self):
         """crashes_72mo (all-severity) must have non-zero variance on candidates."""
-        try:
-            feat = pd.read_parquet("data/model/feature_table.parquet")
-            c72_var = float(np.var(feat["crashes_72mo"].values))
-            assert c72_var > 0.0, "crashes_72mo has zero variance — no signal possible"
-        except FileNotFoundError:
-            pytest.skip("feature_table.parquet not present; run make features first")
+        if not Path("data/model/model_scores.parquet").exists():
+            pytest.skip("real pipeline output not present")
+        feat = pd.read_parquet("data/model/feature_table.parquet")
+        c72_var = float(np.var(feat["crashes_72mo"].values))
+        assert c72_var > 0.0, "crashes_72mo has zero variance — no signal possible"
 
 
 # ---------------------------------------------------------------------------
