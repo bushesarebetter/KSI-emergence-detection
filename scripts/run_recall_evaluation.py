@@ -1,7 +1,7 @@
 """Prospective 2025 validation: the cleanest possible recall@K evaluation.
 
-Builds a fresh forward candidate set (no KSI through 2023), fresh
-2016-2023 features, refits the VERIFIED-RUN recipe (frozen_params.json
+Builds a fresh forward candidate set (no KSI through 2024), fresh
+2016-2024 features, refits the VERIFIED-RUN recipe (frozen_params.json
 crash_only XGB-Tweedie hyperparameters, in-memory only -- never written
 to data/model/xgb_tweedie.pkl) on the ORIGINAL verified-run window
 (data/model/verified_run/{candidate_panel,feature_table}.parquet,
@@ -129,17 +129,17 @@ def evaluation_a(cfg_base: dict) -> dict:
         hits = int((sanity_df.head(k)["KSI_label"] >= 2).sum())
         print(f"  sanity @{k}: {hits}/{n_pos2} = {hits/n_pos2:.4f} (in-sample refit-correctness check)")
 
-    # --- A1: build forward candidate set (no KSI through 2023) ---
+    # --- A1: build forward candidate set (no KSI through 2024) ---
     cfg = copy.deepcopy(cfg_base)
     cfg["paths"] = dict(cfg["paths"])
     cfg["paths"]["model"] = "data/model/eval_a_prospective"
     cfg["windows"] = {
         "feature_start": "2016-01-01",
-        "feature_end": "2023-12-31",
+        "feature_end": "2024-12-31",
         "label_start": "2025-01-01",
         "label_end": "2025-12-31",
         "burn_in_start": "2015-01-01",
-        "feature_cutoff_date": "2024-01-01",
+        "feature_cutoff_date": "2025-01-01",
     }
 
     candidates = build_panel(cfg)
@@ -161,7 +161,7 @@ def evaluation_a(cfg_base: dict) -> dict:
     n_total = len(candidates)
     n1 = int((candidates["KSI_label"] >= 1).sum())
     n2 = int((candidates["KSI_label"] >= 2).sum())
-    print(f"Prospective candidate set: {n_total} intersections with no KSI through 2023")
+    print(f"Prospective candidate set: {n_total} intersections with no KSI through 2024")
     print(f"2025 KSI positives (>=1): {n1}")
     print(f"2025 KSI positives (>=2): {n2}")
     if n1 < 50:
@@ -169,7 +169,7 @@ def evaluation_a(cfg_base: dict) -> dict:
             f"STOP: too few 2025 positives ({n1}) to compute meaningful recall@K."
         )
 
-    # --- A2: build 2016-2023 features ---
+    # --- A2: build 2016-2024 features ---
     features = build_features(cfg)
     missing = [f for f in feature_list if f not in features.columns]
     extra = [f for f in features.columns if f not in feature_list and not f.startswith("_")]
@@ -194,7 +194,7 @@ def evaluation_a(cfg_base: dict) -> dict:
 
     return {
         "model": "xgb_tweedie (verified-run recipe, refit in-memory, frozen_params.json crash_only)",
-        "feature_window_applied": "2016-2023",
+        "feature_window_applied": "2016-2024",
         "label_year": "2025",
         "candidates": n_total,
         "positives_ge1": n1,

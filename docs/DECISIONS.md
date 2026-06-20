@@ -113,9 +113,9 @@ The honest framing: crash-history trend is a real, useful signal, and a one-line
 captures it just as well at the severe (≥2-KSI) threshold. The tuned model's clearest
 validated contribution is at the broader (≥1-KSI) threshold.
 
-**Forward run (2016–2023 features → 2024–2026 labels):** the operational prediction.
-Feature window extends through 2023 to include the first two full post-COVID traffic years.
-Label window is 2024–2026; 2024 is complete, 2025–2026 are pending. Spearman ρ = **0.066**
+**Forward run (2016–2024 features → 2025–2027 labels):** the operational prediction.
+Feature window extends through 2024 to include the most recent available crash history.
+Label window is 2025–2027; 2025 is complete, 2026–2027 are pending. Spearman ρ = **0.066**
 (random) / **0.068** (spatial), again tied with the persistence baseline (0.072). Treat all
 forward-run numbers as provisional: only one of three label years is in, and there are only
 2 positives at the ≥2-KSI threshold so far, too few for that threshold to mean anything yet.
@@ -167,6 +167,8 @@ both splits**, similar magnitude on each, not the random-up/spatial-down overfit
 signature seen before. That consistency is the main reason to take this more seriously than
 the earlier "no effect" reading. recall@500 (≥2-KSI) moves from 10/21 (crash-only) to
 11-12/21 with infrastructure features, depending on configuration.
+
+---
 
 **Practical implication, stated carefully:** this is a more promising signal than anything
 seen before in this project, but it is still built on n=21 positives, the same small-sample
@@ -392,3 +394,26 @@ is small and mixed (a 1-2 site swing on 108 positives, noise-level), so this doe
 the operational shortlist yet, but the Spearman consistency across two independent runs is
 real evidence the D8 lift isn't a one-dataset fluke. Still not strong enough to add an
 infrastructure-data requirement to the reported model.
+
+---
+
+## D14 — Prospective 2025 evaluation was using a stale one-year-old feature cutoff
+
+`scripts/run_recall_evaluation.py` builds a fresh prospective candidate cohort, scores it
+with the frozen verified-run model, and checks against true 2025 KSI outcomes. Its window
+was `feature_end = 2023-12-31`, `feature_cutoff_date = 2024-01-01` — left over from before
+D12 corrected the forward run's window from 2016-2023 to 2016-2024. Nothing about this was a
+leakage bug (2023 features are still cleanly before the 2025 label window), it just meant the
+prospective check wasn't using the most current data available, one full year less than the
+operational forward run uses for the same purpose.
+
+**Fix:** bumped to `feature_end = 2024-12-31`, `feature_cutoff_date = 2025-01-01`. This makes
+the prospective candidate cohort's eligibility screen and feature window identical to the
+forward run's own (26,045 candidates, 108 positives at ≥1 KSI, 2 at ≥2 — same population
+exactly). Re-running gives recall@500 (≥1 KSI) = 24/108 (22.2%, 11.6× random, 95% CI
+[14.8%, 30.6%]), down slightly from the prior 26/112 (23.2%, 12.1×) computed on the stale
+2023-cutoff cohort. The direction of the change is expected: a stricter, more current
+eligibility screen (excluding any site with KSI through 2024, not just through 2023) removes
+a few already-risky sites from the denominator and a few resulting hits from the numerator;
+it doesn't change the conclusion. Updated in `README.md`, `reports/milestone_final.md`, and
+the Notion outreach materials.

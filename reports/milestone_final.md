@@ -98,7 +98,8 @@ haven't happened yet.
 - **Infrastructure feature test** (frozen hyperparameters, Protocol A, Sets A-D and
   extended Groups E/G/H): a consistent, if small, positive signal on the candidate set.
   Group F (ACS demographics) is the only one not yet re-tested, see `docs/DECISIONS.md` D9.
-- **Prospective 2025 evaluation**: 26/112 (23.2%) at K=500.
+- **Prospective 2025 evaluation**: 24/108 (22.2%) at K=500, 2016-2024 features (the most
+  current data available), scored against true 2025 outcomes never seen during training.
 - **Dashboard data**: `dashboard/public/data/` reflects the 26,045 City-of-San-Diego
   forward-run candidates; Council district assignment matches every candidate (0
   unassigned).

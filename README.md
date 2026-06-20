@@ -136,20 +136,20 @@ work, not baked into the headline claim.
 ### Prospective 2025 evaluation
 
 The verified-run model was applied to a fresh candidate cohort (intersections with no KSI
-history through 2023, restricted to the City of San Diego) using 2016-2023 features, and
-scored against true 2025 KSI outcomes it never saw during training. This is the cleanest
-possible test: the labels it's being checked against didn't exist anywhere when the model
-was trained. Results at the ≥1-KSI threshold (112 positives in 26,160 candidates):
+history through 2024, restricted to the City of San Diego) using 2016-2024 features, the
+most current data available, and scored against true 2025 KSI outcomes it never saw during
+training. This is the cleanest possible test: the labels it's being checked against didn't
+exist anywhere when the model was trained. Results at the ≥1-KSI threshold (108 positives in
+26,045 candidates):
 
 | K    | Hits | Recall | 95% CI         | Lift vs. random |
 |------|------|--------|----------------|------------------|
-| 200  | 9    | 8.0%   | [3.6%, 13.4%]  | 10.5x            |
-| **500**  | **26**   | **23.2%** | **[16.1%, 31.3%]** | **12.1x**      |
-| 1000 | 47   | 42.0%  | [33.0%, 50.9%] | 11.0x            |
+| 200  | 9    | 8.3%   | [3.7%, 13.9%]  | 10.9x            |
+| **500**  | **24**   | **22.2%** | **[14.8%, 30.6%]** | **11.6x**      |
+| 1000 | 38   | 35.2%  | [26.8%, 45.4%] | 9.2x            |
 
-The random-baseline comparison pool is sized to the true City of San Diego candidate set,
-which is why the lift over random (12.1x) is lower than a county-wide denominator would
-give. Source data: `results/recall_evaluation.json`.
+The random baseline is computed against the true City of San Diego candidate set (26,045
+candidates). Source data: `results/recall_evaluation.json`.
 
 ---
 
