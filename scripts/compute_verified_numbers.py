@@ -133,8 +133,9 @@ def load_verified_artifacts() -> tuple[pd.DataFrame, pd.DataFrame, str]:
         if scores_path.exists() and panel_path.exists():
             scores = pd.read_parquet(scores_path)
             panel = pd.read_parquet(panel_path)
-            # Validate: verified run must have exactly 22 ge2 positives
-            if "KSI_label" in panel.columns and (panel["KSI_label"] >= 2).sum() == 22:
+            # Validate: verified run must have exactly 21 ge2 positives (City of San Diego
+            # candidate set, post-D11; the pre-D11 county-wide set had 22)
+            if "KSI_label" in panel.columns and (panel["KSI_label"] >= 2).sum() == 21:
                 score_col = next(
                     (c for c in scores.columns
                      if ("crash_only" in c.lower() and "xgb_tweedie" in c.lower())
@@ -146,12 +147,12 @@ def load_verified_artifacts() -> tuple[pd.DataFrame, pd.DataFrame, str]:
                     print(f"  Score column: {score_col}")
                     return scores, panel, score_col
             elif "KSI_label" in panel.columns:
-                n22 = (panel["KSI_label"] >= 2).sum()
-                print(f"  SKIP {source}: found {n22} ge2 positives (expected 22) -- likely forward run artifacts")
+                n21 = (panel["KSI_label"] >= 2).sum()
+                print(f"  SKIP {source}: found {n21} ge2 positives (expected 21) -- likely forward run artifacts")
 
     raise FileNotFoundError(
         "Verified-run artifacts not found or invalid. "
-        "Expected data/model/verified_run/frozen_scores.parquet with 22 ge2 positives. "
+        "Expected data/model/verified_run/frozen_scores.parquet with 21 ge2 positives. "
         "Run the verified-run pipeline (feature_end=2021-12-31, label_end=2024-12-31) "
         "and ensure fit_frozen.py archives to data/model/verified_run/."
     )

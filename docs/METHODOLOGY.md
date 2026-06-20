@@ -31,9 +31,9 @@ Infrastructure features (signal presence, speed limits, bike lanes) carry a sepa
 wall: we use an OSM history snapshot dated 2021-12-31 via the Overpass Attic API rather than
 current OSM data, which would leak post-feature-window infrastructure changes.
 
-The forward run shifts both windows forward (features 2016–2023, labels 2024–2026)
-to generate the most current actionable ranking. 2024 label outcomes are now complete;
-2025–2026 will be available when the next SWITRS export is released (~early 2027).
+The forward run shifts both windows forward (features 2016–2024, labels 2025–2027)
+to generate the most current actionable ranking. 2025 label outcomes are now complete;
+2026–2027 will be available as future SWITRS exports are released.
 
 ## Tweedie Regression Model
 

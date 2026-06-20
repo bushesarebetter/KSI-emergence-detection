@@ -341,3 +341,31 @@ was re-run on the corrected data; every downstream document and report was updat
   flagged as a promising lead rather than a settled claim given the small sample.
 - Dollar figures and BCRs were recomputed on the corrected population; see D10's note above
   for the final reconciliation.
+
+---
+
+## D12 — Forward run window text was stale; archive timestamps were inconsistent
+
+The forward run's intended window (`configs/config.yaml`) is features 2016-2024 → labels
+2025-2027. The genuine OOF results (`results/oof_forward_run_results.json`) and
+`reports/milestone_final.md` already reflected this window. `README.md`, however, still
+described the forward run as "2016-2023 features... covering 2024-2026" (stale text from
+before the window was last shifted forward).
+
+**Separately:** `data/model/forward_run/feature_table.parquet` and `frozen_scores.parquet`
+had an older timestamp than `candidate_panel.parquet`, meaning the archived feature table
+and the archived labels weren't necessarily built in the same pipeline pass.
+
+**Fix:** re-ran `src.labels.build_panel` and `src.features.build_crash_emergence` and
+`src.model.fit_frozen` under the current config, re-archived all three files to
+`data/model/forward_run/`, re-ran `restrict_candidates_to_city_limits.py`,
+`refit_forward_run_oof.py`, `compute_verified_numbers.py`, and the dashboard export. Also
+fixed an unrelated stale check in `compute_verified_numbers.py` that still validated the
+verified run against 22 ≥2-KSI positives (the pre-D11 county-wide count) instead of 21.
+
+**Result:** every genuine OOF number (Spearman ρ, recall@K) came back numerically identical
+to what was already published — the forward-run model and labels were already built on the
+correct window. Only the README prose and `results/top500_forward_2024_2026.csv` (renamed
+to `top500_forward_2025_2027.csv` and regenerated from the OOF scores) were actually wrong.
+The archive is now internally consistent (all three files from one pipeline pass) even
+though the headline numbers didn't move.

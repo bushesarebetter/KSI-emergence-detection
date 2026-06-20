@@ -177,7 +177,7 @@ intersection_project/
 ├── dashboard/           React + MapLibre interactive map
 ├── results/
 │   ├── top500_verified_2022_2024.csv  verified-run top-500 (with became_emergent flag)
-│   ├── top500_forward_2024_2026.csv   forward-run top-500 (2016-2023 features)
+│   ├── top500_forward_2025_2027.csv   forward-run top-500 (2016-2024 features)
 │   ├── model_performance.json         all metrics, both runs, both thresholds
 │   ├── feature_importance.csv         SHAP top-15 with plain-English labels
 │   ├── ablation_results.csv           infrastructure feature-set comparison
@@ -229,12 +229,12 @@ make test
 
 ---
 
-## Forward-looking run (2024-2026)
+## Forward-looking run (2025-2027)
 
-The model was retrained on 2016-2023 features (26,045 City-of-San-Diego candidates) for a
-live prediction covering 2024-2026. 2024 outcomes are complete; 2025-2026 will land when
-the next SWITRS export is released, around early 2027. The forward-run top-500 is in
-`results/top500_forward_2024_2026.csv`.
+The model was retrained on 2016-2024 features (26,045 City-of-San-Diego candidates) for a
+live prediction covering 2025-2027. 2025 outcomes are complete; 2026-2027 will land when
+the next SWITRS export is released. The forward-run top-500 is in
+`results/top500_forward_2025_2027.csv`.
 
 Spearman ρ: **0.066** (random split) / **0.068** (spatial split), against a persistence
 baseline of 0.072, the same tied-or-trailing pattern as the verified run. recall@500 at the

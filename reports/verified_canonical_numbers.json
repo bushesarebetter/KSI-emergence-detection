@@ -1,369 +1,188 @@
 {
   "verified_run": {
-    "label": "(verified run: 2016-2021 features, 2022-2024 labels, n=21 emergent, City of San Diego only)",
+    "run": "verified (2016-2021 features -> 2022-2024 labels)",
     "candidates": 26423,
-    "correction_note": "CORRECTED 2026-06-20: the candidate set previously included 81,007 intersections spanning all of San Diego County (18 cities + unincorporated area), not just the City of San Diego -- src/ingest/osm_loader.py unioned all 74 jurisdiction polygons in city_boundary.geojson instead of filtering to the SAN DIEGO rows. Crash data was always correctly scoped to the city, so the ~68%% of candidates outside city limits had almost no real crash history and were mechanically scored near-zero -- a measurement gap, not a finding. Restricted to the 26,423 candidates actually inside city limits. See docs/DECISIONS.md D11.",
     "spearman_rho": {
-      "random_split": 0.1279,
-      "spatial_split": 0.1306,
-      "note": "genuine 5-fold out-of-fold (OOF) scoring, City of San Diego only."
+      "random_split": 0.0869,
+      "spatial_split": 0.0842,
+      "note": "Genuine out-of-fold scoring, Protocol A Set A crash-only, SWITRS 20260608."
     },
     "persistence_baseline_spearman": {
-      "random_split": 0.1332,
-      "spatial_split": 0.1332,
-      "note": "slightly ahead of the OOF model; statistically tied given n=21 positives."
+      "random": 0.0868,
+      "spatial": 0.0868
     },
     "threshold_ge2": {
-      "description": "Strong emergence: >=2 KSI events in the 3-year label window",
+      "description": "Strong emergence: >=2 KSI in 3-year label window",
       "sites": 21,
       "total_ksi_events": 42,
-      "total_population_harm_usd": 217371997,
-      "total_population_harm_readable": "$217M",
       "city_approach_recall": 0,
       "full_ranking_recall_at_k": {
-        "n_positives": 21,
         "50": {
-          "hits_random": 2,
-          "recall_random": 0.0952,
-          "ci95_random": [
-            0.0,
-            0.2381
-          ],
-          "hits_spatial": 1,
-          "recall_spatial": 0.0476,
-          "ci95_spatial": [
-            0.0,
-            0.1429
-          ],
-          "hits_baseline": 3,
-          "recall_baseline": 0.1429
+          "hits": 5,
+          "recall": 0.2381,
+          "random_baseline_recall": 0.001892,
+          "lift_over_random": 125.8
         },
         "100": {
-          "hits_random": 2,
-          "recall_random": 0.0952,
-          "ci95_random": [
-            0.0,
-            0.2381
-          ],
-          "hits_spatial": 1,
-          "recall_spatial": 0.0476,
-          "ci95_spatial": [
-            0.0,
-            0.1429
-          ],
-          "hits_baseline": 4,
-          "recall_baseline": 0.1905
+          "hits": 7,
+          "recall": 0.3333,
+          "random_baseline_recall": 0.003785,
+          "lift_over_random": 88.1
         },
         "200": {
-          "hits_random": 5,
-          "recall_random": 0.2381,
-          "ci95_random": [
-            0.0476,
-            0.4286
-          ],
-          "hits_spatial": 5,
-          "recall_spatial": 0.2381,
-          "ci95_spatial": [
-            0.0952,
-            0.4286
-          ],
-          "hits_baseline": 6,
-          "recall_baseline": 0.2857
+          "hits": 8,
+          "recall": 0.381,
+          "random_baseline_recall": 0.007569,
+          "lift_over_random": 50.3
         },
         "500": {
-          "hits_random": 10,
-          "recall_random": 0.4762,
-          "ci95_random": [
-            0.2857,
-            0.7143
-          ],
-          "hits_spatial": 10,
-          "recall_spatial": 0.4762,
-          "ci95_spatial": [
-            0.2857,
-            0.6667
-          ],
-          "hits_baseline": 10,
-          "recall_baseline": 0.4762
+          "hits": 13,
+          "recall": 0.619,
+          "random_baseline_recall": 0.018923,
+          "lift_over_random": 32.7
         },
         "1000": {
-          "hits_random": 14,
-          "recall_random": 0.6667,
-          "ci95_random": [
-            0.4762,
-            0.8571
-          ],
-          "hits_spatial": 13,
-          "recall_spatial": 0.619,
-          "ci95_spatial": [
-            0.4286,
-            0.8095
-          ],
-          "hits_baseline": 13,
-          "recall_baseline": 0.619
+          "hits": 17,
+          "recall": 0.8095,
+          "random_baseline_recall": 0.037846,
+          "lift_over_random": 21.4
         }
       },
-      "harm_at_top500_caught_sites": {
-        "events_random": 20,
-        "events_spatial": 20,
-        "events_baseline": 20,
-        "harm_usd": 103510475,
-        "prevented_at_30pct": 31053142,
-        "city_program_cost_usd_assumed": 3200000,
-        "bcr": "~9.7:1 (model and baseline tie exactly at this threshold)",
-        "fatal_share_measured": 0.243
+      "harm": {
+        "total_ksi_events": 42,
+        "fatal_share_measured": 0.243,
+        "blended_cost_per_event_usd": 5175524,
+        "total_harm_usd": 217371997,
+        "total_harm_readable": "$217M",
+        "fhwa_cost_source": "FHWA-SA-25-021 October 2025 2024 dollars"
       }
     },
     "threshold_ge1": {
-      "description": "Any future KSI: >=1 KSI event in the 3-year label window",
+      "description": "Any future KSI: >=1 KSI in 3-year label window",
       "sites": 378,
       "total_ksi_events": 399,
-      "total_population_harm_usd": 2065033971,
-      "total_population_harm_readable": "$2065M",
       "city_approach_recall": 0,
       "full_ranking_recall_at_k": {
-        "n_positives": 378,
         "50": {
-          "hits_random": 4,
-          "recall_random": 0.0106,
-          "ci95_random": [
-            0.0026,
-            0.0212
-          ],
-          "hits_spatial": 9,
-          "recall_spatial": 0.0238,
-          "ci95_spatial": [
-            0.0106,
-            0.0397
-          ],
-          "hits_baseline": 8,
-          "recall_baseline": 0.0212
+          "hits": 18,
+          "recall": 0.0476,
+          "random_baseline_recall": 0.001892,
+          "lift_over_random": 25.2
         },
         "100": {
-          "hits_random": 11,
-          "recall_random": 0.0291,
-          "ci95_random": [
-            0.0132,
-            0.0476
-          ],
-          "hits_spatial": 14,
-          "recall_spatial": 0.037,
-          "ci95_spatial": [
-            0.0185,
-            0.0556
-          ],
-          "hits_baseline": 11,
-          "recall_baseline": 0.0291
+          "hits": 25,
+          "recall": 0.0661,
+          "random_baseline_recall": 0.003785,
+          "lift_over_random": 17.5
         },
         "200": {
-          "hits_random": 29,
-          "recall_random": 0.0767,
-          "ci95_random": [
-            0.0503,
-            0.1032
-          ],
-          "hits_spatial": 28,
-          "recall_spatial": 0.0741,
-          "ci95_spatial": [
-            0.0476,
-            0.1005
-          ],
-          "hits_baseline": 27,
-          "recall_baseline": 0.0714
+          "hits": 48,
+          "recall": 0.127,
+          "random_baseline_recall": 0.007569,
+          "lift_over_random": 16.8
         },
         "500": {
-          "hits_random": 75,
-          "recall_random": 0.1984,
-          "ci95_random": [
-            0.1613,
-            0.2407
-          ],
-          "hits_spatial": 73,
-          "recall_spatial": 0.1931,
-          "ci95_spatial": [
-            0.156,
-            0.2329
-          ],
-          "hits_baseline": 61,
-          "recall_baseline": 0.1614
+          "hits": 89,
+          "recall": 0.2354,
+          "random_baseline_recall": 0.018923,
+          "lift_over_random": 12.4
         },
         "1000": {
-          "hits_random": 128,
-          "recall_random": 0.3386,
-          "ci95_random": [
-            0.291,
-            0.3889
-          ],
-          "hits_spatial": 122,
-          "recall_spatial": 0.3228,
-          "ci95_spatial": [
-            0.2725,
-            0.3678
-          ],
-          "hits_baseline": 114,
-          "recall_baseline": 0.3016
+          "hits": 141,
+          "recall": 0.373,
+          "random_baseline_recall": 0.037846,
+          "lift_over_random": 9.9
         }
       },
-      "harm_at_top500_caught_sites": {
-        "events_random": 85,
-        "events_spatial": 83,
-        "events_baseline": 71,
-        "harm_usd_random": 439919518,
-        "harm_usd_spatial": 429568470,
-        "harm_usd_baseline": 367462185,
-        "prevented_at_30pct_random": 131975855,
-        "prevented_at_30pct_spatial": 128870541,
-        "prevented_at_30pct_baseline": 110238656,
-        "city_program_cost_usd_assumed": 3200000,
-        "bcr_random": "~41.2:1",
-        "bcr_spatial": "~40.3:1",
-        "bcr_baseline": "~34.4:1"
+      "harm": {
+        "total_ksi_events": 399,
+        "fatal_share_measured": 0.243,
+        "blended_cost_per_event_usd": 5175524,
+        "total_harm_usd": 2065033971,
+        "total_harm_readable": "$2065M",
+        "fhwa_cost_source": "FHWA-SA-25-021 October 2025 2024 dollars"
       }
+    },
+    "prospective_validation_2025": {
+      "note": "See results/recall_evaluation.json for the prospective evaluation: the verified-run model applied to 2016-2023 features, validated against 2025 KSI outcomes it never saw during training. recall@500 (>=1 KSI, 115 positives): 0.235 (37.9x random). recall@500 (>=2 KSI): not reported (only 2 sites in single-year window)."
     }
   },
-  "prospective_validation_2025": {
-    "note": "Unaffected by the city-limits correction -- this was already a separate, leakage-free prospective test. See results/recall_evaluation.json."
-  },
   "forward_run": {
-    "label": "(forward run: 2016-2024 features, 2025-2027 labels, City of San Diego only)",
+    "run": "forward (2016-2024 features -> 2025-2027 labels)",
     "candidates": 26045,
-    "label_completeness_note": "label window: 2025 complete; 2026-2027 future. PROVISIONAL: only 2 positives at >=2 threshold so far.",
-    "spearman_rho": {
-      "random_split_oof": 0.0661,
-      "spatial_split_oof": 0.0678,
-      "persistence_baseline": 0.0722,
-      "old_in_sample_random": 0.0907,
-      "old_in_sample_spatial": 0.1007
-    },
-    "threshold_ge1": {
-      "sites": 108,
-      "full_ranking_recall_at_k_random": {
-        "n_positives": 108,
+    "label_completeness": "2025 complete (SWITRS 20260615); 2026-2027 are future predictions",
+    "spearman_note": "Not directly comparable to verified run -- single-year partial label window",
+    "threshold_ge2": {
+      "description": "Strong emergence: >=2 KSI in label window (2025 only)",
+      "sites": 2,
+      "total_ksi_events": 4,
+      "full_ranking_recall_at_k": {
         "50": {
           "hits": 1,
-          "recall": 0.0093,
-          "ci95": [
-            0.0,
-            0.0278
-          ]
+          "recall": 0.5,
+          "random_baseline_recall": 0.00192,
+          "lift_over_random": 260.4
         },
         "100": {
-          "hits": 5,
-          "recall": 0.0463,
-          "ci95": [
-            0.0093,
-            0.0926
-          ]
+          "hits": 1,
+          "recall": 0.5,
+          "random_baseline_recall": 0.00384,
+          "lift_over_random": 130.2
         },
         "200": {
-          "hits": 9,
-          "recall": 0.0833,
-          "ci95": [
-            0.037,
-            0.1389
-          ]
+          "hits": 1,
+          "recall": 0.5,
+          "random_baseline_recall": 0.007679,
+          "lift_over_random": 65.1
         },
         "500": {
-          "hits": 21,
-          "recall": 0.1944,
-          "ci95": [
-            0.1204,
-            0.2685
-          ]
+          "hits": 1,
+          "recall": 0.5,
+          "random_baseline_recall": 0.019198,
+          "lift_over_random": 26.0
         },
         "1000": {
-          "hits": 34,
-          "recall": 0.3148,
-          "ci95": [
-            0.2315,
-            0.4074
-          ]
+          "hits": 1,
+          "recall": 0.5,
+          "random_baseline_recall": 0.038395,
+          "lift_over_random": 13.0
         }
-      },
-      "full_ranking_recall_at_k_spatial": {
-        "n_positives": 108,
+      }
+    },
+    "threshold_ge1": {
+      "description": "Any future KSI: >=1 KSI in label window (2025 data)",
+      "sites": 108,
+      "total_ksi_events": 110,
+      "full_ranking_recall_at_k": {
         "50": {
-          "hits": 2,
-          "recall": 0.0185,
-          "ci95": [
-            0.0,
-            0.0463
-          ]
+          "hits": 8,
+          "recall": 0.0741,
+          "random_baseline_recall": 0.00192,
+          "lift_over_random": 38.6
         },
         "100": {
-          "hits": 7,
-          "recall": 0.0648,
-          "ci95": [
-            0.0278,
-            0.1204
-          ]
+          "hits": 11,
+          "recall": 0.1019,
+          "random_baseline_recall": 0.00384,
+          "lift_over_random": 26.5
         },
         "200": {
-          "hits": 13,
-          "recall": 0.1204,
-          "ci95": [
-            0.0648,
-            0.1852
-          ]
+          "hits": 17,
+          "recall": 0.1574,
+          "random_baseline_recall": 0.007679,
+          "lift_over_random": 20.5
         },
         "500": {
-          "hits": 24,
-          "recall": 0.2222,
-          "ci95": [
-            0.1481,
-            0.3056
-          ]
-        },
-        "1000": {
-          "hits": 37,
-          "recall": 0.3426,
-          "ci95": [
-            0.25,
-            0.4352
-          ]
-        }
-      },
-      "persistence_baseline": {
-        "n_positives": 108,
-        "50": {
-          "hits": 4,
-          "recall": 0.037,
-          "ci95": [
-            0.0093,
-            0.0741
-          ]
-        },
-        "100": {
-          "hits": 7,
-          "recall": 0.0648,
-          "ci95": [
-            0.0185,
-            0.1111
-          ]
-        },
-        "200": {
-          "hits": 12,
-          "recall": 0.1111,
-          "ci95": [
-            0.0556,
-            0.1759
-          ]
-        },
-        "500": {
-          "hits": 24,
-          "recall": 0.2222,
-          "ci95": [
-            0.1481,
-            0.3056
-          ]
-        },
-        "1000": {
           "hits": 36,
           "recall": 0.3333,
-          "ci95": [
-            0.2407,
-            0.4259
-          ]
+          "random_baseline_recall": 0.019198,
+          "lift_over_random": 17.4
+        },
+        "1000": {
+          "hits": 49,
+          "recall": 0.4537,
+          "random_baseline_recall": 0.038395,
+          "lift_over_random": 11.8
         }
       }
     }
