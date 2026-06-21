@@ -19,6 +19,8 @@ reports/figures/
 # ── Internal working docs (not for public repo) ────────────────────────────────
 docs/PROJECT_STATE.md
 docs/ROADMAP.md
+docs/README.md
+
 
 # ── Claude / tooling working files ─────────────────────────────────────────────
 .claude/

@@ -179,7 +179,7 @@ numbers above.
 
 **d. When 2026-2027 SWITRS data is released:**
 Re-run `scripts/predict_forward_run.py` and `scripts/compute_verified_numbers.py` to update
-the forward-run recall@K with the newly-resolved labels. No re-fitting is needed — the
+the forward-run recall@K with the newly-resolved labels. No re-fitting is needed: the
 deployed model stays frozen on the verified-run window (D17); only the candidate scoring
 and the truth labels checked against it change.
 
