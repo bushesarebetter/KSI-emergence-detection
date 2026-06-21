@@ -5,18 +5,17 @@ const THRESHOLD_OPTIONS = [
   { value: 500, label: "Top 500" },
 ];
 
-// Genuine 5-fold out-of-fold recall@K (random split), forward run, >=1 KSI
-// (108 positives, 2025 partial label window). Source: results/oof_forward_run_results.json.
-// These are NOT computed from the live ranking shown on the map -- that ranking comes from
-// the production model fit on all available data, which would overstate accuracy if used
-// to self-report a catch rate. Deliberately static so this can't drift back to an in-sample
-// number; re-run scripts/refit_forward_run_oof.py and update these by hand when new label
-// years land.
-const OOF_CATCH_STATS = {
-  50: { caught: 1, total: 108 },
-  100: { caught: 2, total: 108 },
-  200: { caught: 6, total: 108 },
-  500: { caught: 20, total: 108 },
+// recall@K, forward run, >=1 KSI (108 positives, 2025 partial label window). Source:
+// results/recall_evaluation.json / docs/DECISIONS.md D17. Scored by a model fit once on
+// the verified-run's resolved 2016-2021->2022-2024 window and applied via predict-only
+// to current forward-candidate features -- it never fit on the 2025-2027 outcome being
+// counted here. Deliberately static so this can't silently drift; re-run
+// scripts/predict_forward_run.py and update these by hand when new label years land.
+const CATCH_STATS = {
+  50: { caught: 2, total: 108 },
+  100: { caught: 3, total: 108 },
+  200: { caught: 9, total: 108 },
+  500: { caught: 24, total: 108 },
 };
 
 export default function FilterBar({ filters, onFiltersChange }) {
@@ -24,7 +23,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
     onFiltersChange({ ...filters, threshold: t });
   }
 
-  const { caught, total } = OOF_CATCH_STATS[filters.threshold] ?? { caught: 0, total: 0 };
+  const { caught, total } = CATCH_STATS[filters.threshold] ?? { caught: 0, total: 0 };
   const pct = total > 0 ? Math.round((caught / total) * 100) : 0;
 
   return (
@@ -53,7 +52,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
           <div className="bg-slate-800/60 rounded-lg px-3 py-2.5 border border-slate-700/40">
             <div className="flex items-baseline justify-between mb-1.5">
               <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
-                Out-of-fold catch rate
+                Catch rate
               </span>
               <span className="text-xs font-bold text-orange-400 tabular-nums">
                 {pct}%
@@ -71,7 +70,7 @@ export default function FilterBar({ filters, onFiltersChange }) {
               <span className="text-orange-400 font-semibold">{caught}</span>
               {" of "}
               <span className="text-slate-400">{total}</span>
-              {" 2025 KSI positives, genuinely held-out evaluation, top "}
+              {" 2025 KSI positives, top "}
               <span className="text-slate-400">{filters.threshold}</span>
             </div>
           </div>

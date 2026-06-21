@@ -26,6 +26,7 @@ A GeoJSON FeatureCollection. Each feature represents one ranked intersection.
         "council_district": 3,
         "percentile": 99.8,
         "is_known_emergent": true,
+        "oof_rank": 312,
         "is_crash_active": true,
         "crashes_training": 18,
         "crash_history": [
@@ -56,6 +57,7 @@ A GeoJSON FeatureCollection. Each feature represents one ranked intersection.
 | `council_district` | integer | San Diego council district, 1–9 |
 | `percentile` | float | Score percentile in the full candidate pool (0–100) |
 | `is_known_emergent` | boolean | True if the site had a KSI crash in the holdout window |
+| `oof_rank` | integer or null | Genuine out-of-fold rank (fit without seeing this site's label). Null if the site has no OOF score. The dashboard compares this against the live UI threshold tier to render emergent-ring color (white = caught at the current tier, black = missed), rather than using a fixed top-500 boolean. |
 | `is_crash_active` | boolean | True if the site had any crash in the training window |
 | `crashes_training` | integer | Total crash count in the training window |
 | `crash_history` | array | One object per year; must cover consecutive years |

@@ -214,20 +214,35 @@ def compute_rank_and_percentile(merged: gpd.GeoDataFrame) -> gpd.GeoDataFrame:
     return merged
 
 
-def add_oof_hit_flag(merged: gpd.GeoDataFrame, run_mode: str, root: Path, k: int = 500) -> gpd.GeoDataFrame:
-    """Flag known emergent sites (KSI_label >= 1) as caught or missed by the model, using
-    genuine out-of-fold scoring -- NOT the live production rank ('_score'/'rank' above),
-    which is fit on all available labels and would overstate accuracy if used for this.
-    A site only gets marked 'caught' if a model that never saw its label still ranked it
-    in the top-K. See docs/DECISIONS.md D12 and the OOF-only convention used throughout
-    the dashboard (FilterBar's out-of-fold catch-rate stat).
+def add_oof_hit_flag(merged: gpd.GeoDataFrame, run_mode: str, root: Path) -> gpd.GeoDataFrame:
+    """Attach each site's validated rank for "caught vs not yet caught" coloring.
+
+    Verified run: the live production rank ('_score'/'rank' above) is fit on all
+    available labels, including each site's own -- using it to judge "caught" would
+    overstate accuracy, so this reads the genuine out-of-fold rank from
+    data/model/verified_run/oof_scores.parquet instead. See docs/DECISIONS.md D12.
+
+    Forward run: as of D17, the live score is produced by scripts/predict_forward_run.py,
+    which fits ONCE on the verified-run's resolved 2016-2021->2022-2024 window and only
+    ever calls .predict() on forward candidates -- it never fits on the forward panel's
+    own (2025-2027) label. There is no separate fold-based score to fall back to because
+    no fitting happens on forward candidates at all; the live rank computed above IS the
+    genuinely-never-seen-this-label rank, so it's reused directly.
+
+    `oof_rank` is exported as-is (not collapsed into a fixed-K boolean) so the dashboard
+    can recompute "caught at top-K" for whichever K tier the user has selected.
     """
-    run_dir = root / "data" / "model" / ("verified_run" if run_mode == "verified" else "forward_run")
-    oof = pd.read_parquet(run_dir / "oof_scores.parquet", columns=["intersection_id", "oof_score_random"])
-    oof = oof.sort_values("oof_score_random", ascending=False).reset_index(drop=True)
-    oof["oof_rank"] = oof.index + 1
-    merged = merged.merge(oof[["intersection_id", "oof_rank"]], on="intersection_id", how="left")
-    merged["oof_predicted_correctly"] = (merged["KSI_label"] >= 1) & (merged["oof_rank"] <= k)
+    if run_mode == "verified":
+        oof = pd.read_parquet(
+            root / "data" / "model" / "verified_run" / "oof_scores.parquet",
+            columns=["intersection_id", "oof_score_random"],
+        )
+        oof = oof.sort_values("oof_score_random", ascending=False).reset_index(drop=True)
+        oof["oof_rank"] = oof.index + 1
+        merged = merged.merge(oof[["intersection_id", "oof_rank"]], on="intersection_id", how="left")
+    else:
+        merged = merged.copy()
+        merged["oof_rank"] = merged["rank"]
     return merged
 
 
@@ -440,7 +455,7 @@ def assemble_export_panel(
         "intersection_id", "node_id", "lon", "lat",
         "tweedie_score", "percentile", "rank",
         "council_district",
-        "is_known_emergent", "oof_predicted_correctly", "is_crash_active", "crashes_training",
+        "is_known_emergent", "oof_rank", "is_crash_active", "crashes_training",
         "crash_history_json", "shap_json",
     ]
     return df[keep_cols].reset_index(drop=True)

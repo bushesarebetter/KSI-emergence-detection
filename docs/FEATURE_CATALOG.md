@@ -14,8 +14,8 @@ All features are computed on **feature-window data only** (< `feature_cutoff_dat
 2. **Infrastructure wall** (NEW, M3b): OSM/SanGIS describe infrastructure *as of the pull
    date (2026)*. Features must reflect ≤ 2021. Treat as:
    - **Static / safe:** geometry, edge/leg count, functional class, slope/grade, road
-     class — assume time-invariant; current values are fine.
-   - **Endogenous / risky:** traffic signals, stop control, bike lanes, speed limits — these
+     class: assume time-invariant; current values are fine.
+   - **Endogenous / risky:** traffic signals, stop control, bike lanes, speed limits: these
      are often installed *as countermeasures to* the crashes being predicted. Use a
      **historical OSM snapshot as of 2021-12-31** (Overpass attic data), or run an
      exclusion-sensitivity check. Using 2026 values as 2016–2021 features is leakage.

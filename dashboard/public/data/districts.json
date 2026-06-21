@@ -1,65 +1,65 @@
 [
   {
     "district": 1,
-    "top_50_count": 6,
-    "top_100_count": 11,
-    "top_200_count": 22,
-    "top_500_count": 46
+    "top_50_count": 7,
+    "top_100_count": 14,
+    "top_200_count": 23,
+    "top_500_count": 52
   },
   {
     "district": 2,
-    "top_50_count": 8,
-    "top_100_count": 15,
-    "top_200_count": 27,
-    "top_500_count": 74
+    "top_50_count": 10,
+    "top_100_count": 16,
+    "top_200_count": 28,
+    "top_500_count": 67
   },
   {
     "district": 3,
-    "top_50_count": 6,
-    "top_100_count": 15,
-    "top_200_count": 34,
-    "top_500_count": 93
+    "top_50_count": 10,
+    "top_100_count": 27,
+    "top_200_count": 55,
+    "top_500_count": 123
   },
   {
     "district": 4,
     "top_50_count": 3,
     "top_100_count": 6,
-    "top_200_count": 12,
-    "top_500_count": 36
+    "top_200_count": 10,
+    "top_500_count": 23
   },
   {
     "district": 5,
-    "top_50_count": 0,
-    "top_100_count": 3,
+    "top_50_count": 3,
+    "top_100_count": 4,
     "top_200_count": 7,
-    "top_500_count": 28
+    "top_500_count": 20
   },
   {
     "district": 6,
-    "top_50_count": 6,
-    "top_100_count": 10,
-    "top_200_count": 27,
-    "top_500_count": 60
+    "top_50_count": 2,
+    "top_100_count": 5,
+    "top_200_count": 11,
+    "top_500_count": 39
   },
   {
     "district": 7,
-    "top_50_count": 4,
-    "top_100_count": 11,
-    "top_200_count": 17,
-    "top_500_count": 40
+    "top_50_count": 5,
+    "top_100_count": 6,
+    "top_200_count": 13,
+    "top_500_count": 38
   },
   {
     "district": 8,
-    "top_50_count": 5,
-    "top_100_count": 8,
-    "top_200_count": 21,
-    "top_500_count": 50
+    "top_50_count": 2,
+    "top_100_count": 5,
+    "top_200_count": 14,
+    "top_500_count": 51
   },
   {
     "district": 9,
-    "top_50_count": 12,
-    "top_100_count": 21,
-    "top_200_count": 33,
-    "top_500_count": 73
+    "top_50_count": 8,
+    "top_100_count": 17,
+    "top_200_count": 39,
+    "top_500_count": 87
   }
 ]

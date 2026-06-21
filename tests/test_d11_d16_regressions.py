@@ -145,9 +145,9 @@ def test_no_hardcoded_hyperparameter_dict_in_refit_scripts():
     dict that silently diverged from data/model/frozen_params.json. Guard against any OOF
     script reintroducing a hardcoded copy instead of loading the shared source file."""
     refit_scripts = [
-        ROOT / "scripts" / "refit_forward_run_oof.py",
         ROOT / "scripts" / "refit_protocol_a_oof.py",
-        ROOT / "scripts" / "refit_protocol_a_forward_oof.py",
+        ROOT / "scripts" / "predict_forward_run.py",
+        ROOT / "scripts" / "predict_protocol_a_forward.py",
     ]
     for script in refit_scripts:
         if not script.exists():
@@ -164,16 +164,19 @@ def test_no_hardcoded_hyperparameter_dict_in_refit_scripts():
         )
 
 
-def test_forward_run_oof_results_match_corrected_hyperparameters():
-    """D16: after switching refit_forward_run_oof.py to load frozen_params.json, the
-    forward-run recall@500 changed from 21/108 to 20/108 (random). Guard the corrected
-    value so a future hyperparameter-source regression is caught immediately."""
-    path = RESULTS_DIR / "oof_forward_run_results.json"
+def test_forward_run_predict_only_results_are_leakage_free():
+    """D17: the forward run's deployed score must come from a model fit ONLY on the
+    verified-run's resolved window (2016-2021 features -> 2022-2024 labels) and applied
+    via predict-only to forward candidates -- never refit on the forward panel's own
+    (2025-2027) label. Guard the validated recall@K so a future regression back to
+    fitting on the forward panel's label (the pre-D17 bug in src/model/fit_frozen.py) is
+    caught immediately: that bug inflated these numbers well above what's checked here."""
+    path = RESULTS_DIR / "recall_evaluation.json"
     _skip_if_missing(path)
-    data = json.loads(path.read_text())
-    assert data["random"][">=1"]["500"]["hits"] == 20, (
-        "Forward-run recall@500 (random, >=1 KSI) should be 20/108 post-D16. If this is "
-        "21/108, refit_forward_run_oof.py may be using the pre-D16 hardcoded hyperparameters "
-        "again instead of frozen_params.json."
+    data = json.loads(path.read_text())["prospective_2025"]["recall_at_k"][">=1"]
+    assert data["200"]["hits"] == 9, (
+        "Prospective/forward recall@200 (>=1 KSI) should be 9/108. A higher value may "
+        "indicate the forward score was fit on the forward panel's own (resolved) label "
+        "again instead of predict-only scoring (the pre-D17 bug)."
     )
-    assert data["spatial"][">=1"]["500"]["hits"] == 23
+    assert data["500"]["hits"] == 24

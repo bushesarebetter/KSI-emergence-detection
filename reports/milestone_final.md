@@ -62,28 +62,41 @@ The current operational prediction. The dashboard runs on this. 2025 labels are 
 (SWITRS 20260615); 2026-2027 are future. Sources: 20260608 (primary, includes 2015 burn-in)
 + 20260615 (2025 crash data), deduplicated on CASE_ID.
 
-- **Spearman ρ (OOF):** 0.069 (random) / 0.068 (spatial), against a persistence baseline of
-  0.072. Lower than the verified run, expected, since only one year of the three-year label
-  window is complete as of this writing.
+- **Methodology:** the deployed model is fit ONCE on the verified-run's own resolved
+  window (2016-2021 features → 2022-2024 labels) and applied via predict-only to current
+  2016-2024 forward-candidate features (`scripts/predict_forward_run.py`). It is never
+  retrained on the forward candidates' own (partially-resolved) 2025-2027 outcome. Full
+  methodology notes: `docs/DECISIONS.md` D17.
 - **Emergent sites ≥2 KSI:** 2 (2025 data only, the 2025-2027 window is incomplete).
 - **Sites ≥1 KSI (2025 data):** 108.
-- **Recall@K, ≥1 KSI:**
+- **Recall@K, ≥1 KSI** (predict-only, leakage-free by construction; no random/spatial split
+  needed since no fitting happens on forward candidates):
 
-| K | Hits (random/spatial) | Recall | Persistence baseline |
-|---|---|---|---|
-| 500 | 20/108 · 23/108 | 18.5-21.3% | 24/108 (22.2%) |
+| K | Hits | Events | Recall | Lift vs. random |
+|---|---|---|---|---|
+| 50 | 2 | 2 | 1.9% | 9.6x |
+| 100 | 3 | 3 | 2.8% | 7.2x |
+| 200 | 9 | 9 | 8.3% | 10.9x |
+| **500** | **24** | **24** | **22.2%** | **11.6x** |
+| 1000 | 38 | 38 | 35.2% | 9.2x |
 
-The baseline edges ahead of the model here too. Treat this run's numbers as provisional.
-Only one of three label years is in, and there are too few ≥2-KSI positives so far for that
-threshold to mean anything yet.
+Treat this run's numbers as provisional. Only one of three label years is in, and there are
+too few ≥2-KSI positives so far (2, neither caught through K=1000) for that threshold to
+mean anything yet.
+
+**Cost breakdown at K=500 (≥1 KSI):** fatal share 13.6% (measured from raw SWITRS, 2025-2027
+window), blended cost/event $3,647,574, total harm at the 24 caught events ≈ $87.5M,
+prevented at 30% treatment effectiveness ≈ $26.3M, city program cost (90% HSIP funding,
+same 500-site assumption as the verified run) $3.2M, **BCR ≈ 8.2:1**. Lower than the
+verified run's ≥1-KSI BCR (40.4:1) mainly because the fatal share is lower this year and only
+one label year is resolved. Treat as provisional, same as the recall figures above.
 
 ### Dashboard
 
 Live on the forward run. GeoJSON exported to `dashboard/public/data/`. Feature window
-2016-2024, predicting 2025-2027. The live predictions don't depend on the evaluation
-methodology above: the deployed model is fit on all available historical data, which is
-correct, since there's no future label to leak when scoring intersections whose outcomes
-haven't happened yet.
+2016-2024, predicting 2025-2027. The live predictions are produced by the same predict-only
+scoring described above (D17). Fit once on resolved historical data, applied to current
+features, never retrained on an outcome that's already happened.
 
 ---
 
@@ -111,11 +124,8 @@ haven't happened yet.
 
 ### Pending
 
-- **True prospective validation on the forward run:** compare the forward-run top-500
-  against 2025-2027 SWITRS outcomes once they're available. This will be the study's
-  strongest prospective test once it's possible.
-- **2025-2026 label completion:** the ≥2-KSI threshold on the forward run can't be
-  evaluated until 2025 and 2026 SWITRS data are released (roughly early 2027 and 2028).
+- **2026-2027 label completion:** the ≥2-KSI threshold on the forward run can't be
+  evaluated until 2026 and 2027 SWITRS data are released (roughly early 2027 and 2028).
 - **Engineering effectiveness:** whether intervention at flagged sites actually reduces
   subsequent KSI outcomes. This needs tracking which sites get treated and their 2028+
   outcomes.
@@ -130,14 +140,21 @@ haven't happened yet.
 
 Sources: 20260608 (2015-2024) + 20260615 (2025), deduplicated on CASE_ID.
 
-**Recall@K, ≥1 KSI threshold, 2025 data only, random split:**
+**Recall@K, ≥1 KSI threshold, 2025 data only, predict-only scoring (D17):**
 
 | K | Hits | Recall |
 |---|---|---|
-| 500 | 20/108 | 18.5% |
+| 50 | 2/108 | 1.9% |
+| 100 | 3/108 | 2.8% |
+| 200 | 9/108 | 8.3% |
+| **500** | **24/108** | **22.2%** |
+| 1000 | 38/108 | 35.2% |
 
-Sets B-D (infrastructure feature groups) haven't been re-evaluated on the forward-run
-window; see `results/ablation_results.csv` for the verified-run feature-set comparison.
+Sets B-D (infrastructure feature groups) were re-evaluated on the forward-run window with
+the same predict-only methodology (`scripts/predict_protocol_a_forward.py`). Unlike the
+verified run, none of them improve on crash-only here. Spearman deltas are small and
+negative (B −0.014, C −0.006, D −0.015); see `results/protocol_a_forward_results.json` and
+`docs/DECISIONS.md` D17.
 
 ---
 
@@ -160,19 +177,22 @@ The forward run is live and shows the 2016-2024 feature-trained rankings for the
 2025-2027 prediction horizon. Offer to present alongside the verified-run validation
 numbers above.
 
-**d. When 2025-2026 SWITRS data is released:**
-Re-run `scripts/refit_forward_run_oof.py` and `scripts/compute_verified_numbers.py` to
-update the forward-run recall@K with genuine out-of-fold scoring. This is the moment the
-forward-run top-500 can finally be checked against real outcomes.
+**d. When 2026-2027 SWITRS data is released:**
+Re-run `scripts/predict_forward_run.py` and `scripts/compute_verified_numbers.py` to update
+the forward-run recall@K with the newly-resolved labels. No re-fitting is needed — the
+deployed model stays frozen on the verified-run window (D17); only the candidate scoring
+and the truth labels checked against it change.
 
 **e. If the city conducts engineering reviews at flagged sites:**
 Track which sites get treated and compare 2028+ outcomes. This would be the strongest
 possible validation available to the project. Document treatment type, date, and cost for
 the BCR computation.
 
-**f. Follow up on the infrastructure-feature finding (D8).**
-A consistent positive signal, worth re-checking once 2025-2026 forward-run labels grow the
-positive count beyond the current 21.
+**f. Infrastructure-feature finding (D8) does not yet replicate on the forward run.**
+Re-tested with leakage-free predict-only scoring (`scripts/predict_protocol_a_forward.py`,
+D17): Spearman deltas vs. crash-only are small and negative (B −0.014, C −0.006, D −0.015),
+the opposite direction from the verified run's +0.020/+0.021. Worth re-checking again once
+2026-2027 forward-run labels grow the positive count beyond the current 108.
 
 ---
 
@@ -186,8 +206,11 @@ positive count beyond the current 21.
 | `scripts/restrict_candidates_to_city_limits.py` | Restricts the candidate set to City of San Diego limits (D11) |
 | `reports/verified_canonical_numbers.json` | All canonical figures, both runs, genuine out-of-fold scoring |
 | `results/oof_verified_run_results.json` | Full verified-run out-of-fold results |
-| `results/oof_forward_run_results.json` | Full forward-run out-of-fold results |
-| `results/protocol_a_oof_results.json` | Infrastructure feature-set comparison, genuine OOF |
+| `scripts/predict_forward_run.py` | Forward-run scoring: fit once on verified-run window, predict-only on forward candidates (D17) |
+| `results/recall_evaluation.json` | Forward-run / prospective-2025 recall@K (same artifact, D17) |
+| `results/protocol_a_oof_results.json` | Infrastructure feature-set comparison, genuine OOF (verified run) |
+| `scripts/predict_protocol_a_forward.py` | Infrastructure feature-set comparison, predict-only (forward run, D17) |
+| `results/protocol_a_forward_results.json` | Infrastructure feature-set comparison results, forward run |
 | `results/model_bakeoff_oof_results.json` | Architecture comparison (XGBoost/RF/MLP), genuine OOF |
 | `results/ablation_results.csv` | Infrastructure feature-set comparison, Sets A-D |
 | `dashboard/public/data/` | Forward run GeoJSON for the live dashboard |

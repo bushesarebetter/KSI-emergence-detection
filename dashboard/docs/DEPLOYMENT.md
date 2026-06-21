@@ -12,7 +12,7 @@
 
 Vercel will run `npm run build` and serve the output. The `vercel.json` rewrite rule ensures client-side routing works on direct URL access.
 
-The files in `dashboard/public/data/` are committed to the repository and served as static assets — they do not need to be generated at build time.
+The files in `dashboard/public/data/` are committed to the repository and served as static assets. They do not need to be generated at build time.
 
 To update the data, run the export script locally, commit the updated files, and push. Vercel redeploys automatically on push.
 

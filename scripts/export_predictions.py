@@ -10,7 +10,7 @@ OUTPUT_DIR = os.path.join("dashboard", "public", "data")
 
 REQUIRED_PANEL_COLUMNS = [
     "node_id", "lon", "lat", "tweedie_score", "percentile",
-    "council_district", "is_known_emergent", "oof_predicted_correctly", "is_crash_active",
+    "council_district", "is_known_emergent", "oof_rank", "is_crash_active",
     "crashes_training", "crash_history_json", "shap_json",
 ]
 
@@ -50,8 +50,11 @@ def write_geojson(
     output_dir = Path(output_dir)
     df = panel.copy()
     df = df.merge(names[["intersection_id", "intersection_name"]], on="intersection_id", how="left")
-    df = df.sort_values("tweedie_score", ascending=False).reset_index(drop=True)
-    df["rank"] = df.index + 1
+    # Use the rank already computed upstream (compute_rank_and_percentile) rather than
+    # re-deriving it here -- re-sorting and re-deriving from a fresh row index broke ties
+    # differently than the upstream computation, causing rank and oof_rank to disagree by
+    # a position or two on tied/near-tied scores.
+    df = df.sort_values("rank").reset_index(drop=True)
     # Include top_n ranked sites + ALL emergent sites (so missed positives are visible on the map)
     in_top_n = df["rank"] <= top_n
     is_emergent = df["is_known_emergent"].astype(bool)
@@ -70,7 +73,7 @@ def write_geojson(
             "council_district": district,
             "percentile": round(float(row["percentile"]), 4),
             "is_known_emergent": bool(row["is_known_emergent"]),
-            "oof_predicted_correctly": bool(row["oof_predicted_correctly"]),
+            "oof_rank": int(row["oof_rank"]) if pd.notna(row["oof_rank"]) else None,
             "is_crash_active": bool(row["is_crash_active"]),
             "crashes_training": int(row["crashes_training"]),
             "crash_history": crash_history,

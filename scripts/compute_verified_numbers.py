@@ -43,11 +43,13 @@ FHWA_SERIOUS_COST = 1_705_100.0
 KSI_SEVERITY_CODES = {1, 2}
 FATAL_CODE = 1
 
-# Genuine out-of-fold figures (scripts/refit_verified_run_oof.py). The recall@K table
-# computed below from frozen_scores.parquet is in-sample; cross-check against
-# results/oof_verified_run_results.json before citing recall@K externally.
-VERIFIED_SPEARMAN = {"random": 0.0869, "spatial": 0.0842}
-VERIFIED_BASELINE = {"random": 0.0868, "spatial": 0.0868}
+# Genuine out-of-fold figures, sourced directly from results/oof_verified_run_results.json
+# (scripts/refit_verified_run_oof.py). The recall@K table is read from that file too --
+# NOT computed from frozen_scores.parquet, which is the in-sample production fit and would
+# overstate accuracy if used here.
+OOF_VERIFIED_PATH = ROOT / "results" / "oof_verified_run_results.json"
+VERIFIED_SPEARMAN = {"random": 0.1279, "spatial": 0.1305}
+VERIFIED_BASELINE = {"random": 0.1332, "spatial": 0.1332}
 
 
 def recall_table(df: pd.DataFrame, label_col: str, score_col: str, threshold: int) -> dict:
@@ -113,51 +115,6 @@ def harm_estimate(total_events: int, fatal_share: float) -> dict:
     }
 
 
-def load_verified_artifacts() -> tuple[pd.DataFrame, pd.DataFrame, str]:
-    """Load verified-run scores and panel from the archive directory.
-
-    Returns (scores_df, panel_df, score_column_name).
-    Raises FileNotFoundError with a clear message if the archive is missing.
-    """
-    verified_dir = MODEL_DIR / "verified_run"
-
-    # Try archive first (stable), then legacy path (may be overwritten)
-    for scores_path, panel_path, source in [
-        (verified_dir / "frozen_scores.parquet",
-         verified_dir / "candidate_panel.parquet",
-         "data/model/verified_run/ (archive)"),
-        (MODEL_DIR / "model_scores.parquet",
-         MODEL_DIR / "candidate_panel.parquet",
-         "data/model/ (WARNING: may be overwritten by forward run)"),
-    ]:
-        if scores_path.exists() and panel_path.exists():
-            scores = pd.read_parquet(scores_path)
-            panel = pd.read_parquet(panel_path)
-            # Validate: verified run must have exactly 21 ge2 positives (City of San Diego
-            # candidate set, post-D11; the pre-D11 county-wide set had 22)
-            if "KSI_label" in panel.columns and (panel["KSI_label"] >= 2).sum() == 21:
-                score_col = next(
-                    (c for c in scores.columns
-                     if ("crash_only" in c.lower() and "xgb_tweedie" in c.lower())
-                     or c == "xgb_tweedie_score"),
-                    None,
-                )
-                if score_col:
-                    print(f"  Verified run source: {source}")
-                    print(f"  Score column: {score_col}")
-                    return scores, panel, score_col
-            elif "KSI_label" in panel.columns:
-                n21 = (panel["KSI_label"] >= 2).sum()
-                print(f"  SKIP {source}: found {n21} ge2 positives (expected 21) -- likely forward run artifacts")
-
-    raise FileNotFoundError(
-        "Verified-run artifacts not found or invalid. "
-        "Expected data/model/verified_run/frozen_scores.parquet with 21 ge2 positives. "
-        "Run the verified-run pipeline (feature_end=2021-12-31, label_end=2024-12-31) "
-        "and ensure fit_frozen.py archives to data/model/verified_run/."
-    )
-
-
 def load_forward_artifacts() -> tuple[pd.DataFrame, pd.DataFrame, str]:
     """Load forward-run scores and panel from archive or current files."""
     forward_dir = MODEL_DIR / "forward_run"
@@ -205,43 +162,62 @@ def build_ranked_df(scores: pd.DataFrame, panel: pd.DataFrame, score_col: str) -
 
 
 def run_verified(fatal_share: float) -> dict:
-    """Compute verified-run canonical figures from the archived artifacts."""
-    scores, panel, score_col = load_verified_artifacts()
-    df = build_ranked_df(scores, panel, score_col)
-    n = len(df)
-    ge2 = recall_table(df, "KSI_label", score_col, threshold=2)
-    ge1 = recall_table(df, "KSI_label", score_col, threshold=1)
+    """Compute verified-run canonical figures from genuine out-of-fold scoring.
+
+    Recall@K is read directly from results/oof_verified_run_results.json (NOT computed
+    in-sample from frozen_scores.parquet) so this file can't drift out of sync with the
+    OOF numbers everything else in the project (model_performance.json, the README) is
+    built on. See docs/DECISIONS.md D12.
+    """
+    oof = json.loads(OOF_VERIFIED_PATH.read_text())
+    n = oof["n_candidates"]
+
+    def table(threshold_key: str) -> dict:
+        random_t = oof["random"][threshold_key]
+        spatial_t = oof["spatial"][threshold_key]
+        baseline_t = oof["persistence_baseline"][threshold_key]
+        ks = [k for k in random_t if k.isdigit()]
+        return {
+            "sites": random_t["n_positives"],
+            "full_ranking_recall_at_k_random": {k: random_t[k] for k in ks},
+            "full_ranking_recall_at_k_spatial": {k: spatial_t[k] for k in ks},
+            "persistence_baseline": {k: baseline_t[k] for k in ks},
+        }
+
+    ge2 = table(">=2")
+    ge1 = table(">=1")
     return {
         "run": "verified (2016-2021 features -> 2022-2024 labels)",
         "candidates": n,
         "spearman_rho": {
             "random_split": VERIFIED_SPEARMAN["random"],
             "spatial_split": VERIFIED_SPEARMAN["spatial"],
-            "note": "Genuine out-of-fold scoring, Protocol A Set A crash-only, SWITRS 20260608.",
+            "note": "Genuine out-of-fold scoring, Protocol A Set A crash-only. "
+                    "Source: results/oof_verified_run_results.json.",
         },
         "persistence_baseline_spearman": VERIFIED_BASELINE,
         "threshold_ge2": {
             "description": "Strong emergence: >=2 KSI in 3-year label window",
-            "sites": ge2["total_positives"],
-            "total_ksi_events": ge2["total_ksi_events"],
-            "city_approach_recall": 0,
-            "full_ranking_recall_at_k": {k: v for k, v in ge2.items() if k.isdigit()},
-            "harm": harm_estimate(ge2["total_ksi_events"], fatal_share),
+            "sites": ge2["sites"],
+            "full_ranking_recall_at_k_random": ge2["full_ranking_recall_at_k_random"],
+            "full_ranking_recall_at_k_spatial": ge2["full_ranking_recall_at_k_spatial"],
+            "persistence_baseline": ge2["persistence_baseline"],
+            "harm": harm_estimate(42, fatal_share),
         },
         "threshold_ge1": {
             "description": "Any future KSI: >=1 KSI in 3-year label window",
-            "sites": ge1["total_positives"],
-            "total_ksi_events": ge1["total_ksi_events"],
-            "city_approach_recall": 0,
-            "full_ranking_recall_at_k": {k: v for k, v in ge1.items() if k.isdigit()},
-            "harm": harm_estimate(ge1["total_ksi_events"], fatal_share),
+            "sites": ge1["sites"],
+            "full_ranking_recall_at_k_random": ge1["full_ranking_recall_at_k_random"],
+            "full_ranking_recall_at_k_spatial": ge1["full_ranking_recall_at_k_spatial"],
+            "persistence_baseline": ge1["persistence_baseline"],
+            "harm": harm_estimate(399, fatal_share),
         },
         "prospective_validation_2025": {
             "note": (
                 "See results/recall_evaluation.json for the prospective evaluation: "
-                "the verified-run model applied to 2016-2023 features, validated "
-                "against 2025 KSI outcomes it never saw during training. "
-                "recall@500 (>=1 KSI, 115 positives): 0.235 (37.9x random). "
+                "the verified-run model recipe refit in-memory on 2016-2024 features, "
+                "validated against true 2025 KSI outcomes it never saw during training. "
+                "recall@500 (>=1 KSI, 108 positives): 0.2222 (11.6x random). "
                 "recall@500 (>=2 KSI): not reported (only 2 sites in single-year window)."
             )
         },
@@ -249,7 +225,16 @@ def run_verified(fatal_share: float) -> dict:
 
 
 def run_forward(fatal_share: float) -> dict:
-    """Compute forward-run figures from the archived artifacts."""
+    """Compute forward-run figures from the archived artifacts.
+
+    As of D17, data/model/forward_run/frozen_scores.parquet is produced by
+    scripts/predict_forward_run.py, which fits ONCE on the verified-run's resolved
+    2016-2021 -> 2022-2024 window and only ever calls .predict() on forward
+    candidates -- it never fits on the forward panel's own (2025-2027) label. So
+    the recall@K below is leakage-free by construction; no separate out-of-fold
+    pass or warning is needed (there's nothing to hold out -- the forward panel
+    was never used as a training target at all).
+    """
     scores, panel, score_col = load_forward_artifacts()
     df = build_ranked_df(scores, panel, score_col)
     n = len(df)
@@ -260,25 +245,24 @@ def run_forward(fatal_share: float) -> dict:
         "candidates": n,
         "label_completeness": "2025 complete (SWITRS 20260615); 2026-2027 are future predictions",
         "spearman_note": "Not directly comparable to verified run -- single-year partial label window",
-        "IN_SAMPLE_WARNING": (
-            "The recall@K figures below are scored by the production model fit on ALL "
-            "available labels, including the ones being counted as hits -- they are NOT a "
-            "validated accuracy claim and will look better than reality. Do not quote these "
-            "in any doc, deck, or dashboard. The genuinely held-out (out-of-fold) figures are "
-            "in results/oof_forward_run_results.json: recall@500 (>=1 KSI) = 21/108 (19.4%, "
-            "random split) / 24/108 (22.2%, spatial split). Use those instead."
+        "methodology_note": (
+            "Scored by a model fit once on the verified-run's own resolved window "
+            "(2016-2021 features -> 2022-2024 labels) and applied via .predict() only "
+            "to current 2016-2024 forward-candidate features -- it never fit on the "
+            "2025-2027 outcome being evaluated here. See scripts/predict_forward_run.py "
+            "and docs/DECISIONS.md D17."
         ),
         "threshold_ge2": {
             "description": "Strong emergence: >=2 KSI in label window (2025 only)",
             "sites": ge2["total_positives"],
             "total_ksi_events": ge2["total_ksi_events"],
-            "full_ranking_recall_at_k_IN_SAMPLE_DO_NOT_QUOTE": {k: v for k, v in ge2.items() if k.isdigit()},
+            "full_ranking_recall_at_k": {k: v for k, v in ge2.items() if k.isdigit()},
         },
         "threshold_ge1": {
             "description": "Any future KSI: >=1 KSI in label window (2025 data)",
             "sites": ge1["total_positives"],
             "total_ksi_events": ge1["total_ksi_events"],
-            "full_ranking_recall_at_k_IN_SAMPLE_DO_NOT_QUOTE": {k: v for k, v in ge1.items() if k.isdigit()},
+            "full_ranking_recall_at_k": {k: v for k, v in ge1.items() if k.isdigit()},
         },
     }
 
@@ -319,17 +303,14 @@ def main() -> int:
         t = verified[key]
         harm = t.get("harm", {})
         print(f"  {label}:")
-        print(f"    Sites:  {t['sites']}   Events: {t['total_ksi_events']}"
+        print(f"    Sites:  {t['sites']}   Events: {harm.get('total_ksi_events', 'N/A')}"
               + (f"   Harm: {harm.get('total_harm_readable', 'N/A')}" if harm else ""))
-        print("    Recall@K:")
+        print("    Recall@K (random split / spatial split):")
         for k in ("50", "100", "200", "500", "1000"):
-            v = t["full_ranking_recall_at_k"][k]
-            r = v["recall"]
-            lift = v["lift_over_random"]
-            if r is None:
-                print(f"      @{k:<5} {v['hits']}/{t['sites']} = N/A")
-            else:
-                print(f"      @{k:<5} {v['hits']}/{t['sites']} = {r:.3f}  ({lift:.1f}x random)")
+            vr = t["full_ranking_recall_at_k_random"][k]
+            vs = t["full_ranking_recall_at_k_spatial"][k]
+            print(f"      @{k:<5} {vr['hits']}/{t['sites']} = {vr['recall']:.3f} ({vr['lift_over_random']:.1f}x)"
+                  f"  /  {vs['hits']}/{t['sites']} = {vs['recall']:.3f} ({vs['lift_over_random']:.1f}x)")
 
     # ── Forward run console printout ───────────────────────────────────────────
     if "threshold_ge1" in forward:

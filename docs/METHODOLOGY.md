@@ -9,8 +9,8 @@ mainline and on/off-ramps) are excluded, because freeway KSI events are segment-
 intersection-level, and geocode differently from urban intersection crashes. Nodes are merged
 within 10 meters to eliminate near-duplicates arising from OSMnx graph simplification.
 
-To restrict the model to intersections without existing KSI exposure — the population of
-interest for proactive intervention — we removed any intersection in the top decile of
+To restrict the model to intersections without existing KSI exposure, the population of
+interest for proactive intervention, we removed any intersection in the top decile of
 feature-window KSI density and any intersection with two or more KSI crashes in the feature
 window. This exclusion is by design: the candidate set collapses to nodes with approximately
 zero KSI history, which forces signal to come from all-severity crash counts and temporal

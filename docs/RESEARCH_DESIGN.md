@@ -2,6 +2,14 @@
 
 Distilled from the Research Design Document. Runtime constants live in `../configs/config.yaml`.
 
+> **Correction (2026-06-20, see `DECISIONS.md` D11):** the candidate-set numbers below
+> (81,007 candidates, 389 @≥1, 22 @≥2) reflect a now-fixed bug: the OSM loader pulled in
+> all of San Diego County, not just the City of San Diego, so only ~31% of candidates were
+> actually inside city limits. The design intent below ("City of San Diego only") was always
+> correct; the implementation didn't match it until `scripts/restrict_candidates_to_city_limits.py`
+> was added. Corrected figures: **26,423 candidates, 378 @≥1, 21 @≥2** (verified run). See
+> `reports/milestone_final.md` for current numbers.
+
 ## Question
 
 Predict which **currently non-hotspot** intersections in the City of San Diego will
@@ -18,19 +26,19 @@ graph (OpenStreetMap, simplified), **surface-street only**.
 - **Surface-street filter:** exclude nodes whose incident edges are `motorway` /
   `motorway_link` (freeway mainline + ramps). `trunk`/`trunk_link` is a reported
   borderline class. (Rationale: freeway KSI are segment/ramp events, not intersection
-  events, and they geocode differently — see DECISIONS.md on the coordinate bug.)
+  events, and they geocode differently. See DECISIONS.md on the coordinate bug.)
 
 ## Coordinate systems
 
-- **EPSG:2230** (NAD83 / California State Plane Zone VI, US survey feet) — all distance
+- **EPSG:2230** (NAD83 / California State Plane Zone VI, US survey feet): all distance
   and buffer math.
-- **EPSG:4326** (WGS84) — mapping and the source CRS of crash coordinates.
+- **EPSG:4326** (WGS84): mapping and the source CRS of crash coordinates.
 
 ## Influence area
 
 **76.2 m radius** (= 250 US survey feet) around each node. KSI crashes are assigned to
 their **nearest** node and counted only if within this radius (`nearest_within_buffer`).
-(Originally 30 m; widened — see DECISIONS.md. The SafeTREC geocoder also offsets crashes
+(Originally 30 m; widened. See DECISIONS.md. The SafeTREC geocoder also offsets crashes
 a short distance from the intersection, which a tight buffer would miss.)
 
 ## KSI definition
@@ -84,4 +92,5 @@ The original design was binary ≥2 classification; the re-scope trigger (below 
 
 **City of San Diego only.** County-wide scope was probed and declined (target rarity is
 not solved by county scale, and infrastructure data harmonization across ~18 municipalities
-is costly). See DECISIONS.md.
+is costly). See DECISIONS.md D11 for the implementation bug that, until 2026-06-20, caused
+the candidate set to span the full county rather than enforcing this decision.

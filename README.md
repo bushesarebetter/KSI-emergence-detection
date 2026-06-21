@@ -140,13 +140,22 @@ label data arrives (the forward run will add 2025-2026 outcomes). The model we r
 stays the simpler crash-only one; this finding is flagged as a promising lead for follow-up
 work, not baked into the headline claim.
 
+A leakage-free predict-only check against the 2025 forward-run outcome
+(`scripts/predict_protocol_a_forward.py`, see `docs/DECISIONS.md` D17) does **not** replicate
+this lift. Spearman deltas vs. crash-only are small and negative there (B −0.014, C −0.006,
+D −0.015). With only 108 partial-year positives this isn't strong evidence infra data hurts
+either; it just means the verified run's infra-helps finding hasn't yet replicated
+out-of-sample.
+
 ### Prospective 2025 evaluation
 
-The verified-run model was applied to a fresh candidate cohort (intersections with no KSI
-history through 2024, restricted to the City of San Diego) using 2016-2024 features, the
-most current data available, and scored against true 2025 KSI outcomes it never saw during
-training. This is the cleanest possible test: the labels it's being checked against didn't
-exist anywhere when the model was trained. Results at the ≥1-KSI threshold (108 positives in
+The verified-run model was fit once on 2016-2021 features → 2022-2024 labels and never
+retrained. It was applied via predict-only scoring to a fresh candidate cohort (intersections
+with no KSI history through 2024, restricted to the City of San Diego) using 2016-2024
+features, the most current data available, and scored against true 2025 KSI outcomes it
+never saw during training or fitting of any kind. This is the cleanest possible test: the
+labels it's being checked against didn't exist anywhere when the model was trained, and the
+model was never refit to include them. Results at the ≥1-KSI threshold (108 positives in
 26,045 candidates):
 
 | K    | Hits | Recall | 95% CI         | Lift vs. random |
@@ -156,7 +165,8 @@ exist anywhere when the model was trained. Results at the ≥1-KSI threshold (10
 | 1000 | 38   | 35.2%  | [26.8%, 45.4%] | 9.2x            |
 
 The random baseline is computed against the true City of San Diego candidate set (26,045
-candidates). Source data: `results/recall_evaluation.json`.
+candidates). Source data: `results/recall_evaluation.json`. These are the same numbers
+quoted for the forward run below; see that section for why they're the same artifact.
 
 ---
 
@@ -176,7 +186,7 @@ intersection_project/
 │   ├── compute_verified_numbers.py            canonical figures, both thresholds
 │   ├── restrict_candidates_to_city_limits.py  restricts candidates to City of San Diego limits
 │   ├── refit_verified_run_oof.py              genuine out-of-fold scoring, verified run
-│   ├── refit_forward_run_oof.py               genuine out-of-fold scoring, forward run
+│   ├── predict_forward_run.py                 predict-only forward-run scoring (D17)
 │   ├── refit_protocol_a_oof.py                infrastructure feature-set comparison
 │   ├── model_bakeoff_oof.py                   architecture comparison (XGBoost/RF/MLP)
 │   ├── build_export_panel_verified.py         dashboard export (--run verified|forward)
@@ -238,24 +248,21 @@ make test
 
 ## Forward-looking run (2025-2027)
 
-The model was retrained on 2016-2024 features (26,045 City-of-San-Diego candidates) for a
-live prediction covering 2025-2027. 2025 outcomes are complete; 2026-2027 will land when
-the next SWITRS export is released. The forward-run top-500 is in
-`results/top500_forward_2025_2027.csv`.
+The live map covers 2025-2027 for the 26,045 City-of-San-Diego candidates with no KSI
+history through 2024. 2025 outcomes are complete; 2026-2027 will land when the next SWITRS
+export is released. The forward-run top-500 is in `results/top500_forward_2025_2027.csv`.
 
-Spearman ρ: **0.069** (random split) / **0.068** (spatial split), against a persistence
-baseline of 0.072, the same tied-or-trailing pattern as the verified run. recall@500 at the
-≥1-KSI threshold (108 positives): 20/108 (18.5%, random split) / 23/108 (21.3%, spatial
-split), vs. the baseline's 24/108 (the baseline ties or edges ahead here too). Treat every
-forward-run number as provisional: only one of the three label years is complete, and with
-just 2 positives at the ≥2-KSI threshold so far, no recall figure at that threshold means
-much yet.
-
-The live map predictions don't depend on any of the evaluation methodology above: the
-deployed model is fit on all available historical data, which is correct, because there's
-no future label to leak when scoring intersections whose outcomes haven't happened yet.
-The out-of-fold scoring only governs how confident we should be in the model's claimed
-accuracy, not what it predicts day to day.
+**Methodology:** the deployed model is the verified-run model: fit once on 2016-2021
+features → 2022-2024 labels, the project's one and only trained model. It's applied via
+`.predict()` only to the current 2016-2024 forward-candidate features
+(`scripts/predict_forward_run.py`), and it is **never retrained** on the forward candidates' own
+KSI outcome — that outcome (the 2025 portion of the 2025-2027 window) is what the forward run
+is being checked against, so the model never sees it during fitting. The forward run and the
+"Prospective 2025 evaluation" above are therefore the same artifact —
+recall@500 (≥1 KSI, 108 positives): **24/108 (22.2%, 11.6x random)**. recall@200: 9/108 (8.3%).
+Treat every forward-run number as provisional: only one of the three label years (2025) is
+complete, and with just 2 positives at the ≥2-KSI threshold so far, no recall figure at that
+threshold means much yet. Full methodology notes: `docs/DECISIONS.md` D17.
 
 ---
 

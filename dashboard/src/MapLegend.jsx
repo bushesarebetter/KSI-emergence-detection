@@ -47,18 +47,18 @@ export default function MapLegend({ threshold }) {
           </svg>
           <div className="min-w-0">
             <div className="text-xs font-medium text-slate-300 leading-tight">2025 KSI, caught</div>
-            <div className="text-[10px] text-slate-600">out-of-fold top-500 hit</div>
+            <div className="text-[10px] text-slate-600">top-{threshold} hit</div>
           </div>
         </div>
 
         <div className="flex items-center gap-2.5">
           <svg width="20" height="20" className="shrink-0" aria-hidden="true">
             <circle cx="10" cy="10" r={6} fill="#ef4444" />
-            <circle cx="10" cy="10" r={9} fill="none" stroke="black" strokeWidth="2" />
+            <circle cx="10" cy="10" r={9} fill="none" stroke="#64748b" strokeOpacity="0.45" strokeWidth="1.5" />
           </svg>
           <div className="min-w-0">
-            <div className="text-xs font-medium text-slate-300 leading-tight">2025 KSI, missed</div>
-            <div className="text-[10px] text-slate-600">out-of-fold top-500 miss</div>
+            <div className="text-xs font-medium text-slate-300 leading-tight">2025 KSI, not yet caught</div>
+            <div className="text-[10px] text-slate-600">outside top-{threshold}</div>
           </div>
         </div>
       </div>

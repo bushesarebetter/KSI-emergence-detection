@@ -101,7 +101,7 @@ never saw that row during training.
 superseded earlier versions of this section.**
 
 Spearman ρ = **0.128** (random split) / **0.131** (spatial split). A no-fitting persistence
-baseline (rank by recent crash count and trend) scores **0.133** — still slightly ahead,
+baseline (rank by recent crash count and trend) scores **0.133**, still slightly ahead,
 statistically the same as the tuned model given n=21 positives. At the ≥2-KSI threshold,
 recall@500 is **10/21 (47.6%)** on the random split, ties the baseline; **9/21 (42.9%)** on
 the spatial split, the baseline edges ahead there. At the ≥1-KSI threshold the model shows a
@@ -273,7 +273,7 @@ forward runs even though they cover different label windows; it now computes one
 **Corrected figures (verified run, top-500, county-wide candidate set, since superseded):**
 ≥2-KSI BCR ~9.7:1 (random split) / 10.7:1 (spatial split), up from the previously reported
 ~7.1:1/7.8:1. ≥1-KSI BCR ~39.3:1, up from ~28.7:1. Total population harm: $228M (≥2) /
-$2,127M (≥1) — these numbers, unlike the recall-derived ones in D6, turn out to match the
+$2,127M (≥1). These numbers, unlike the recall-derived ones in D6, turn out to match the
 original pre-audit deck almost exactly, because total harm is a measured fact about
 historical crashes, not a model output; only the *recall@K-derived* figures (which sites
 the model catches) needed the leakage correction in D6. The fatal-share mixup was a
@@ -296,21 +296,21 @@ contains 74 separate polygons covering **all 18 incorporated cities in San Diego
 plus unincorporated county land** (confirmed: La Mesa, El Cajon, Chula Vista, Oceanside,
 Escondido, Carlsbad, Encinitas, National City, Poway, Coronado, Vista, San Marcos, Santee,
 Lemon Grove, Solana Beach, Imperial Beach, Del Mar, and "S.D. COUNTY," plus 7 rows actually
-named "SAN DIEGO"). The loader takes `union_all()` over **all 74 rows unconditionally** —
-there was never a filter to the city-named rows. Of a random sample of 500 candidates, only
+named "SAN DIEGO"). The loader takes `union_all()` over **all 74 rows unconditionally**.
+There was never a filter to the city-named rows. Of a random sample of 500 candidates, only
 31% actually fell inside the true City of San Diego boundary.
 
 **Why this didn't get caught by any of the model's own diagnostics:** the SWITRS crash data
 feeding every feature and label was always correctly scoped to the city the whole time
 (confirmed directly: 99.97% of crash records carry `JURIS` code 3711, San Diego PD, or the
 matching CHP beat). So the ~68% of candidates outside true city limits had almost no real
-crash history in this dataset — not because they're genuinely safe, but because the crash
+crash history in this dataset: not because they're genuinely safe, but because the crash
 data was never queried for them. The model mechanically scored them near zero. This showed
 up as: (a) 21 of 22 confirmed emergent sites and 494 of the top-500 shortlist landing inside
 San Diego anyway, which looked like a clean signal but was actually a measurement-coverage
 artifact, and (b) a severely imbalanced spatial cross-validation fold (one fold held 67% of
-all candidates, because Community Planning Area polygons — correctly scoped to the real
-city, ~332 sq mi — don't cover the ~68% of candidates that were never really in the city).
+all candidates, because Community Planning Area polygons, correctly scoped to the real
+city, ~332 sq mi, don't cover the ~68% of candidates that were never really in the city).
 
 **A genuine regional analysis was considered and rejected.** A countywide version would
 need a fresh SWITRS download scoped to the whole county (manual, TIMS-gated, unknown
@@ -331,15 +331,15 @@ was re-run on the corrected data; every downstream document and report was updat
 - Emergent sites (≥2 KSI): 22 → **21** (one site, in Escondido, was never really a San
   Diego site)
 - Spatial-block CV folds are now evenly sized (~5,300 each) instead of one fold holding 67%
-  of the data — this was a direct symptom of the same bug, now resolved as a side effect.
+  of the data. This was a direct symptom of the same bug, now resolved as a side effect.
 - Spearman ρ rose from ~0.087 to **~0.13** across the board (model, baseline, and all
-  feature sets) — a real increase in signal-to-noise once non-informative rows were removed
+  feature sets), a real increase in signal-to-noise once non-informative rows were removed
   from the pool, not the model getting better.
-- recall@500 (≥2-KSI) is **unchanged in absolute terms** (10/21 vs. the prior 10/22) — the
+- recall@500 (≥2-KSI) is **unchanged in absolute terms** (10/21 vs. the prior 10/22). The
   city's true candidate count and the true positive count moved together, so the headline
   "found roughly half the sites the city's process misses" claim survives intact.
 - The infrastructure-features finding (D8) reversed from "no effect" to "consistent
-  positive signal on both splits" — this was the most surprising result of the fix, and is
+  positive signal on both splits," the most surprising result of the fix, and is
   flagged as a promising lead rather than a settled claim given the small sample.
 - Dollar figures and BCRs were recomputed on the corrected population; see D10's note above
   for the final reconciliation.
@@ -366,7 +366,7 @@ fixed an unrelated stale check in `compute_verified_numbers.py` that still valid
 verified run against 22 ≥2-KSI positives (the pre-D11 county-wide count) instead of 21.
 
 **Result:** every genuine OOF number (Spearman ρ, recall@K) came back numerically identical
-to what was already published — the forward-run model and labels were already built on the
+to what was already published. The forward-run model and labels were already built on the
 correct window. Only the README prose and `results/top500_forward_2024_2026.csv` (renamed
 to `top500_forward_2025_2027.csv` and regenerated from the OOF scores) were actually wrong.
 The archive is now internally consistent (all three files from one pipeline pass) even
@@ -395,13 +395,22 @@ the operational shortlist yet, but the Spearman consistency across two independe
 real evidence the D8 lift isn't a one-dataset fluke. Still not strong enough to add an
 infrastructure-data requirement to the reported model.
 
+> **Superseded by D17.** The OOF procedure here retrained a fresh model on the forward
+> panel's own (partially-resolved) 2025 label each time, which D17 established is the wrong
+> methodology for the forward run. It should use the one frozen, never-retrained
+> verified-run model applied via predict-only, like the deployed score. Re-tested with
+> `scripts/predict_protocol_a_forward.py`: B and D no longer replicate the verified run's
+> positive lift. Spearman deltas vs. crash-only are small and **negative**
+> (B −0.0136, C −0.0060, D −0.0148). See D17 for the full numbers. This finding (D8 lift
+> replicates on the forward run) should no longer be cited.
+
 ---
 
 ## D14 — Prospective 2025 evaluation was using a stale one-year-old feature cutoff
 
 `scripts/run_recall_evaluation.py` builds a fresh prospective candidate cohort, scores it
 with the frozen verified-run model, and checks against true 2025 KSI outcomes. Its window
-was `feature_end = 2023-12-31`, `feature_cutoff_date = 2024-01-01` — left over from before
+was `feature_end = 2023-12-31`, `feature_cutoff_date = 2024-01-01`, left over from before
 D12 corrected the forward run's window from 2016-2023 to 2016-2024. Nothing about this was a
 leakage bug (2023 features are still cleanly before the 2025 label window), it just meant the
 prospective check wasn't using the most current data available, one full year less than the
@@ -409,7 +418,7 @@ operational forward run uses for the same purpose.
 
 **Fix:** bumped to `feature_end = 2024-12-31`, `feature_cutoff_date = 2025-01-01`. This makes
 the prospective candidate cohort's eligibility screen and feature window identical to the
-forward run's own (26,045 candidates, 108 positives at ≥1 KSI, 2 at ≥2 — same population
+forward run's own (26,045 candidates, 108 positives at ≥1 KSI, 2 at ≥2, same population
 exactly). Re-running gives recall@500 (≥1 KSI) = 24/108 (22.2%, 11.6× random, 95% CI
 [14.8%, 30.6%]), down slightly from the prior 26/112 (23.2%, 12.1×) computed on the stale
 2023-cutoff cohort. The direction of the change is expected: a stricter, more current
@@ -426,18 +435,18 @@ A comprehensive audit (two independent reviews, one cross-checking every numeric
 against source files, one auditing the pipeline code) found that the recall@K hit counts
 quoted in `README.md`, `reports/milestone_final.md`, this file's own D6 section, and every
 Notion outreach page (Project Writeup, Cost-Benefit Analysis, Pitch Deck, Outreach &
-Connections) did not match `results/oof_verified_run_results.json` — the file every one of
+Connections) did not match `results/oof_verified_run_results.json`, the file every one of
 them cites as its source. Spearman ρ was correct everywhere; only the recall@K hit counts,
 and everything computed from them (harm, BCR), had drifted.
 
 **Re-running `scripts/refit_verified_run_oof.py` reproduces the actual file deterministically**
 (same code, same `random_state=42`, same candidate panel), confirming the published numbers
-were stale relative to the current, correct, post-D11 verified-run archive — not a one-off
+were stale relative to the current, correct, post-D11 verified-run archive. Not a one-off
 typo, and not something this session introduced (the archive predates this session; the docs
 were apparently never reconciled against it after some earlier rebuild).
 
 **Corrected ≥2-KSI recall@500:** random 10/21 (47.6%, unchanged, still ties the persistence
-baseline), **spatial 9/21 (42.9%, was published as 10/21 — the baseline now edges ahead of
+baseline), **spatial 9/21 (42.9%, was published as 10/21; the baseline now edges ahead of
 the model on this split, it does not tie it.** ≥2-KSI BCR: 9.6:1 random (was 9.7:1, minor) /
 **8.7:1 spatial (was claimed tied at ~9.7:1)**.
 
@@ -447,7 +456,7 @@ spatial (was 40.3:1). At K=200, the random split now exactly ties the baseline (
 rather than showing a small edge (the published "29 (random)" was also wrong).
 
 **Separate fix:** `scripts/refit_verified_run_oof.py` computed persistence-baseline scores
-but never wrote the baseline's own recall@K into its JSON output — the baseline numbers in
+but never wrote the baseline's own recall@K into its JSON output. The baseline numbers in
 every doc were being hand-computed separately (correctly, as it turned out) with no way to
 spot-check them against the canonical file. Added a `persistence_baseline` block to the
 script's output alongside `random`/`spatial`, so the file is now self-contained.
@@ -471,7 +480,7 @@ bake-off (`results/final_chosen_model_oof.json`)." Three problems with this, fou
 comprehensive audit: (1) `results/final_chosen_model_oof.json` is itself just a saved copy
 of `scripts/model_bakeoff_oof.py`'s "freshly nested-CV-tuned XGBoost" result, a one-off
 architecture-comparison data point, not Protocol A's frozen model. (2) The hardcoded copy
-in `refit_forward_run_oof.py` didn't even match that file correctly — three different
+in `refit_forward_run_oof.py` didn't even match that file correctly: three different
 hyperparameter sets existed across the project (`frozen_params.json`: variance_power=1.12,
 depth=3, n_estimators=171; the hardcoded copy: variance_power=1.59, depth=4, n_estimators=53;
 `final_chosen_model_oof.json`: variance_power=1.46, depth=3, n_estimators=85), and none of
@@ -493,7 +502,84 @@ within a site or two), not as the model actually used for any headline number.
 (spatial unchanged at 0.068). recall@500: random 21/108 (19.4%) → **20/108 (18.5%)**,
 spatial 24/108 (22.2%) → **23/108 (21.3%)**. The OOF-based hit/miss ring on the live
 dashboard map dropped from 21 to **20 white rings**. The verified run's own headline numbers
-were unaffected (it was already loading `frozen_params.json` correctly) — this was purely a
+were unaffected (it was already loading `frozen_params.json` correctly). This was purely a
 forward-run and architecture-comparison-narrative fix. Updated: `README.md`,
 `reports/milestone_final.md`, this file's D6, the Notion Project Writeup and Pitch Deck, and
 `dashboard/src/FilterBar.jsx`'s static OOF lookup table.
+
+---
+
+## D17 — The forward run's live/deployed score was fit on the label it was being scored against
+
+`src/model/fit_frozen.py` does `model.fit(X, y)` where `y = panel["KSI_label"]`. For the
+verified run this is correct supervised training: 2016-2021 features → 2022-2024 labels,
+both fully resolved well before "now," so fitting on `y` is legitimate historical training,
+and OOF (D12, D16) exists only to get an unbiased *evaluation* of that legitimately-trained
+model, not because the training itself is improper.
+
+For the forward run, this was a real bug, not just an evaluation-bias issue. The forward
+panel's `KSI_label` represents the 2025-2027 outcome, and because the project's "current
+date" has moved past 2025, that portion of the label is now resolved and sitting in the
+SWITRS export the panel was built from. `fit_frozen.py` doesn't distinguish "resolved
+historical label, safe to train on" from "label being evaluated, must never touch it." It
+just fits on whatever `KSI_label` is in the current panel. So every time the forward-run
+pipeline was re-run, the production model was handed the real 2025 answer as its training
+target, then immediately scored on those same rows. `reports/verified_canonical_numbers.json`
+already had an `IN_SAMPLE_WARNING` flagging this for its own in-sample recall@K table, but
+that warning didn't stop the *live dashboard* from using the same leakage-tainted score for
+its actual displayed predictions. Only the JSON's own printed numbers were flagged, not the
+deployed model behind the map.
+
+Separately, `scripts/refit_forward_run_oof.py` (D16) did genuine 5-fold OOF specifically to
+work around this: by holding each candidate's row out of whichever fold trained the model
+scoring it, no single row could be "answered" by a model that had directly fit on it. That
+made the *evaluation* numbers honest, but the live map still showed the leakage-tainted
+in-sample rank, and the dashboard's hit/miss ring (`oof_rank`) had to be sourced from a
+*third*, separately-fit OOF model just to get an honest signal: three different scores
+(in-sample live rank, OOF random split, OOF spatial split) for what should have been one
+number.
+
+**Fix:** stop fitting on the forward panel's label entirely. `scripts/predict_forward_run.py`
+fits the frozen Protocol-A crash-only model **once**, only on the verified-run's own resolved
+window (`data/model/verified_run/{candidate_panel,feature_table}.parquet`, 2016-2021 features
+→ 2022-2024 labels), then calls `.predict()`, never `.fit()`, on the current forward
+candidates' 2016-2024 features. The forward panel's `KSI_label` is read only afterward, to
+report recall@K; it is never passed to the model. This is the same approach
+`scripts/run_recall_evaluation.py` ("prospective_2025") already used. The forward run and
+the prospective evaluation are now the same artifact by construction, so they report
+identical numbers: recall@500 (≥1 KSI) = 24/108 (22.2%), recall@200 = 9/108 (8.3%).
+
+Because no fitting happens on forward candidates at all, there's nothing left to hold out:
+`refit_forward_run_oof.py`, `results/oof_forward_run_results.json`, and
+`data/model/forward_run/oof_scores.parquet` were deleted rather than kept as dead weight.
+`scripts/build_export_panel_verified.py`'s `add_oof_hit_flag` now sets `oof_rank = rank`
+directly for the forward run (live rank and genuine rank are now the same number); the
+verified run is unaffected and still sources `oof_rank` from genuine OOF, since its training
+labels are legitimately historical.
+
+`scripts/refit_protocol_a_forward_oof.py` (the B/C/D infrastructure-ablation comparison for
+the forward run) had the same `model.fit(X, y)`-on-the-forward-panel pattern, just inside a
+5-fold OOF loop instead of a single fit. The OOF loop did stop any individual row from being
+scored by a model that had directly trained on that exact row, but it was still answering a
+different question than the one this project now asks of the forward run: it retrained a
+brand-new model on the freshest (partially-resolved) 2025 window each time, rather than
+applying the one frozen, never-retrained verified-run model. Replaced with
+`scripts/predict_protocol_a_forward.py`, which fits all 4 feature sets once on the
+verified-run's resolved window and predicts-only on forward candidates, mirroring
+`predict_forward_run.py`. Result (recall@500, ≥1 KSI, 108 positives): crash-only 24/108
+(unchanged from the deployed model, as expected, since it's the same data and same fit), road-geometry
+26/108, signals 25/108, all-infra 26/108. Spearman deltas vs. crash-only are small and
+**negative** here (B −0.0136, C −0.0060, D −0.0148), the opposite direction from the
+verified run's finding (D8/D13: B and D help, +0.020/+0.021). With only 108 (partial-year)
+positives and a single label year, this isn't strong evidence infra data hurts the forward
+run; it's a reminder that the verified run's infra-helps finding hasn't yet been replicated
+out-of-sample and shouldn't be assumed to transfer. `refit_protocol_a_forward_oof.py` and
+`results/protocol_a_forward_oof_results.json` were deleted.
+
+Updated: `scripts/predict_forward_run.py` (new), `scripts/predict_protocol_a_forward.py`
+(new), `scripts/compute_verified_numbers.py`, `scripts/build_export_panel_verified.py`,
+`scripts/export_predictions.py` (unrelated rank/tie-break fix found in the same pass),
+`dashboard/src/FilterBar.jsx`, `dashboard/src/MapLegend.jsx`, `dashboard/src/MapView.jsx`,
+`README.md`, `tests/test_d11_d16_regressions.py`, `data/model/frozen_scores.parquet`,
+`data/model/forward_run/frozen_scores.parquet`, `dashboard/public/data/intersections.geojson`,
+`results/top500_forward_2025_2027.csv`.

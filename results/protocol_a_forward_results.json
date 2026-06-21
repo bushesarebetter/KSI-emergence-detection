@@ -23,12 +23,9 @@
       "momentum_ratio",
       "covid_period_share"
     ],
-    "spearman_oof_random": 0.0685,
-    "spearman_oof_spatial": 0.0676,
-    "recall_at_500_ge1_random": "20/108",
-    "recall_at_500_ge1_spatial": "23/108",
-    "recall_at_500_ge2_random": "1/2",
-    "recall_at_500_ge2_spatial": "1/2"
+    "spearman_predict_only": 0.0961,
+    "recall_at_500_ge1": "24/108",
+    "recall_at_500_ge2": "0/2"
   },
   "B_road_geometry": {
     "n_features": 25,
@@ -59,12 +56,9 @@
       "functional_class",
       "speed_limit"
     ],
-    "spearman_oof_random": 0.0786,
-    "spearman_oof_spatial": 0.0764,
-    "recall_at_500_ge1_random": "21/108",
-    "recall_at_500_ge1_spatial": "22/108",
-    "recall_at_500_ge2_random": "1/2",
-    "recall_at_500_ge2_spatial": "1/2"
+    "spearman_predict_only": 0.0825,
+    "recall_at_500_ge1": "26/108",
+    "recall_at_500_ge2": "0/2"
   },
   "C_signals": {
     "n_features": 22,
@@ -92,12 +86,9 @@
       "signal_present",
       "stop_control"
     ],
-    "spearman_oof_random": 0.0704,
-    "spearman_oof_spatial": 0.0685,
-    "recall_at_500_ge1_random": "22/108",
-    "recall_at_500_ge1_spatial": "20/108",
-    "recall_at_500_ge2_random": "1/2",
-    "recall_at_500_ge2_spatial": "1/2"
+    "spearman_predict_only": 0.0901,
+    "recall_at_500_ge1": "25/108",
+    "recall_at_500_ge2": "0/2"
   },
   "D_all_infra": {
     "n_features": 30,
@@ -133,11 +124,8 @@
       "transit_proximity",
       "slope_pct"
     ],
-    "spearman_oof_random": 0.0786,
-    "spearman_oof_spatial": 0.0768,
-    "recall_at_500_ge1_random": "21/108",
-    "recall_at_500_ge1_spatial": "25/108",
-    "recall_at_500_ge2_random": "1/2",
-    "recall_at_500_ge2_spatial": "1/2"
+    "spearman_predict_only": 0.0813,
+    "recall_at_500_ge1": "26/108",
+    "recall_at_500_ge2": "0/2"
   }
 }

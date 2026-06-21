@@ -67,10 +67,17 @@ export default function MapView({ intersections, filters, selectedIntersection, 
       },
     });
 
-    // All 108 emergent sites (>=1 KSI), ring always visible regardless of threshold.
-    // Ring color reflects genuine out-of-fold scoring (oof_predicted_correctly), NOT the
-    // live production rank -- white = a model that never saw this site's label still
-    // ranked it in its top-500; black = the model missed it. See docs/DECISIONS.md D12.
+    // All emergent sites (>=1 KSI), marker always visible regardless of the live-rank
+    // threshold filter. The marker style below uses oof_rank, which is recomputed
+    // per-threshold via setPaintProperty in the filter-update effect below: a bold white
+    // ring = caught at the current top-K tier; a thin neutral outline = not caught at this
+    // tier (no black/red "failure" color -- it's just not (yet) confirmed at this
+    // threshold). For the verified run, oof_rank comes from genuine out-of-fold scoring,
+    // since the live rank there is fit on all data including each site's own label. For
+    // the forward run (D17), oof_rank equals the live rank, because the forward score is
+    // produced by predict-only scoring against a model that never fit on forward labels
+    // at all -- there's nothing to hold out.
+    // See docs/DECISIONS.md D12.
     map.addSource("emergents-source", { type: "geojson", data: EMPTY_FC });
     map.addLayer({
       id: "emergents-layer",
@@ -79,13 +86,9 @@ export default function MapView({ intersections, filters, selectedIntersection, 
       paint: {
         "circle-radius": ["step", ["get", "rank"], 11, 51, 10, 101, 9, 201, 8],
         "circle-color": "rgba(0,0,0,0)",
-        "circle-stroke-width": 2,
-        "circle-stroke-color": [
-          "case",
-          ["==", ["get", "oof_predicted_correctly"], true],
-          "#ffffff",
-          "#000000",
-        ],
+        "circle-stroke-width": 1.5,
+        "circle-stroke-color": "#64748b",
+        "circle-stroke-opacity": 0.45,
       },
     });
 
@@ -143,10 +146,22 @@ export default function MapView({ intersections, filters, selectedIntersection, 
       return true;
     });
 
-    const emergents = shown.filter((f) => Boolean(f.properties.is_known_emergent));
+    // Emergent rings are NOT gated by the live-rank threshold -- they should stay visible
+    // regardless of which top-K tier is selected, so "missed" sites remain visible too.
+    const emergents = intersections.features.filter((f) => {
+      const p = f.properties;
+      if (!p.is_known_emergent) return false;
+      if (districtSet.size > 0 && !districtSet.has(p.council_district)) return false;
+      return true;
+    });
 
     map.getSource("intersections-source")?.setData({ type: "FeatureCollection", features: shown });
     map.getSource("emergents-source")?.setData({ type: "FeatureCollection", features: emergents });
+
+    const caughtExpr = ["all", ["!=", ["get", "oof_rank"], null], ["<=", ["get", "oof_rank"], filters.threshold]];
+    map.setPaintProperty("emergents-layer", "circle-stroke-color", ["case", caughtExpr, "#ffffff", "#64748b"]);
+    map.setPaintProperty("emergents-layer", "circle-stroke-width", ["case", caughtExpr, 2, 1.5]);
+    map.setPaintProperty("emergents-layer", "circle-stroke-opacity", ["case", caughtExpr, 1, 0.45]);
   }, [intersections, filters, mapReady]);
 
   // Fly to selected

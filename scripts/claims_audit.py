@@ -11,9 +11,9 @@ the actual current sources of truth).
 
 For an up-to-date claims check, cross-reference README.md / reports/milestone_final.md /
 the Notion outreach pages directly against reports/verified_canonical_numbers.json and
-results/oof_verified_run_results.json, results/oof_forward_run_results.json,
-results/recall_evaluation.json. This script is kept for reference only and should be
-rewritten against those files (or deleted) before being run again.
+results/oof_verified_run_results.json, results/recall_evaluation.json (the forward run and
+prospective evaluation are the same artifact as of D17). This script is kept for reference
+only and should be rewritten against those files (or deleted) before being run again.
 
 Original docstring follows:
 
