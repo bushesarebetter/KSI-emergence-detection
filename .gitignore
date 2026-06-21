@@ -12,6 +12,8 @@ reports/milestone*.md
 reports/DEVIATIONS.md
 reports/*.png
 reports/figures/
+reports/nn_sequence_experiment.md
+results/nn_sequence_bakeoff_results.json
 # Keep these:
 !reports/verified_canonical_numbers.json
 !reports/milestone_final.md
