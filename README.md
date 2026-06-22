@@ -50,13 +50,13 @@ recall@K tables below with that in mind.
 
 ### Primary threshold — ≥2 KSI: 21 confirmed emergent sites
 
-| Shortlist | Sites found (random / spatial split) | Recall | Persistence baseline | vs. city (0%) |
+| Shortlist | Sites found (random / spatial split) | Recall | Persistence baseline |
 |---|---|---|---|---|
-| Top 50 | 1 / 1 | 4.8% | 3/21 (14.3%) | 0% → 4.8% |
-| Top 100 | 3 / 1 | 4.8-14.3% | 4/21 (19.0%) | 0% → 5-14% |
-| Top 200 | 5 / 5 | 23.8% | 6/21 (28.6%) | 0% → 24% |
-| **Top 500** | **10 / 9** | **42.9-47.6%** | **10/21 (47.6%)** | **0% → 43-48%** |
-| Top 1,000 | 16 / 15 | 71.4-76.2% | 13/21 (61.9%) | 0% → 71-76% |
+| Top 50 | 1 / 1 | 4.8% | 3/21 (14.3%) 
+| Top 100 | 3 / 1 | 4.8-14.3% | 4/21 (19.0%) |
+| Top 200 | 5 / 5 | 23.8% | 6/21 (28.6%) |
+| **Top 500** | **10 / 9** | **42.9-47.6%** | **10/21 (47.6%)** |
+| Top 1,000 | 16 / 15 | 71.4-76.2% | 13/21 (61.9%) |
 
 95% bootstrap CI on recall@500: [28.6%, 71.4%] (random split) / [23.8%, 61.9%] (spatial
 split), wide because there are only 21 positives total. **The persistence baseline ties the
