@@ -14,9 +14,7 @@ so the model generalizes past its training window.
 
 A simple, no-ML baseline (just rank intersections by recent crash count and trend) gets
 the exact same result at the severe-emergence threshold. The model's clearest validated
-edge over that baseline shows up at the broader any-injury threshold. Both numbers are
-reported below, honestly, because that comparison is the whole point: the city isn't doing
-either one today, and even the simple version would be a real improvement.
+edge over that baseline shows up at the broader any-injury threshold.
 
 > **Note on scope:** the candidate set is restricted to intersections actually inside City
 > of San Diego limits (26,423 surface intersections). See `docs/DECISIONS.md` D11 for the
