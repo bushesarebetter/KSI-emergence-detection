@@ -188,8 +188,10 @@ intersection_project/
 │   ├── refit_protocol_a_oof.py                infrastructure feature-set comparison
 │   ├── model_bakeoff_oof.py                   architecture comparison (XGBoost/RF/MLP)
 │   ├── build_export_panel_verified.py         dashboard export (--run verified|forward)
+│   ├── improvement_bakeoff.py                 candidate model improvements, paired OOF
 │   └── claims_audit.py                        number provenance audit
-├── dashboard/           React + MapLibre interactive map
+├── dashboard/           React + Google Maps interactive map (deck.gl overlay)
+├── mobile/              Expo / React Native app (Android + iOS)
 ├── results/
 │   ├── top500_verified_2022_2024.csv  verified-run top-500 (with became_emergent flag)
 │   ├── top500_forward_2025_2027.csv   forward-run top-500 (2016-2024 features)
@@ -203,10 +205,13 @@ intersection_project/
 │   ├── shap_importance.png
 │   └── shap_importance.pdf
 ├── docs/
-│   ├── METHODOLOGY.md     candidate set, temporal windows, model, evaluation
-│   ├── DATA_SOURCES.md    data access instructions, coordinate correction
-│   ├── DECISIONS.md       key design decisions D1-D11
-│   └── FEATURE_CATALOG.md all 20 crash-history features
+│   ├── METHODOLOGY.md        candidate set, temporal windows, model, evaluation
+│   ├── DATA_SOURCES.md       data access instructions, coordinate correction
+│   ├── DECISIONS.md          key design decisions D1-D11
+│   ├── FEATURE_CATALOG.md    all 20 crash-history features
+│   ├── MODEL_IMPROVEMENTS.md 12 evaluated candidate improvements + execution order
+│   ├── HOSTING_RENDER.md     deploying the dashboard on Render
+│   └── OUTREACH.md           institutional outreach plan + drafted emails
 ├── configs/config.yaml   single source of runtime constants
 ├── tests/                pytest suite
 ├── environment.yml
@@ -266,16 +271,51 @@ threshold means much yet. Full methodology notes: `docs/DECISIONS.md` D17.
 
 ## Dashboard
 
-An interactive map of the 26,423 candidate intersections actually inside San Diego city
-limits, with ranked shortlist layers, per-site crash history, SHAP signals, and Council
-district filtering.
+An interactive map of the candidate intersections inside San Diego city limits, with
+ranked shortlist layers, per-site crash history, SHAP signals, embedded Street View,
+and Council district filtering. Built on the Google Maps JavaScript API with a deck.gl
+overlay for the point layer.
 
 ```bash
 python scripts/build_export_panel_verified.py --run forward
 cd dashboard && npm install && npm run dev
 ```
 
-Open `http://localhost:5173`.
+Open `http://localhost:5173`. A Google Maps API key and Map ID are required for the
+basemap; see `dashboard/docs/SETUP.md`. Without them the surrounding UI still works
+and the map area reports the missing variable.
+
+Deployment: `docs/HOSTING_RENDER.md`.
+
+---
+
+## Mobile app
+
+Expo / React Native app for Android and iOS, in `mobile/`. Reads the same exported
+data files the dashboard serves, so a new model export reaches the app without a
+store release. Status: scaffold, not yet run on a device. See `mobile/README.md`.
+
+---
+
+## Improving the model
+
+`docs/MODEL_IMPROVEMENTS.md` diagnoses why the tuned model ties a two-term
+persistence baseline at the severe threshold — the constraint is label sparsity and
+feature redundancy, not architecture — and evaluates twelve candidate improvements
+against that diagnosis.
+
+`scripts/improvement_bakeoff.py` implements them under one protocol: genuine
+out-of-fold scoring repeated across fold seeds, with a **paired** bootstrap on the
+recall@K difference between arms. Pairing matters here: marginal CIs at n=21 are wide
+enough that every comparison reads as a tie, while the difference on identical
+resamples is far better resolved.
+
+```bash
+python scripts/improvement_bakeoff.py --threshold 1
+```
+
+Requires the built panel; the script exits with setup instructions if it is absent.
+**No results have been produced yet** — nothing in that document is a measurement.
 
 ---
 

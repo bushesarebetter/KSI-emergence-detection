@@ -1,0 +1,54 @@
+{
+  "source": "fars",
+  "n_crashes": 70900,
+  "coord_coverage": 1.0,
+  "n_missing_coords": 0,
+  "decimal_places": {
+    "1": 3,
+    "2": 17,
+    "3": 293,
+    "4": 2669,
+    "5": 2382,
+    "6": 3428,
+    "8": 62108
+  },
+  "pct_at_or_above_4_decimals": 0.9956,
+  "pct_duplicate_coords": 0.0067,
+  "max_crashes_at_one_coord": 5,
+  "n_cities": 7350,
+  "n_cities_above_min": 288,
+  "min_viable_threshold": 25,
+  "top_cities": {
+    "Los Angeles, California": 912,
+    "Phoenix, Arizona": 699,
+    "Houston, Texas": 528,
+    "Chicago, Illinois": 495,
+    "Philadelphia, Pennsylvania": 394,
+    "Memphis, Tennessee": 388,
+    "Detroit, Michigan": 383,
+    "Tucson, Arizona": 358,
+    "Jacksonville, Florida": 338,
+    "Albuquerque, New Mexico": 333
+  },
+  "problems": [],
+  "verdict": "USABLE",
+  "severity_scheme": "fatal_only",
+  "supports_ksi": false,
+  "label_name": "fatal",
+  "available_flags": [
+    "at_intersection",
+    "is_bike",
+    "is_broadside",
+    "is_night",
+    "is_ped",
+    "is_state_highway"
+  ],
+  "unavailable_flags": [
+    "is_dui",
+    "is_left_turn",
+    "is_ped_row_violation"
+  ],
+  "filters": {
+    "intersection_only": "True"
+  }
+}

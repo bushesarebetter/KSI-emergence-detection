@@ -1,4 +1,9 @@
+import { useAdvanced } from "./useAdvanced";
+import Term from "./Term";
+
 export default function StatsRow({ intersections, filters }) {
+  const { advanced, copy } = useAdvanced();
+
   const shown = intersections?.features.filter((f) => {
     const p = f.properties;
     if (p.rank > filters.threshold) return false;
@@ -18,18 +23,24 @@ export default function StatsRow({ intersections, filters }) {
   const topEntry = Object.entries(districtCounts).sort((a, b) => b[1] - a[1])[0];
 
   const stats = [
-    { label: "Window", value: "2025–27" },
-    { label: "Sites shown", value: shown.length },
-    { label: "Emergent (≥1 KSI)", value: emergentCount, accent: true },
-    { label: "Top district", value: topEntry ? `D${topEntry[0]}` : "—" },
+    { label: copy.statWindow, value: advanced ? "2025–27" : "2025–2027" },
+    { label: copy.statShown, value: shown.length },
+    // In plain mode the label already says "had a serious crash in 2025", so the
+    // KSI glossary term is attached there rather than spelled into the label.
+    { label: copy.statEmergent, value: emergentCount, accent: true, term: "ksi" },
+    {
+      label: copy.statTopDistrict,
+      value: topEntry ? (advanced ? `D${topEntry[0]}` : `District ${topEntry[0]}`) : "—",
+      term: "district",
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-px bg-slate-800 border-b border-slate-800 shrink-0">
-      {stats.map(({ label, value, accent }) => (
-        <div key={label} className="flex flex-col gap-1 px-4 py-3 bg-slate-900">
-          <span className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest">
-            {label}
+    <div className="grid shrink-0 grid-cols-2 gap-px border-b border-slate-800 bg-slate-800">
+      {stats.map(({ label, value, accent, term }) => (
+        <div key={label} className="flex flex-col gap-1 bg-slate-900 px-4 py-3">
+          <span className="text-[10px] font-semibold uppercase leading-tight tracking-wider text-slate-500">
+            {term ? <Term id={term}>{label}</Term> : label}
           </span>
           <span
             className={`text-lg font-bold leading-none tabular-nums ${

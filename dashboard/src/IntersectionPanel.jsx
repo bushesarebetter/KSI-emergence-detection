@@ -1,6 +1,24 @@
 import CrashHistoryChart from "./CrashHistoryChart";
 import ShapChart from "./ShapChart";
+import StreetViewPanel from "./StreetViewPanel";
 import { formatPercentile } from "./lib/format";
+import { useAdvanced } from "./useAdvanced";
+import Term from "./Term";
+
+// Forward-run candidate set: City of San Diego intersections with no KSI history
+// through 2024 (results/recall_evaluation.json -> prospective_2025.candidates).
+const CANDIDATE_COUNT = 26045;
+
+function MapLinkIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+      <path
+        d="M6 1C4.07 1 2.5 2.57 2.5 4.5 2.5 7.25 6 11 6 11S9.5 7.25 9.5 4.5C9.5 2.57 7.93 1 6 1zm0 4.75a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+}
 
 function riskColor(rank) {
   if (rank <= 50) return "#ef4444";
@@ -21,10 +39,12 @@ function parseProp(v) {
 }
 
 export default function IntersectionPanel({ intersection, onClose }) {
+  const { advanced, copy } = useAdvanced();
   const visible = intersection !== null;
   const raw = intersection?.properties ?? {};
-  // MapLibre serialises array/object properties to JSON strings on click events;
-  // parse them back here so all entry paths (map click and table click) are safe.
+  // deck.gl hands back the original feature object, so these are normally real
+  // arrays already -- but the parse is kept so any caller that round-trips a
+  // feature through JSON (table click, saved view, deep link) still works.
   const p = {
     ...raw,
     crash_history: parseProp(raw.crash_history),
@@ -50,10 +70,13 @@ export default function IntersectionPanel({ intersection, onClose }) {
                 <span className="text-2xl font-bold tabular-nums" style={{ color }}>
                   #{p.rank}
                 </span>
-                <span className="text-xs text-slate-600">of 26,045</span>
+                <span className="text-xs text-slate-600">
+                  {copy.detailOf(CANDIDATE_COUNT.toLocaleString())}
+                </span>
               </div>
               <div className="text-xs font-medium" style={{ color: color + "bb" }}>
-                {riskLabel(p.rank)} · {formatPercentile(p.percentile)} pct.
+                {riskLabel(p.rank)}
+                {advanced && <> · {formatPercentile(p.percentile)} pct.</>}
               </div>
             </div>
             <button
@@ -78,16 +101,16 @@ export default function IntersectionPanel({ intersection, onClose }) {
               </span>
               {p.is_crash_active ? (
                 <span className="bg-green-950/60 text-green-400 text-xs font-medium px-2.5 py-1 rounded-full border border-green-900/60">
-                  Crash active
+                  {copy.detailCrashActive}
                 </span>
               ) : (
                 <span className="bg-slate-800 text-slate-500 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-700">
-                  Crash silent
+                  {copy.detailCrashSilent}
                 </span>
               )}
               {p.is_known_emergent && (
                 <span className="bg-orange-950/60 text-orange-400 text-xs font-medium px-2.5 py-1 rounded-full border border-orange-900/60">
-                  2025 KSI positive
+                  {copy.detailEmergent}
                 </span>
               )}
             </div>
@@ -97,7 +120,7 @@ export default function IntersectionPanel({ intersection, onClose }) {
             {/* Crash history */}
             <div>
               <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">
-                Crash History (2016–2025)
+                {copy.detailHistory}
               </div>
               <CrashHistoryChart crash_history={p.crash_history} />
             </div>
@@ -107,31 +130,53 @@ export default function IntersectionPanel({ intersection, onClose }) {
             {/* SHAP features */}
             <div>
               <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">
-                Model Signals
+                <Term id="rank">{copy.detailSignals}</Term>
               </div>
               <div className="text-[10px] text-slate-600 mb-3">
-                All values measured as of Jan 1, 2025 (training cutoff)
+                {copy.detailSignalsNote}
               </div>
               <ShapChart shap_features={p.shap_features} />
             </div>
 
             <hr className="border-slate-800" />
 
-            {/* External link */}
-            <a
-              href={`https://maps.google.com?q=${lat},${lon}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-orange-400 transition-colors"
-            >
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-                <path
-                  d="M6 1C4.07 1 2.5 2.57 2.5 4.5 2.5 7.25 6 11 6 11S9.5 7.25 9.5 4.5C9.5 2.57 7.93 1 6 1zm0 4.75a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z"
-                  fill="currentColor"
-                />
-              </svg>
-              View in Google Maps
-            </a>
+            {/* Street View + Google Maps deep links */}
+            <div>
+              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">
+                {copy.detailStreetView}
+              </div>
+              <StreetViewPanel lat={lat} lon={lon} />
+              <div className="mt-3 flex flex-col gap-2">
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-orange-400 transition-colors"
+                >
+                  <MapLinkIcon />
+                  Open in Google Maps
+                </a>
+                <a
+                  href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-orange-400 transition-colors"
+                >
+                  <MapLinkIcon />
+                  Full-screen Street View
+                </a>
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-orange-400 transition-colors"
+                >
+                  <MapLinkIcon />
+                  Directions to site
+                </a>
+              </div>
+            </div>
+
           </div>
         </>
       )}

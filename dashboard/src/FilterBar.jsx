@@ -1,9 +1,7 @@
-const THRESHOLD_OPTIONS = [
-  { value: 50, label: "Top 50" },
-  { value: 100, label: "Top 100" },
-  { value: 200, label: "Top 200" },
-  { value: 500, label: "Top 500" },
-];
+import { useAdvanced } from "./useAdvanced";
+import Term from "./Term";
+
+const THRESHOLD_OPTIONS = [50, 100, 200, 500];
 
 // recall@K, forward run, >=1 KSI (108 positives, 2025 partial label window). Source:
 // results/recall_evaluation.json / docs/DECISIONS.md D17. Scored by a model fit once on
@@ -19,6 +17,8 @@ const CATCH_STATS = {
 };
 
 export default function FilterBar({ filters, onFiltersChange }) {
+  const { advanced, copy } = useAdvanced();
+
   function handleThreshold(t) {
     onFiltersChange({ ...filters, threshold: t });
   }
@@ -28,50 +28,53 @@ export default function FilterBar({ filters, onFiltersChange }) {
 
   return (
     <div className="border-b border-slate-800">
-      <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest px-4 pt-4 pb-2.5">
-        Top N Sites
+      <div className="px-4 pb-2.5 pt-4 text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+        {copy.filterTitle}
       </div>
-      <div className="px-4 pb-3 grid grid-cols-2 gap-1.5">
-        {THRESHOLD_OPTIONS.map(({ value, label }) => (
+      <div className="grid grid-cols-2 gap-1.5 px-4 pb-3">
+        {THRESHOLD_OPTIONS.map((value) => (
           <button
             key={value}
             onClick={() => handleThreshold(value)}
-            className={`py-2 text-sm font-medium rounded-md transition-all ${
+            aria-pressed={filters.threshold === value}
+            className={`rounded-md py-2 text-sm font-medium transition-all ${
               filters.threshold === value
                 ? "bg-orange-500 text-white shadow-sm shadow-orange-500/25 ring-1 ring-orange-400/30"
-                : "bg-slate-800 text-slate-400 border border-slate-700 hover:bg-slate-700/80 hover:text-slate-200"
+                : "border border-slate-700 bg-slate-800 text-slate-400 hover:bg-slate-700/80 hover:text-slate-200"
             }`}
           >
-            {label}
+            {copy.filterOption(value)}
           </button>
         ))}
       </div>
 
       {total > 0 && (
         <div className="px-4 pb-4">
-          <div className="bg-slate-800/60 rounded-lg px-3 py-2.5 border border-slate-700/40">
-            <div className="flex items-baseline justify-between mb-1.5">
-              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
-                Catch rate
+          <div className="rounded-lg border border-slate-700/40 bg-slate-800/60 px-3 py-2.5">
+            <div className="mb-1.5 flex items-baseline justify-between gap-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
+                <Term id="catchRate">{copy.catchTitle}</Term>
               </span>
-              <span className="text-xs font-bold text-orange-400 tabular-nums">
-                {pct}%
-              </span>
+              <span className="text-xs font-bold tabular-nums text-orange-400">{pct}%</span>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-orange-500 rounded-full transition-all duration-500"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
+            <div className="h-1.5 overflow-hidden rounded-full bg-slate-700">
+              <div
+                className="h-full rounded-full bg-orange-500 transition-all duration-500"
+                style={{ width: `${pct}%` }}
+              />
             </div>
-            <div className="mt-1.5 text-[10px] text-slate-500">
-              <span className="text-orange-400 font-semibold">{caught}</span>
-              {" of "}
-              <span className="text-slate-400">{total}</span>
-              {" 2025 KSI positives, top "}
-              <span className="text-slate-400">{filters.threshold}</span>
+            <div className="mt-2 text-[11px] leading-relaxed text-slate-500">
+              {advanced ? (
+                <>
+                  <span className="font-semibold text-orange-400">{caught}</span>
+                  {" of "}
+                  <span className="text-slate-400">{total}</span>
+                  {" 2025 KSI positives, top "}
+                  <span className="text-slate-400">{filters.threshold}</span>
+                </>
+              ) : (
+                copy.catchDetail(caught, total, filters.threshold)
+              )}
             </div>
           </div>
         </div>
