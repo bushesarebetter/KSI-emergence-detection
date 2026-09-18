@@ -9,7 +9,8 @@ A Web Service on the free tier sleeps after 15 minutes of inactivity and takes
 a link to.
 
 Total cost at the settings below: **$0/month on Render**, plus Google Maps usage
-(see the cost section — realistically also $0 under the monthly credit).
+(see §5 — also $0 at this traffic level, but the free tier is per-API, not a
+shared credit).
 
 ---
 
@@ -36,7 +37,7 @@ run up against your quota. On the key's settings page:
 
 - **Application restrictions → Websites**. Add:
   ```
-  https://ksi-emergence.onrender.com/*
+  https://ksi-emergence-detection.onrender.com/*
   https://your-custom-domain.org/*
   http://localhost:5173/*
   ```
@@ -69,7 +70,7 @@ option is silently ignored whenever a `mapId` is set.
 
 | Setting | Value |
 |---|---|
-| **Name** | `ksi-emergence` (this becomes `ksi-emergence.onrender.com`) |
+| **Name** | `ksi-emergence-detection` (becomes `ksi-emergence-detection.onrender.com`) |
 | **Branch** | `master` |
 | **Root Directory** | `dashboard` |
 | **Build Command** | `npm ci && npm run build` |
@@ -139,7 +140,7 @@ and `*.gstatic.com` origins, and a strict policy will silently blank the map.
 
 1. Render dashboard → your site → **Settings → Custom Domains → Add**.
 2. Enter the domain, then add the DNS record Render shows you:
-   - subdomain (`ksi.example.org`) → **CNAME** → `ksi-emergence.onrender.com`
+   - subdomain (`www.ksi-emergence.com`) → **CNAME** → `ksi-emergence-detection.onrender.com`
    - apex (`example.org`) → **A** record → the IP Render gives you
 3. Render issues a Let's Encrypt certificate automatically once DNS resolves,
    usually within minutes.
@@ -176,19 +177,47 @@ via `DATA_BASE_URL`. Worth doing if exports become frequent; overkill otherwise.
 custom domains with TLS. The whole site is ~2.5 MB including the data, so 100 GB is
 roughly 40,000 full first-time visits.
 
-**Google Maps:** Maps Platform includes a recurring monthly credit (currently
-$200) applied against usage. Dynamic Maps loads and Street View panos are billed
-per 1,000 requests. At the credit's current rates that covers on the order of
-28,000 map loads per month. You will not approach this with agency outreach
-traffic.
+**Google Maps:** free within normal traffic for this project, but read the
+structure before relying on that.
 
-Two protections worth setting anyway, because a scraped key is the realistic risk:
+Google **removed the old $200 monthly credit on 1 March 2025** and replaced it with
+a per-SKU free allowance. Each API now has its own monthly quota rather than
+drawing on one shared pot:
 
-1. **Google Cloud → Billing → Budgets & alerts** → budget of $1 with email alerts
-   at 100%. You get mailed the moment anything bills past the credit.
-2. **APIs & Services → Maps JavaScript API → Quotas** → set a daily cap (e.g.
-   1,000 requests/day). A hard cap degrades the map for the rest of the day if hit,
-   which is strictly better than a surprise invoice.
+| SKU | Tier | Free / month | Price after |
+|---|---|---:|---|
+| Maps JavaScript API (the basemap) | Essentials | 10,000 loads | $7 per 1,000 |
+| Street View Static API (the pano panel) | Essentials | 10,000 loads | $7 per 1,000 |
+
+These are separate buckets: exhausting map loads does not consume the Street View
+allowance. One dashboard visit is one map load; one intersection click that renders
+the pano panel is one Street View event.
+
+Ten outreach emails will generate on the order of 50-200 visits, so this project
+sits far inside the free tier. But note what changed: **there is no longer any
+credit cushion.** Under the old model, overage ate into $200 before costing
+anything; now the 10,001st load bills immediately. A scraped key doing 100k loads
+would be roughly $630.
+
+So these two are load-bearing, not optional:
+
+1. **Referrer restrictions** (step 1.2) are the actual defence. A key locked to
+   your domains cannot be used from anyone else's site. This is the one that
+   matters.
+2. **A hard daily quota cap.** APIs & Services → Maps JavaScript API → Quotas →
+   set something like 500/day. If anything goes wrong the map degrades for the rest
+   of the day instead of billing you. Do the same for Street View Static.
+3. **Google Cloud → Billing → Budgets & alerts** → a $1 budget alerting at 100%,
+   so you hear about any spend at all the moment it happens.
+
+One design consequence worth knowing: `StreetViewPanel` fetches a pano on every
+intersection selection. A reviewer clicking through 30 sites burns 30 Street View
+events. Still trivial at these volumes, but it is why the two SKUs are capped
+separately above.
+
+Pricing changes; verify against
+<https://developers.google.com/maps/billing-and-pricing/pricing> before quoting
+these figures to anyone.
 
 ---
 
