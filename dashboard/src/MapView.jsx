@@ -4,7 +4,7 @@ import { ScatterplotLayer } from "@deck.gl/layers";
 import useGoogleMap from "./useGoogleMap";
 import MapLegend from "./MapLegend";
 
-const INITIAL_ZOOM = 12;
+const INITIAL_ZOOM = 13;
 const FLY_ZOOM = 16;
 
 // YlOrRd-derived colorblind-safe ramp: red (most dangerous) → yellow (least).
@@ -106,6 +106,13 @@ export default function MapView({ intersections, filters, selectedIntersection, 
       onSelectIntersection(info.object);
     };
 
+    // Without this the dots give no affordance at all -- the cursor stays a
+    // plain arrow and most people never discover they are interactive.
+    const handleCursor = ({ isHovering }) => {
+      const el = mapRef.current?.getDiv();
+      if (el) el.style.cursor = isHovering ? "pointer" : "";
+    };
+
     const layers = [
       // Emergent rings: hollow outline under the ranked dots. A bold white ring
       // means the site was caught at the current top-K tier; a thin slate ring
@@ -155,7 +162,10 @@ export default function MapView({ intersections, filters, selectedIntersection, 
         getFillColor: (f) => [...rankColor(f.properties.rank), 235],
         getLineColor: [255, 255, 255, 160],
         getLineWidth: 1.5,
-        onHover: showTooltip,
+        onHover: (info) => {
+          showTooltip(info);
+          handleCursor({ isHovering: Boolean(info.object) });
+        },
         onClick: handleClick,
       }),
     ];

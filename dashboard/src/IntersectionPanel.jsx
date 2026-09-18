@@ -2,6 +2,12 @@ import CrashHistoryChart from "./CrashHistoryChart";
 import ShapChart from "./ShapChart";
 import StreetViewPanel from "./StreetViewPanel";
 import { formatPercentile } from "./lib/format";
+import { useAdvanced } from "./useAdvanced";
+import Term from "./Term";
+
+// Forward-run candidate set: City of San Diego intersections with no KSI history
+// through 2024 (results/recall_evaluation.json -> prospective_2025.candidates).
+const CANDIDATE_COUNT = 26045;
 
 function MapLinkIcon() {
   return (
@@ -33,6 +39,7 @@ function parseProp(v) {
 }
 
 export default function IntersectionPanel({ intersection, onClose }) {
+  const { advanced, copy } = useAdvanced();
   const visible = intersection !== null;
   const raw = intersection?.properties ?? {};
   // deck.gl hands back the original feature object, so these are normally real
@@ -63,10 +70,13 @@ export default function IntersectionPanel({ intersection, onClose }) {
                 <span className="text-2xl font-bold tabular-nums" style={{ color }}>
                   #{p.rank}
                 </span>
-                <span className="text-xs text-slate-600">of 26,045</span>
+                <span className="text-xs text-slate-600">
+                  {copy.detailOf(CANDIDATE_COUNT.toLocaleString())}
+                </span>
               </div>
               <div className="text-xs font-medium" style={{ color: color + "bb" }}>
-                {riskLabel(p.rank)} · {formatPercentile(p.percentile)} pct.
+                {riskLabel(p.rank)}
+                {advanced && <> · {formatPercentile(p.percentile)} pct.</>}
               </div>
             </div>
             <button
@@ -91,16 +101,16 @@ export default function IntersectionPanel({ intersection, onClose }) {
               </span>
               {p.is_crash_active ? (
                 <span className="bg-green-950/60 text-green-400 text-xs font-medium px-2.5 py-1 rounded-full border border-green-900/60">
-                  Crash active
+                  {copy.detailCrashActive}
                 </span>
               ) : (
                 <span className="bg-slate-800 text-slate-500 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-700">
-                  Crash silent
+                  {copy.detailCrashSilent}
                 </span>
               )}
               {p.is_known_emergent && (
                 <span className="bg-orange-950/60 text-orange-400 text-xs font-medium px-2.5 py-1 rounded-full border border-orange-900/60">
-                  2025 KSI positive
+                  {copy.detailEmergent}
                 </span>
               )}
             </div>
@@ -110,7 +120,7 @@ export default function IntersectionPanel({ intersection, onClose }) {
             {/* Crash history */}
             <div>
               <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">
-                Crash History (2016–2025)
+                {copy.detailHistory}
               </div>
               <CrashHistoryChart crash_history={p.crash_history} />
             </div>
@@ -120,10 +130,10 @@ export default function IntersectionPanel({ intersection, onClose }) {
             {/* SHAP features */}
             <div>
               <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">
-                Model Signals
+                <Term id="rank">{copy.detailSignals}</Term>
               </div>
               <div className="text-[10px] text-slate-600 mb-3">
-                All values measured as of Jan 1, 2025 (training cutoff)
+                {copy.detailSignalsNote}
               </div>
               <ShapChart shap_features={p.shap_features} />
             </div>
@@ -133,7 +143,7 @@ export default function IntersectionPanel({ intersection, onClose }) {
             {/* Street View + Google Maps deep links */}
             <div>
               <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">
-                Street View
+                {copy.detailStreetView}
               </div>
               <StreetViewPanel lat={lat} lon={lon} />
               <div className="mt-3 flex flex-col gap-2">

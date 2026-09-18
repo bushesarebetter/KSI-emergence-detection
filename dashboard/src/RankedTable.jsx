@@ -7,6 +7,8 @@ import {
   flexRender,
 } from "@tanstack/react-table";
 import { formatScore, intersectionsToCsv } from "./lib/format";
+import { useAdvanced } from "./useAdvanced";
+import { humanizeSignal } from "./lib/signals";
 
 const PAGE_SIZE = 50;
 const DRAWER_HEIGHT = "42vh";
@@ -19,7 +21,7 @@ function rankColor(rank) {
   return "#fde68a";
 }
 
-const COLUMNS = [
+const makeColumns = (advanced) => [
   {
     id: "rank",
     header: "Rank",
@@ -36,31 +38,44 @@ const COLUMNS = [
   { id: "name", header: "Intersection", accessorFn: (f) => f.properties.intersection_name },
   {
     id: "district",
-    header: "D",
+    header: advanced ? "D" : "District",
     accessorFn: (f) => f.properties.council_district,
     cell: ({ getValue }) => (
       <span className="text-slate-500">D{getValue()}</span>
     ),
   },
+  // Percentile is a precise but opaque way to say "near the top of a list of
+  // 26,045", and it duplicates the rank column for anyone not reading closely.
+  // Advanced users still want it.
+  ...(advanced
+    ? [{
+        id: "pct",
+        header: "Pct.",
+        accessorFn: (f) => f.properties.percentile,
+        cell: ({ getValue }) => `${formatScore(getValue())}th`,
+      }]
+    : []),
   {
-    id: "pct",
-    header: "Pct.",
-    accessorFn: (f) => f.properties.percentile,
-    cell: ({ getValue }) => `${formatScore(getValue())}th`,
+    id: "crashes",
+    header: advanced ? "Crashes" : "Crashes since 2016",
+    accessorFn: (f) => f.properties.crashes_training,
   },
-  { id: "crashes", header: "Crashes", accessorFn: (f) => f.properties.crashes_training },
   {
     id: "signal",
-    header: "Top signal",
+    header: advanced ? "Top signal" : "Main reason",
     accessorFn: (f) => f.properties.shap_features?.[0]?.display_label ?? "—",
     enableSorting: false,
     cell: ({ getValue }) => (
-      <span className="text-slate-500 text-xs">{getValue()}</span>
+      <span className="text-xs text-slate-500">
+        {advanced ? getValue() : humanizeSignal(getValue())}
+      </span>
     ),
   },
 ];
 
 export default function RankedTable({ intersections, filters, onSelectIntersection }) {
+  const { advanced, copy } = useAdvanced();
+  const columns = useMemo(() => makeColumns(advanced), [advanced]);
   const [open, setOpen] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -83,7 +98,7 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
 
   const table = useReactTable({
     data: filteredFeatures,
-    columns: COLUMNS,
+    columns,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -129,7 +144,7 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
       {/* Toggle button */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 z-30 bg-slate-900 border border-slate-700 border-b-0 shadow-xl rounded-t-lg px-5 text-xs font-semibold text-slate-400 hover:text-orange-400 hover:border-orange-500/40 transition-colors flex items-center gap-2"
+        className="fixed bottom-0 left-1/2 -translate-x-1/2 md:left-[calc(50%+9rem)] z-30 bg-slate-900 border border-slate-700 border-b-0 shadow-xl rounded-t-lg px-5 text-xs font-semibold text-slate-400 hover:text-orange-400 hover:border-orange-500/40 transition-colors flex items-center gap-2"
         style={{ height: TOGGLE_HEIGHT }}
       >
         <svg width="13" height="10" viewBox="0 0 13 10" fill="none" aria-hidden="true">
@@ -137,7 +152,7 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
           <rect x="0" y="4" width="13" height="2" rx="1" fill="currentColor" />
           <rect x="0" y="8" width="13" height="2" rx="1" fill="currentColor" />
         </svg>
-        Ranked Table
+        {advanced ? "Ranked Table" : "Full list"}
         <span className="bg-slate-800 text-slate-500 text-[10px] px-1.5 py-0.5 rounded-full tabular-nums">
           {total}
         </span>
@@ -146,7 +161,7 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
 
       {/* Drawer */}
       <div
-        className="fixed left-0 right-0 bg-slate-900 border-t border-slate-800 z-20 overflow-hidden transition-all duration-300 ease-in-out flex flex-col"
+        className="fixed left-0 right-0 md:left-72 bg-slate-900 border-t border-slate-800 z-20 overflow-hidden transition-all duration-300 ease-in-out flex flex-col"
         style={{ bottom: TOGGLE_HEIGHT, height: open ? DRAWER_HEIGHT : 0 }}
       >
         {/* Toolbar */}
@@ -157,7 +172,7 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
             </span>
             <input
               type="text"
-              placeholder="Search intersections…"
+              placeholder={advanced ? "Search intersections…" : "Filter this list…"}
               value={globalFilter}
               onChange={handleSearch}
               className="w-full text-sm border border-slate-700 rounded-lg pl-7 pr-3 py-1.5 bg-slate-800 text-slate-300 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-orange-500/40 focus:border-orange-500/50 transition-colors"
