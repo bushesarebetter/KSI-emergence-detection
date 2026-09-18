@@ -1,4 +1,6 @@
 import { useAdvanced } from "./useAdvanced";
+import { useCatch } from "./useMeta";
+import { DEFAULT_THRESHOLD } from "./constants";
 
 /**
  * Shown once, on first visit.
@@ -7,10 +9,12 @@ import { useAdvanced } from "./useAdvanced";
  * kicker, headline, standfirst, then three numbered notes. The third note states
  * the limitation up front. A reviewer who discovers that themselves after
  * trusting the headline is a reviewer you have lost, so it is given the same
- * weight as the claim.
+ * weight as the claim. Its numbers come from meta.json, like everywhere else.
  */
 export default function WelcomeModal() {
   const { seenWelcome, dismissWelcome, advanced, toggle } = useAdvanced();
+  const { caught, total, lift } = useCatch(DEFAULT_THRESHOLD);
+  const liftRounded = lift == null ? null : Math.round(lift);
 
   if (seenWelcome) return null;
 
@@ -53,9 +57,10 @@ export default function WelcomeModal() {
           </Note>
 
           <Note n="03" title="It is right some of the time — not most of the time." last>
-            Of the 108 intersections that had a serious crash in 2025, a shortlist of 500
-            flagged 24 in advance. Eleven times better than chance, and still missing
-            most. Treat it as somewhere to start looking, not a verdict.
+            Of the {total} intersections that had a serious crash in 2025, a shortlist of{" "}
+            {DEFAULT_THRESHOLD} flagged {caught} in advance
+            {liftRounded != null && <> — about {liftRounded} times better than chance</>}, and
+            still missing most. Treat it as somewhere to start looking, not a verdict.
           </Note>
         </ol>
 

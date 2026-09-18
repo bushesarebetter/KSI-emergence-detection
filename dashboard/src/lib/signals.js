@@ -7,11 +7,11 @@
  * right for a traffic engineer reading SHAP values and meaningless to everyone
  * else, so plain mode rewrites them.
  *
- * Rewrites must stay faithful. "EWMA crash rate 3.1" becomes "crashes here are
- * frequent and recent" — a fair reading of an exponentially-weighted moving
- * average, which by construction weights recent years most. It must not become
- * "this intersection is dangerous", which is a claim about hazard the model does
- * not make.
+ * Rewrites must stay faithful. "EWMA crash rate 3.1" becomes "steady recent
+ * crash rate" — a fair reading of an exponentially-weighted moving average,
+ * which by construction weights recent years most. It must not become "this
+ * intersection is dangerous", which is a claim about hazard the model does not
+ * make.
  *
  * Unmatched labels fall through unchanged rather than being dropped: showing a
  * technical string is better than showing nothing.
@@ -28,8 +28,9 @@ const RULES = [
     render: (m) => {
       const yrs = parseFloat(m[1]);
       if (yrs < 1) return "A crash happened here within the last year";
-      if (yrs < 2) return `Last crash here was about ${Math.round(yrs)} year ago`;
-      return `Last crash here was about ${Math.round(yrs)} years ago`;
+      // Round first, then pluralise: 1.6 years is "about 2 years", not "2 year".
+      const n = Math.round(yrs);
+      return n <= 1 ? "Last crash here was about a year ago" : `Last crash here was about ${n} years ago`;
     },
   },
   {
@@ -60,4 +61,52 @@ export function humanizeSignal(label) {
     if (m) return render(m);
   }
   return label;
+}
+
+// ── Combined-list sources ───────────────────────────────────────────────────────
+// A combined export tags each site with the tier that admitted it. On a classic
+// export the field is absent and everything is a model prediction.
+
+export function sourceOf(props) {
+  return props?.source ?? "predicted";
+}
+
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+
+/** One short line naming why a non-predicted site is on the list, or null. */
+export function sourceLine(props, advanced) {
+  const s = sourceOf(props);
+  if (s === "known") {
+    const n = props.ksi_history ?? 1;
+    return advanced
+      ? `Known KSI site · ${plural(n, "KSI crash")} in the history window`
+      : `Already had ${plural(n, "serious crash")} here`;
+  }
+  if (s === "screen") {
+    const n = props.screen_count ?? 5;
+    return advanced
+      ? `City screen · ${n} crashes in one year (≥5 rule)`
+      : `On the City's own list · ${n} crashes in one year`;
+  }
+  return null;
+}
+
+/**
+ * What to show in place of model signals for a site that has none. A known or
+ * screen site was not ranked by the model, and saying so is the honest reading
+ * of an empty SHAP list.
+ */
+export function inclusionReason(props, advanced) {
+  const s = sourceOf(props);
+  if (s === "known") {
+    return advanced
+      ? "Included from the known-KSI tier; no model prediction applies."
+      : "Included because a serious crash has already happened here — no prediction needed.";
+  }
+  if (s === "screen") {
+    return advanced
+      ? "Included from the City-screen tier (≥5 crashes in a year); no model prediction applies."
+      : "Included because it meets the City's own screening rule: five or more crashes in a year.";
+  }
+  return null;
 }

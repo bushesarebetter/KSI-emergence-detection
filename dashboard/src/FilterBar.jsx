@@ -1,13 +1,13 @@
 import { useAdvanced } from "./useAdvanced";
-
-const THRESHOLDS = [50, 100, 200, 500];
+import { THRESHOLDS } from "./constants";
 
 /**
  * Shortlist size.
  *
- * A row of four segments sharing one hairline frame, rather than four separate
- * filled buttons: the choice is one variable with four settings, and the old
- * 2×2 grid of pill buttons read as four unrelated actions.
+ * A row of segments sharing one hairline frame, rather than separate filled
+ * buttons: the choice is one variable with a few settings, and a grid of pill
+ * buttons read as unrelated actions. The sizes come from constants.js so the
+ * export, the district counts and this control agree on what K can be.
  */
 export default function FilterBar({ filters, onFiltersChange }) {
   const { advanced } = useAdvanced();

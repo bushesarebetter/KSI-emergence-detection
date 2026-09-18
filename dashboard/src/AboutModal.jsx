@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import { useAdvanced } from "./useAdvanced";
+import { useCatch, useComposition } from "./useMeta";
+import { DEFAULT_THRESHOLD } from "./constants";
 
 export default function AboutModal({ onClose }) {
   const { advanced } = useAdvanced();
@@ -52,6 +54,10 @@ function Section({ heading, children }) {
 }
 
 function Plain() {
+  const { caught, total, lift } = useCatch(DEFAULT_THRESHOLD);
+  const { isCombined, known, screen } = useComposition();
+  const liftRounded = lift == null ? null : Math.round(lift);
+
   return (
     <>
       <Section heading="The problem">
@@ -70,13 +76,23 @@ function Plain() {
           records the city already collects, 2016 through 2024 — no new data, no
           cameras, no sensors.
         </p>
+        {isCombined && (
+          <p>
+            The list on the map also includes {known.toLocaleString()} intersections that
+            have already had a serious crash
+            {screen > 0 && <> and {screen.toLocaleString()} that meet the City&rsquo;s own screening rule</>}.
+            Those are records, not predictions; they sit at the top of the list and are
+            marked as such.
+          </p>
+        )}
       </Section>
 
       <Section heading="How well it works">
         <p>
-          Of the 108 intersections that had a serious crash in 2025, a shortlist of 500
-          flagged 24 of them beforehand. That is roughly eleven times better than
-          choosing at random — and it still misses most of them.
+          Of the {total} intersections that had a serious crash in 2025, the model&rsquo;s
+          shortlist of {DEFAULT_THRESHOLD} flagged {caught} of them beforehand
+          {liftRounded != null && <>. That is roughly {liftRounded} times better than choosing at random</>}
+          — and it still misses most of them.
         </p>
         <p>
           Read the shortlist as a place to start looking, not as a verdict on any single
@@ -101,6 +117,9 @@ function Plain() {
 }
 
 function Technical() {
+  const { caught, total, lift } = useCatch(DEFAULT_THRESHOLD);
+  const { isCombined, known, screen, topN } = useComposition();
+
   return (
     <>
       <Section heading="Model">
@@ -130,7 +149,9 @@ function Technical() {
           the bootstrap CI on recall@500 spans [28.6%, 71.4%].
         </p>
         <p>
-          Forward run recall@500 (≥1 KSI, 108 positives): 24/108 = 22.2%, 11.6× random.
+          Forward run recall@{DEFAULT_THRESHOLD} (≥1 KSI, {total} positives): {caught}/{total}
+          {total > 0 && <> = {((100 * caught) / total).toFixed(1)}%</>}
+          {lift != null && <>, {lift.toFixed(1)}× random</>}.
         </p>
       </Section>
 
@@ -140,6 +161,14 @@ function Technical() {
           through 2024. State-highway crashes excluded; crashes assigned to nodes within
           a 76.2 m buffer.
         </p>
+        {isCombined && (
+          <p>
+            Exported list is the combined top-{topN}: {known} known-KSI sites (feature-window
+            KSI ≥ 1, all spine nodes), then {screen} City-screen sites (≥5 crashes in the last
+            feature year), then model predictions; tiers stacked, not blended
+            (src/export/combined_list.py). Catch statistics above score the model ranking only.
+          </p>
+        )}
       </Section>
 
       <p className="mt-7 border-t border-rule pt-4 font-mono text-[11px] text-ink-3">

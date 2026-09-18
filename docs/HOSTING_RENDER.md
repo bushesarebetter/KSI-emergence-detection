@@ -152,8 +152,10 @@ and `*.gstatic.com` origins, and a strict policy will silently blank the map.
 
 ## 4. Updating the data
 
-There is no database and no build-time data generation — the two files in
-`dashboard/public/data/` are committed to the repo. To publish a new model run:
+There is no database and no build-time data generation — the three files in
+`dashboard/public/data/` (`intersections.geojson`, `districts.json`, `meta.json`) are
+committed to the repo. To publish a new model run (add `--combined 800` for the combined
+known + City-screen + predicted list; see the README's Dashboard section):
 
 ```bash
 python scripts/build_export_panel_verified.py --run forward

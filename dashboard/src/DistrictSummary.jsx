@@ -1,11 +1,23 @@
 import { useState, useMemo } from "react";
 import { useAdvanced } from "./useAdvanced";
 
-function countKey(threshold) {
-  if (threshold <= 50) return "top_50_count";
-  if (threshold <= 100) return "top_100_count";
-  if (threshold <= 200) return "top_200_count";
-  return "top_500_count";
+/**
+ * districts.json carries a count per district at every shortlist size the
+ * export knows about (top_50_count … top_1000_count). Use the exact key when
+ * present; on an older file that lacks it, fall back to the largest size that
+ * is present and no bigger than the threshold, so the bars never show a count
+ * for a list larger than the one on the map.
+ */
+function countKey(threshold, sample) {
+  const exact = `top_${threshold}_count`;
+  if (!sample || exact in sample) return exact;
+  const available = Object.keys(sample)
+    .map((k) => /^top_(\d+)_count$/.exec(k))
+    .filter(Boolean)
+    .map((m) => Number(m[1]))
+    .filter((k) => k <= threshold)
+    .sort((a, b) => b - a);
+  return available.length ? `top_${available[0]}_count` : exact;
 }
 
 function useEmergentsByDistrict(intersections, threshold) {
@@ -33,14 +45,14 @@ function useEmergentsByDistrict(intersections, threshold) {
 export default function DistrictSummary({ districts, filters, onFiltersChange, intersections }) {
   const [sortBy, setSortBy] = useState("count");
   const { advanced } = useAdvanced();
-  const key = countKey(filters.threshold);
+  const key = countKey(filters.threshold, districts?.[0]);
   const emergentsByDistrict = useEmergentsByDistrict(intersections, filters.threshold);
 
   if (!districts) return null;
 
-  const maxCount = Math.max(...districts.map((d) => d[key]), 1);
+  const maxCount = Math.max(...districts.map((d) => d[key] ?? 0), 1);
   const sorted = [...districts].sort((a, b) =>
-    sortBy === "count" ? b[key] - a[key] : a.district - b.district
+    sortBy === "count" ? (b[key] ?? 0) - (a[key] ?? 0) : a.district - b.district
   );
   const anySelected = filters.districts.length > 0;
 
@@ -79,7 +91,7 @@ export default function DistrictSummary({ districts, filters, onFiltersChange, i
 
       <ul>
         {sorted.map((d) => {
-          const count = d[key];
+          const count = d[key] ?? 0;
           const emergent = emergentsByDistrict[d.district] || 0;
           const selected = filters.districts.includes(d.district);
           const pct = (count / maxCount) * 100;

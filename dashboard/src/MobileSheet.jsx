@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { humanizeSignal } from "./lib/signals";
+import { humanizeSignal, inclusionReason, sourceLine, sourceOf } from "./lib/signals";
 
 const TIERS = [
   { max: 50, hex: "#7F1D1D", label: "Highest risk" },
@@ -35,7 +35,12 @@ export default function MobileSheet({ feature, onClose }) {
   const p = feature?.properties ?? {};
   const [lon, lat] = feature?.geometry?.coordinates ?? [0, 0];
   const tier = tierFor(p.rank ?? 1);
-  const reason = humanizeSignal(parseProp(p.shap_features)?.[0]?.display_label);
+  const source = sourceOf(p);
+  const isPrediction = source === "predicted";
+  const headColor = source === "known" ? "#7F1D1D" : tier.hex;
+  const reason = isPrediction
+    ? humanizeSignal(parseProp(p.shap_features)?.[0]?.display_label)
+    : inclusionReason(p, false);
 
   const onTouchStart = (e) => {
     startY.current = e.touches[0].clientY;
@@ -77,12 +82,12 @@ export default function MobileSheet({ feature, onClose }) {
           <div className="flex items-start justify-between gap-3 px-5 pt-2">
             <div className="min-w-0 flex-1">
               <p className="text-[12px] text-ink-2">
-                <span className="tnum font-semibold" style={{ color: tier.hex }}>
+                <span className="tnum font-semibold" style={{ color: headColor }}>
                   #{p.rank}
                 </span>
                 <span className="mx-1.5 text-rule-strong">/</span>
-                <span style={{ color: tier.hex }} className="font-semibold">
-                  {tier.label}
+                <span style={{ color: headColor }} className="font-semibold">
+                  {isPrediction ? tier.label : sourceLine(p, false)}
                 </span>
                 <span className="mx-1.5 text-rule-strong">/</span>
                 District {p.council_district}

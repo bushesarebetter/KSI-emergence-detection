@@ -289,9 +289,19 @@ and Council district filtering. Built on the Google Maps JavaScript API with a d
 overlay for the point layer.
 
 ```bash
-python scripts/build_export_panel_verified.py --run forward
+python scripts/build_export_panel_verified.py --run forward                 # predicted-only shortlist
+python scripts/build_export_panel_verified.py --run forward --combined 800  # "most unsafe" list, below
 cd dashboard && npm install && npm run dev
 ```
+
+`--combined N` exports one list of N sites in three stacked tiers: intersections that
+already had a serious crash in the feature window, then sites meeting the City's own
+screen (five or more crashes in the last feature year), then model predictions to fill
+the remainder. Every site carries a `source` tag and the dashboard labels the first two
+tiers as records, not predictions. A `meta.json` written next to the geojson holds
+recall@K of the model ranking alone, so the catch figures shown on the site never mix
+tiers. The export logic lives in `src/export/combined_list.py` (pure, unit-tested) and
+`src/export/build_combined.py` (pipeline glue).
 
 Open `http://localhost:5173`. A Google Maps API key and Map ID are required for the
 basemap; see `dashboard/docs/SETUP.md`. Without them the surrounding UI still works

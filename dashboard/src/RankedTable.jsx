@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { formatScore, intersectionsToCsv } from "./lib/format";
 import { useAdvanced } from "./useAdvanced";
-import { humanizeSignal } from "./lib/signals";
+import { humanizeSignal, inclusionReason } from "./lib/signals";
 
 const PAGE_SIZE = 50;
 const DRAWER_HEIGHT = "42vh";
@@ -65,11 +65,16 @@ const makeColumns = (advanced) => [
     header: advanced ? "Top signal" : "Main reason",
     accessorFn: (f) => f.properties.shap_features?.[0]?.display_label ?? "—",
     enableSorting: false,
-    cell: ({ getValue }) => (
-      <span className="text-[12px] text-ink-3">
-        {advanced ? getValue() : humanizeSignal(getValue())}
-      </span>
-    ),
+    // A known or City-screen site has no model signals; say why it is listed
+    // instead of showing a dash.
+    cell: ({ row, getValue }) => {
+      const reason = inclusionReason(row.original.properties, advanced);
+      return (
+        <span className="text-[12px] text-ink-3">
+          {reason ?? (advanced ? getValue() : humanizeSignal(getValue()))}
+        </span>
+      );
+    },
   },
 ];
 

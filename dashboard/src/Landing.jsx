@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
 import SearchBox from "./SearchBox";
 import AboutModal from "./AboutModal";
-import { CATCH_STATS } from "./CatchFigure";
+import { useCatch, useComposition } from "./useMeta";
+import { sourceLine, sourceOf } from "./lib/signals";
 import { DEFAULT_THRESHOLD, CANDIDATE_COUNT, REPO_URL } from "./constants";
 
 const TIERS = [
@@ -24,10 +25,16 @@ const tierFor = (rank) => TIERS.find((t) => rank <= t.max);
  * So: one question, one search, one button, three numbers, one honest caveat.
  * The specimen on the right is the only "imagery" -- three real rows from the
  * ranking, because showing the actual product beats any illustration.
+ *
+ * Every number is read from /data/meta.json, so this page can never claim a
+ * figure the export did not produce.
  */
 export default function Landing({ intersections, error, onEnter }) {
   const [aboutOpen, setAboutOpen] = useState(false);
-  const { caught, total } = CATCH_STATS[DEFAULT_THRESHOLD];
+  const { caught, total, lift, candidates } = useCatch(DEFAULT_THRESHOLD);
+  const { isCombined, known, screen, topN } = useComposition();
+  const liftRounded = lift == null ? null : Math.round(lift);
+  const listSize = isCombined && topN ? topN : DEFAULT_THRESHOLD;
 
   const specimen = useMemo(() => {
     if (!intersections) return null;
@@ -70,8 +77,17 @@ export default function Landing({ intersections, error, onEnter }) {
           </h1>
 
           <p className="mt-6 max-w-[42ch] font-serif text-[18px] leading-[1.5] text-ink-2 md:text-[20px]">
-            A ranking of San Diego street corners that have never had a serious crash —
-            ordered by how likely they are to have one.
+            {isCombined ? (
+              <>
+                The {listSize.toLocaleString()} San Diego intersections most worth a second look —
+                where serious crashes have already happened, and where they are most likely next.
+              </>
+            ) : (
+              <>
+                A ranking of San Diego street corners that have never had a serious crash —
+                ordered by how likely they are to have one.
+              </>
+            )}
           </p>
 
           <div className="mt-8 max-w-[34rem]">
@@ -104,10 +120,13 @@ export default function Landing({ intersections, error, onEnter }) {
 
           {/* ── Three numbers ──────────────────────────────────────────────── */}
           <dl className="mt-12 grid grid-cols-1 gap-6 border-y border-rule py-6 sm:grid-cols-3 sm:gap-8">
-            <Figure value={CANDIDATE_COUNT.toLocaleString()} label="intersections ranked, all with no serious-crash history" />
+            <Figure
+              value={(candidates ?? CANDIDATE_COUNT).toLocaleString()}
+              label="intersections ranked, all with no serious-crash history"
+            />
             <Figure
               value={<><span>{caught}</span><span className="text-ink-3"> of {total}</span></>}
-              label="that had a serious crash in 2025 were flagged in advance"
+              label={`that had a serious crash in 2025 were flagged in advance by the model's top ${DEFAULT_THRESHOLD}`}
             />
             <Figure
               value="Open"
@@ -124,10 +143,18 @@ export default function Landing({ intersections, error, onEnter }) {
 
           {/* ── The caveat, given the same weight as the claim ─────────────── */}
           <p className="mt-8 max-w-[46ch] font-serif text-[16px] italic leading-[1.55] text-ink-2">
-            It is right some of the time, not most of the time — about eleven times better
-            than picking at random, and still missing most. Treat it as a place to start
-            looking, not a verdict on any single corner.
+            It is right some of the time, not most of the time
+            {liftRounded != null && <> — about {liftRounded} times better than picking at random, and still missing most</>}.
+            Treat it as a place to start looking, not a verdict on any single corner.
           </p>
+
+          {isCombined && (
+            <p className="mt-4 max-w-[46ch] text-[13px] leading-[1.55] text-ink-3">
+              This list also includes {known.toLocaleString()} intersections that have already had a
+              serious crash{screen > 0 && <> and {screen.toLocaleString()} on the City&rsquo;s own screening list</>}.
+              Those are records, not predictions, and are marked as such.
+            </p>
+          )}
 
           {error && (
             <p className="mt-6 border-l-2 border-risk-1 pl-4 text-[13px] text-ink-2">
@@ -140,7 +167,7 @@ export default function Landing({ intersections, error, onEnter }) {
         <aside className="md:pt-16">
           <div className="border border-rule-strong bg-paper shadow-paper">
             <div className="flex items-baseline justify-between border-b border-rule-strong px-5 py-3">
-              <p className="label">Top of the ranking</p>
+              <p className="label">{isCombined ? "Top of the list" : "Top of the ranking"}</p>
               <p className="tnum text-[11px] text-ink-3">2025–2027</p>
             </div>
 
@@ -155,6 +182,9 @@ export default function Landing({ intersections, error, onEnter }) {
                 }
                 const p = f.properties;
                 const tier = tierFor(p.rank);
+                const source = sourceOf(p);
+                const color = source === "known" ? "#7F1D1D" : tier.hex;
+                const line = source === "predicted" ? tier.label : sourceLine(p, false);
                 return (
                   <li key={p.rank} className="border-b border-rule last:border-b-0">
                     <button
@@ -163,7 +193,7 @@ export default function Landing({ intersections, error, onEnter }) {
                     >
                       <span
                         className="tnum shrink-0 pt-[3px] font-serif text-[22px] font-medium leading-none"
-                        style={{ color: tier.hex }}
+                        style={{ color }}
                       >
                         {p.rank}
                       </span>
@@ -172,7 +202,7 @@ export default function Landing({ intersections, error, onEnter }) {
                           {p.intersection_name}
                         </span>
                         <span className="mt-1 block text-[11.5px] text-ink-3">
-                          <span style={{ color: tier.hex }} className="font-semibold">{tier.label}</span>
+                          <span style={{ color }} className="font-semibold">{line}</span>
                           <span className="mx-1.5 text-rule-strong">/</span>
                           District {p.council_district}
                           {p.is_known_emergent && (
@@ -195,7 +225,7 @@ export default function Landing({ intersections, error, onEnter }) {
                 onClick={() => onEnter(null)}
                 className="text-[12px] text-ink-2 transition-colors hover:text-ink"
               >
-                See all {DEFAULT_THRESHOLD} on the map →
+                See all {listSize.toLocaleString()} on the map →
               </button>
             </div>
           </div>

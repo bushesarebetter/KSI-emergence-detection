@@ -173,8 +173,12 @@ export default function MapView({
         getPosition: (f) => f.geometry.coordinates,
         getRadius: (f) => rankRadius(f.properties.rank),
         getFillColor: (f) => [...rankColor(f.properties.rank), 240],
-        getLineColor: [251, 249, 245, 230],
-        getLineWidth: 1.2,
+        // On a combined export, sites admitted because a serious crash has
+        // already happened there get a heavy ink outline: they are records,
+        // not predictions, and the map must not let the two blur together.
+        getLineColor: (f) =>
+          f.properties.source === "known" ? [23, 21, 15, 255] : [251, 249, 245, 230],
+        getLineWidth: (f) => (f.properties.source === "known" ? 2.4 : 1.2),
         onHover: (info) => {
           showTooltip(info);
           handleCursor({ isHovering: Boolean(info.object) });

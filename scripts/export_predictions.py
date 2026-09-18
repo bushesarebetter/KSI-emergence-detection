@@ -14,6 +14,15 @@ REQUIRED_PANEL_COLUMNS = [
     "crashes_training", "crash_history_json", "shap_json",
 ]
 
+# Present only on a combined export (build_export_panel_verified.py --combined N).
+# Passed through to the geojson when they exist; the UI treats their absence as
+# "every row is a model prediction".
+COMBINED_COLUMNS = ["source", "model_rank", "ksi_history", "screen_count", "city_screen"]
+
+# Shortlist sizes the UI offers. districts.json and meta.json carry every one so
+# the interface never has to compute a count it cannot verify.
+KS = (50, 100, 200, 500, 800, 1000)
+
 VALID_DISTRICTS = set(range(0, 10))
 
 
@@ -41,6 +50,13 @@ def validate_panel(df: pd.DataFrame) -> None:
         sys.exit(1)
 
 
+def _num_or_none(value, cast=float, ndigits: int | None = None):
+    if value is None or pd.isna(value):
+        return None
+    v = cast(value)
+    return round(v, ndigits) if ndigits is not None else v
+
+
 def write_geojson(
     panel: pd.DataFrame,
     names: pd.DataFrame,
@@ -60,6 +76,8 @@ def write_geojson(
     is_emergent = df["is_known_emergent"].astype(bool)
     df = df[in_top_n | is_emergent].reset_index(drop=True)
 
+    combined_cols = [c for c in COMBINED_COLUMNS if c in df.columns]
+
     features = []
     for _, row in df.iterrows():
         rank = int(row["rank"])
@@ -71,14 +89,24 @@ def write_geojson(
             "rank": rank,
             "intersection_name": str(row.get("intersection_name", f"Node {row['node_id']}")),
             "council_district": district,
-            "percentile": round(float(row["percentile"]), 4),
+            # None rather than NaN for non-candidate rows in a combined export:
+            # NaN is not valid JSON and a known site has no model percentile.
+            "percentile": _num_or_none(row["percentile"], float, 4),
             "is_known_emergent": bool(row["is_known_emergent"]),
-            "oof_rank": int(row["oof_rank"]) if pd.notna(row["oof_rank"]) else None,
+            "oof_rank": _num_or_none(row["oof_rank"], int),
             "is_crash_active": bool(row["is_crash_active"]),
             "crashes_training": int(row["crashes_training"]),
             "crash_history": crash_history,
             "shap_features": shap_features,
         }
+        for col in combined_cols:
+            val = row[col]
+            if col == "source":
+                props[col] = str(val)
+            elif col == "city_screen":
+                props[col] = bool(val)
+            else:
+                props[col] = _num_or_none(val, int)
 
         features.append({
             "type": "Feature",
@@ -100,39 +128,76 @@ def write_districts(
     panel: pd.DataFrame,
     output_dir: str | Path = OUTPUT_DIR,
 ) -> None:
+    """Per-district counts at each shortlist size, by the panel's `rank`.
+
+    Earlier versions re-derived rank here from tweedie_score. That is wrong for a
+    combined export, where rank is list position and known sites have no score,
+    and was a latent tie-break inconsistency even for the classic export. The
+    upstream rank is the single source of truth.
+    """
     output_dir = Path(output_dir)
     df = panel.copy()
-    df = df.sort_values("tweedie_score", ascending=False).reset_index(drop=True)
-    df["rank"] = df.index + 1
+    if "rank" not in df.columns:
+        df = df.sort_values("tweedie_score", ascending=False).reset_index(drop=True)
+        df["rank"] = df.index + 1
 
     district_counts: dict[int, dict[str, int]] = {
-        d: {"top_50_count": 0, "top_100_count": 0, "top_200_count": 0, "top_500_count": 0}
-        for d in range(1, 10)
+        d: {f"top_{k}_count": 0 for k in KS} for d in range(1, 10)
     }
-
     for _, row in df.iterrows():
         rank = int(row["rank"])
         district = int(row["council_district"])
         if district not in district_counts:
             continue
-        if rank <= 50:
-            district_counts[district]["top_50_count"] += 1
-        if rank <= 100:
-            district_counts[district]["top_100_count"] += 1
-        if rank <= 200:
-            district_counts[district]["top_200_count"] += 1
-        if rank <= 500:
-            district_counts[district]["top_500_count"] += 1
+        for k in KS:
+            if rank <= k:
+                district_counts[district][f"top_{k}_count"] += 1
 
-    districts = [
-        {"district": d, **counts}
-        for d, counts in sorted(district_counts.items())
-    ]
+    districts = [{"district": d, **counts} for d, counts in sorted(district_counts.items())]
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    districts_path = output_dir / "districts.json"
-    with open(districts_path, "w") as f:
+    with open(output_dir / "districts.json", "w") as f:
         json.dump(districts, f, indent=2)
+
+
+def write_meta(
+    panel: pd.DataFrame,
+    output_dir: str | Path = OUTPUT_DIR,
+    extra: dict | None = None,
+) -> None:
+    """meta.json: what the UI needs to describe the list honestly.
+
+    `catch` is recall@K of the MODEL's ranking -- by `model_rank` when the panel
+    is a combined export, else by `rank` -- because the combined list's own
+    position is not a prediction and must never be scored as one. Anything the
+    caller knows better (run mode, candidate count, tier composition) comes in
+    via `extra` and overrides the derived defaults.
+    """
+    output_dir = Path(output_dir)
+    df = panel.copy()
+    rank_col = "model_rank" if "model_rank" in df.columns else "rank"
+    scored = df[df[rank_col].notna()] if rank_col in df.columns else df.iloc[0:0]
+    emergent = scored["is_known_emergent"].astype(bool)
+    total = int(emergent.sum())
+    catch = {
+        str(k): {"caught": int((emergent & (scored[rank_col] <= k)).sum()), "total": total}
+        for k in KS
+    }
+    composition = (
+        df["source"].value_counts().to_dict() if "source" in df.columns
+        else {"predicted": int(len(df)), "known": 0, "screen": 0}
+    )
+    meta = {
+        "generated": pd.Timestamp.today().date().isoformat(),
+        "list": "combined" if "source" in df.columns else "predicted",
+        "catch": catch,
+        "composition": {k: int(v) for k, v in composition.items()},
+    }
+    if extra:
+        meta.update(extra)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    with open(output_dir / "meta.json", "w") as f:
+        json.dump(meta, f, indent=1)
 
 
 @click.command()
@@ -151,10 +216,9 @@ def export(panel: str, names: str, top_n: int) -> None:
     out_dir = Path(OUTPUT_DIR)
     write_geojson(df, names_df, output_dir=out_dir, top_n=top_n)
     write_districts(df, output_dir=out_dir)
+    write_meta(df, output_dir=out_dir, extra={"top_n": top_n})
 
     geojson_path = out_dir / "intersections.geojson"
-    districts_path = out_dir / "districts.json"
-
     with open(geojson_path) as f:
         geojson = json.load(f)
     features = geojson["features"]
@@ -165,7 +229,8 @@ def export(panel: str, names: str, top_n: int) -> None:
         f"Exported {len(features)} intersections | {n_districts} districts | "
         f"{n_emergent} known emergents\n"
         f"-> {geojson_path}\n"
-        f"-> {districts_path}"
+        f"-> {out_dir / 'districts.json'}\n"
+        f"-> {out_dir / 'meta.json'}"
     )
 
 

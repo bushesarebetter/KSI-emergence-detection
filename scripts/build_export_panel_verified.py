@@ -492,6 +492,17 @@ def main() -> None:
         default="verified",
         help="Which pipeline run to export (default: verified)",
     )
+    parser.add_argument(
+        "--combined",
+        type=int,
+        metavar="N",
+        default=None,
+        help=(
+            "Export the combined 'most unsafe' list of N intersections instead of the "
+            "model's top-1000: known serious-crash sites, then City-screen sites, then "
+            "model predictions, each tagged by source. See src/export/combined_list.py."
+        ),
+    )
     args = parser.parse_args()
     run_mode = args.run
 
@@ -523,49 +534,74 @@ def main() -> None:
         logging.info("Step 5: assigning council districts...")
         merged = assign_council_districts(merged, districts)
 
-        logging.info("Step 6: building crash history (may take 1-2 min)...")
-        t0 = time.time()
-        crash_history = build_crash_history(merged, cfg, root)
-        logging.info("  crash history done in %.1fs", time.time() - t0)
-
-        logging.info("Step 7: computing SHAP features (may take 3-6 min)...")
+        # SHAP is computed on candidates only, in both modes: known and screen
+        # sites have no feature row and no prediction to explain.
+        logging.info("Step 6: computing SHAP features (may take 3-6 min)...")
         t0 = time.time()
         shap_features_map = build_shap_features(merged, cfg, root)
         logging.info("  SHAP done in %.1fs", time.time() - t0)
 
-        logging.info("Step 8: assembling export panel...")
-        panel_df = assemble_export_panel(merged, crash_history, shap_features_map)
+        from scripts.export_predictions import write_districts, write_geojson, write_meta
+        from src.export.build_combined import assemble_combined_panel, predicted_only_meta
+
+        if args.combined:
+            logging.info(
+                "Step 7: assembling COMBINED list, N=%d (known -> City screen -> predicted)...",
+                args.combined,
+            )
+            t0 = time.time()
+            panel_df, meta = assemble_combined_panel(
+                cfg, root, merged, districts, args.combined, shap_features_map,
+                build_crash_history, assign_council_districts, run_mode,
+            )
+            logging.info("  combined panel done in %.1fs", time.time() - t0)
+            top_n = args.combined
+        else:
+            logging.info("Step 7: building crash history (may take 1-2 min)...")
+            t0 = time.time()
+            crash_history = build_crash_history(merged, cfg, root)
+            logging.info("  crash history done in %.1fs", time.time() - t0)
+
+            logging.info("Step 8: assembling export panel...")
+            panel_df = assemble_export_panel(merged, crash_history, shap_features_map)
+            meta = predicted_only_meta(merged, run_mode, TOP_N)
+            top_n = TOP_N
 
         logging.info("Step 9: exporting dashboard files...")
-        from scripts.export_predictions import write_districts, write_geojson
-
         names_path = root / cfg["paths"]["proc"] / "intersection_names.csv"
         names_df = pd.read_csv(
             names_path, dtype={"intersection_id": "str", "intersection_name": "str"}
         )
 
         out_dir = root / "dashboard" / "public" / "data"
-        write_geojson(panel_df, names_df, output_dir=out_dir, top_n=TOP_N)
+        write_geojson(panel_df, names_df, output_dir=out_dir, top_n=top_n)
         write_districts(panel_df, output_dir=out_dir)
+        write_meta(panel_df, output_dir=out_dir, extra=meta)
 
-        n_unnamed = int((merged["intersection_name"] == "Unnamed intersection").sum())
-        n_no_district_top1000 = int(
-            (panel_df.head(TOP_N)["council_district"] == 0).sum()
+        named = panel_df[["intersection_id"]].merge(names_df, on="intersection_id", how="left")
+        n_unnamed = int(
+            named["intersection_name"].isna().sum()
+            + (named["intersection_name"] == "Unnamed intersection").sum()
         )
+        n_no_district_top = int((panel_df.head(top_n)["council_district"] == 0).sum())
 
         print(f"\n{run_mode.upper()} RUN exported successfully:")
         if run_mode == "verified":
             print("  Candidates: 26,423 | Emergent (>=2): 21 | Emergent (>=1): 378")
-            print(f"  Top-{TOP_N} written to {out_dir}/")
             print_recall_at_k_verified(merged)
         else:
             n_ge2 = int((merged["KSI_label"] >= 2).sum())
             n_ge1 = int((merged["KSI_label"] >= 1).sum())
             print(f"  Candidates: {len(merged)} | Emergent (>=2, partial): {n_ge2} | (>=1): {n_ge1}")
-            print(f"  Top-{TOP_N} written to {out_dir}/")
             print_recall_at_k_forward(merged)
-        print(f"  Unnamed intersections: {n_unnamed}")
-        print(f"  Nodes outside district polygons in top-{TOP_N} (district=0): {n_no_district_top1000}")
+        if args.combined:
+            comp = meta["composition"]
+            print(f"  COMBINED top-{top_n}: {comp['known']} known · {comp['screen']} City screen · "
+                  f"{comp['predicted']} predicted  (city-limited tiers before cut: "
+                  f"{meta['tiers_before_cut']})")
+        print(f"  Top-{top_n} written to {out_dir}/  (+ districts.json, meta.json)")
+        print(f"  Unnamed intersections in export: {n_unnamed}")
+        print(f"  Nodes outside district polygons in top-{top_n} (district=0): {n_no_district_top}")
 
     except Exception as exc:
         print(f"ERROR: {exc}")

@@ -2,8 +2,9 @@ import CrashHistoryChart from "./CrashHistoryChart";
 import ShapChart from "./ShapChart";
 import StreetViewPanel from "./StreetViewPanel";
 import { useAdvanced } from "./useAdvanced";
+import { useComposition } from "./useMeta";
 import { formatPercentile } from "./lib/format";
-
+import { inclusionReason, sourceLine, sourceOf } from "./lib/signals";
 import { CANDIDATE_COUNT } from "./constants";
 
 const TIERS = [
@@ -21,6 +22,7 @@ function parseProp(v) {
 
 export default function IntersectionPanel({ intersection, onClose }) {
   const { advanced, copy } = useAdvanced();
+  const { isCombined, topN } = useComposition();
   const visible = intersection !== null;
 
   const raw = intersection?.properties ?? {};
@@ -34,6 +36,16 @@ export default function IntersectionPanel({ intersection, onClose }) {
   };
   const [lon, lat] = intersection?.geometry?.coordinates ?? [0, 0];
   const tier = tierFor(p.rank ?? 1);
+  const source = sourceOf(p);
+  const isPrediction = source === "predicted";
+  const line = sourceLine(p, advanced);
+  const reason = inclusionReason(p, advanced);
+
+  // A known site sits at the top of the combined list by record, not by score,
+  // so its colour is the record's, and the denominator is the list, not the
+  // candidate set it was never part of.
+  const headColor = source === "known" ? "#7F1D1D" : tier.hex;
+  const denominator = isCombined && topN ? topN : CANDIDATE_COUNT;
 
   return (
     <aside
@@ -50,12 +62,14 @@ export default function IntersectionPanel({ intersection, onClose }) {
               <div className="flex items-baseline gap-2.5">
                 <span
                   className="tnum font-serif text-[38px] font-medium leading-none"
-                  style={{ color: tier.hex }}
+                  style={{ color: headColor }}
                 >
                   {p.rank}
                 </span>
                 <span className="text-[11px] text-ink-3">
-                  {copy.detailOf(CANDIDATE_COUNT.toLocaleString())}
+                  {isCombined
+                    ? advanced ? `of ${denominator.toLocaleString()} on the combined list` : `of ${denominator.toLocaleString()} on the list`
+                    : copy.detailOf(denominator.toLocaleString())}
                 </span>
               </div>
               <button
@@ -72,15 +86,23 @@ export default function IntersectionPanel({ intersection, onClose }) {
             </h2>
 
             <p className="mt-2 text-[11.5px] text-ink-2">
-              <span style={{ color: tier.hex }} className="font-semibold">
-                {tier.label}
-              </span>
+              {isPrediction ? (
+                <span style={{ color: tier.hex }} className="font-semibold">{tier.label}</span>
+              ) : (
+                <span style={{ color: headColor }} className="font-semibold">{line}</span>
+              )}
               <span className="mx-1.5 text-rule-strong">/</span>
               District {p.council_district}
-              {advanced && (
+              {advanced && isPrediction && p.percentile != null && (
                 <>
                   <span className="mx-1.5 text-rule-strong">/</span>
                   {formatPercentile(p.percentile)} pct.
+                </>
+              )}
+              {advanced && !isPrediction && p.model_rank != null && (
+                <>
+                  <span className="mx-1.5 text-rule-strong">/</span>
+                  model rank #{p.model_rank}
                 </>
               )}
             </p>
@@ -88,6 +110,9 @@ export default function IntersectionPanel({ intersection, onClose }) {
             <div className="mt-3 flex flex-wrap gap-1.5">
               <Tag>{p.is_crash_active ? copy.detailCrashActive : copy.detailCrashSilent}</Tag>
               {p.is_known_emergent && <Tag emphasis>{copy.detailEmergent}</Tag>}
+              {p.city_screen && source !== "screen" && (
+                <Tag>{advanced ? "Also on City screen" : "Also on the City's list"}</Tag>
+              )}
             </div>
           </header>
 
@@ -96,8 +121,15 @@ export default function IntersectionPanel({ intersection, onClose }) {
               <CrashHistoryChart crash_history={p.crash_history} />
             </Block>
 
-            <Block heading={copy.detailSignals} note={copy.detailSignalsNote}>
-              <ShapChart shap_features={p.shap_features} />
+            <Block
+              heading={isPrediction ? copy.detailSignals : advanced ? "Why it is on the list" : "Why it's on the list"}
+              note={isPrediction ? copy.detailSignalsNote : null}
+            >
+              {isPrediction || p.shap_features.length > 0 ? (
+                <ShapChart shap_features={p.shap_features} />
+              ) : (
+                <p className="text-[13px] leading-[1.55] text-ink-2">{reason}</p>
+              )}
             </Block>
 
             <Block heading={copy.detailStreetView} last>

@@ -11,6 +11,7 @@ import useIntersections from "./useIntersections";
 import useMediaQuery from "./useMediaQuery";
 import { readSiteFromUrl, writeSiteToUrl } from "./useDeepLink";
 import { AdvancedProvider, useAdvanced } from "./useAdvanced";
+import { MetaProvider, useMetaFetch } from "./useMeta";
 import { DEFAULT_THRESHOLD } from "./constants";
 
 const DEFAULT_FILTERS = { threshold: DEFAULT_THRESHOLD, districts: [], crashActiveOnly: false };
@@ -29,9 +30,14 @@ function viewFromLocation() {
 }
 
 export default function App() {
+  // meta.json is small and independent of the intersections file, so it is
+  // fetched here once and made available everywhere without prop-threading.
+  const meta = useMetaFetch();
   return (
     <AdvancedProvider>
-      <Dashboard />
+      <MetaProvider meta={meta}>
+        <Dashboard />
+      </MetaProvider>
     </AdvancedProvider>
   );
 }
