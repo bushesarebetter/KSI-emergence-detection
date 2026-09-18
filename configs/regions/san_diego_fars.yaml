@@ -1,0 +1,18 @@
+name: san_diego_fars
+display_name: San Diego, California (FARS, fatal-only)
+adapter: fars
+osm_place: "San Diego, California, USA"
+center: [-117.1611, 32.7157]
+crs_analysis: "EPSG:2230"   # matched to san_diego.yaml so the two are comparable
+
+source_filters:
+  state: "California"
+  place: "SAN DIEGO"
+  exclude_freeway: true
+
+notes: >
+  The same city as san_diego.yaml but sourced from FARS instead of SWITRS. Exists
+  as a CALIBRATION REGION: running both and comparing is the only way to measure
+  what is lost by dropping from KSI to fatal-only. 152 intersection-related fatal
+  surface-street crashes 2016-2023, against 21 KSI positives in the verified run's
+  3-year window. Do not mix the two label definitions in one results table.

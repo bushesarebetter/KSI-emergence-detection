@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  python:
+    name: Python tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          environment-file: environment.yml
+          activate-environment: sdhs
+          auto-activate-base: false
+
+      - name: Run test suite
+        shell: bash -el {0}
+        run: pytest -q
+
+      # SWITRS cannot be redistributed, so CI has no real panel. A synthetic panel
+      # with the same schema and difficulty lets CI still exercise the modelling
+      # path -- fold construction, the OOF loop, corridor features, the paired
+      # bootstrap -- which is where leaks actually get introduced.
+      - name: Smoke-test the model pipeline on a synthetic panel
+        shell: bash -el {0}
+        run: |
+          python scripts/make_synthetic_panel.py
+          python scripts/improvement_bakeoff.py --panel-dir data/model/synthetic_run --arms current,baseline,corridor --repeats 2 --threshold 1
+
+      # The leakage audit needs the REAL built panel, so it cannot run here.
+      # Run `make audit` locally before publishing any result.
+
+  dashboard:
+    name: Dashboard build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: dashboard/package-lock.json
+
+      - run: npm ci
+      - run: npm run build
+
+  mobile:
+    name: Mobile typecheck
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mobile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: npm install --no-audit --no-fund
+
+      # No native build here: EAS Build handles that. This only catches syntax
+      # and import errors, which is most of what breaks in practice.
+      - name: Parse check
+        run: npx --yes esbuild@0.24.0 App.js src/*.js src/lib/*.js --loader:.js=jsx --outdir=/tmp/check

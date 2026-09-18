@@ -3,24 +3,51 @@ channels:
   - conda-forge
 dependencies:
   - python=3.11
+
+  # ---- geospatial ----
   - geopandas
   - shapely>=2
   - osmnx
   - networkx
   - pyproj
+
+  # ---- data ----
   - pandas
   - numpy
+  - scipy
   - duckdb
   - python-duckdb
+  - pyarrow          # parquet I/O for the panel and feature tables
+
+  # ---- modelling ----
+  # These were previously commented out as "deferred to later milestones", but the
+  # pipeline now imports all three at module load: src/model/fit.py imports optuna
+  # and xgboost unconditionally, and src/eval/make_figures.py imports shap. An
+  # environment built without them fails on import, not at the point of use.
   - scikit-learn
+  - xgboost
+  - shap
+  - optuna
+
+  # ---- plotting / misc ----
   - matplotlib
   - pyyaml
+  - click
+  - requests
+
+  # ---- testing ----
   - pytest
-  # ---- deferred to later milestones (do NOT install/import yet) ----
-  # - xgboost
+
+  # ---- optional ----
+  # PyTorch is needed ONLY by the neural-network arm of scripts/model_bakeoff_oof.py
+  # and by scripts/nn_sequence_bakeoff.py. Both are archived comparisons whose
+  # conclusion (the MLP is the weakest model tested) is already recorded in
+  # results/model_bakeoff_oof_results.json. Install it only to re-run those:
+  #   conda install -c conda-forge pytorch
+  # - pytorch
+
+  # Still genuinely deferred — not imported anywhere yet:
   # - lightgbm
-  # - shap
   # - mapie
-  # - optuna
   # - igraph
   # - pytorch-geometric
