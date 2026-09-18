@@ -1,12 +1,9 @@
 # Model Improvement Plan
 
-Status: **harness built and validated; no real-data results yet.** Every idea below is
-implemented in `scripts/improvement_bakeoff.py` and evaluated under the same genuine
-out-of-fold protocol the project already holds its headline numbers to. None of them
-has been run against San Diego, because `data/raw/switrs/` is empty in this working
-copy — SWITRS cannot be redistributed, so it has to be re-downloaded from TIMS first.
-**Do not quote any figure from this document as a result.** The expected-effect column
-is a prior, not a measurement.
+Status: **#5 (spatial / corridor features) shipped — it is in the deployed model (E).** The
+rest is a backlog, implemented in `scripts/improvement_bakeoff.py` and evaluated under the same
+out-of-fold protocol as the headline numbers. The next lever is #4 (exposure / AADT). Expected-
+effect entries for un-run items are priors, not measurements.
 
 ## What has been verified (and what that does not mean)
 
@@ -41,8 +38,9 @@ What this explicitly does **not** establish:
 - `monotone` scoring below baseline on synthetic is not evidence against monotonic
   constraints; it reflects generator-specific feature shapes.
 
-The honest summary: the measuring instrument is built and calibrated. Nothing has
-been measured.
+The harness is built and calibrated on synthetic data. The real-data results are in
+`README.md` and `docs/HYPOTHESIS.md`: #5 (spatial features) is measured and shipped in model E;
+the rest is backlog.
 
 ---
 
@@ -62,18 +60,18 @@ answer it produced is worth stating plainly:
   stream inside a 76.2 m buffer. `crashes_36mo`, `crashes_72mo`, `ewma_crashes`,
   `distinct_crash_days_72mo`, `emergence_velocity`, `momentum_ratio` and
   `crash_trend_slope` are, to a first approximation, seven different smoothings of the
-  same underlying count. That is exactly why a two-term persistence baseline ties the
-  tuned model at the ≥2-KSI threshold: there is nothing in the feature matrix that the
-  baseline is not already using.
-- **n = 21 is the binding constraint on *detecting* improvement.** At the primary
-  threshold the bootstrap CI on recall@500 spans [28.6%, 71.4%]. Any change that moves
-  recall by one or two sites is invisible inside that interval. This is why so many of
-  the project's comparisons come back "tied" — not because nothing works, but because
-  the measurement cannot resolve it.
+  same underlying count. That is why crash-only ranks below a two-term persistence baseline:
+  there is nothing in the crash-history matrix the baseline is not already using. Road
+  infrastructure and spatial-neighbor structure (#5, shipped) are what carry independent
+  signal and move the model above the baseline.
+- **The positive count is the binding constraint on *detecting* improvement.** At the any-KSI
+  threshold the model's edge over the baseline is a few events on ~40. Any change that moves
+  recall by one or two sites sits inside the bootstrap interval on a single split. This is why
+  comparisons resolve as consistency across splits and windows rather than single-split wins.
 
-So "drastically improve" reduces to two things, in this order: **get more label signal
-per unit of evaluation noise**, and **add information the crash stream does not already
-contain**. Items are ranked by that framing, not by sophistication.
+So "drastically improve" reduces to two things, in order: **add information the crash stream
+does not already contain** (done for infrastructure and corridor; exposure/AADT is next), and
+**get more label signal per unit of evaluation noise**. Items are ranked by that framing.
 
 ---
 
@@ -92,7 +90,7 @@ credibility, not just compute.
 | **2** | **Train on the county panel, evaluate on the city subset** | D11 restricted candidates to 26,423 City-of-San-Diego intersections. That restriction is correct for *deployment* (the city can only treat its own intersections) but it was applied to *training* too, and the original panel had 81,007 candidates. Fitting on the full county and scoring only the city subset is ~3× the positives at zero leakage cost, provided the county rows outside the city are never scored. | Requires that county-wide features are built to the same standard. Spatial CV must group by block so a county fold cannot straddle the city boundary. No credibility cost — the evaluation set is unchanged. |
 | **3** | **Stack multiple overlapping time windows (temporal augmentation)** | One panel exists today: 2016–21 features → 2022–24 labels. The same pipeline can emit 2015–17→2018–20, 2016–18→2019–21, 2017–19→2020–22. Each adds a fresh set of positives from the same intersections under different conditions, which is the single cheapest way to multiply n. | The same intersection appears in several rows, so rows are not independent: CV **must** group by `intersection_id`, or OOF scores leak across windows and every number inflates. That is a real trap, and the harness enforces it. COVID (2020–21) distorts one window; include `covid_period_share` as a control. |
 | **4** | **Add exposure (AADT / traffic volume) and model it as an offset** | This is the largest known gap, and the feature catalog already admits it: `crash_rate_per_MEV_72mo` is listed as *deferred — needs exposure/ADT*. Without exposure, crash counts conflate "busy" with "dangerous", and the model spends its capacity rediscovering traffic volume. Every Highway Safety Manual SPF uses AADT for exactly this reason. Enter it as `log(AADT)` offset in the Tweedie/Poisson objective, not as a plain feature, so the model predicts *rate*. | Coverage. Caltrans and SANDAG counts are dense on arterials and sparse on local streets, so a large share of the 26k candidates need imputation plus a `aadt_missing` flag. Genuinely new information though, and static (not endogenous). |
-| **5** | **Corridor / neighbourhood features** | Group 9 in the catalog is deferred, and it is the biggest free win left. KSI risk is spatially autocorrelated along corridors: a node with clean history 100 m from three bad nodes on the same arterial is not the same risk as an isolated clean node. Distance-decay crash kernels over neighbours, counts on the parent OSM way, and 1-hop graph neighbour statistics are all computable **from data already in the repo** — no new source, no new licence. | Must respect the same crash wall (`feature_cutoff_date`), and neighbour features must be built from training-window crashes only. Adds a leakage surface the audit needs a new check for. |
+| **5 — SHIPPED** | **Corridor / neighbourhood features (model E)** | The biggest free win, now realized (`src/features/build_spatial_features.py`): local crash pressure at 150/400 m, proximity and adjacency to the City's ≥5-crash sites, grid density. Strongest univariate signal on the candidate set (AUC 0.74–0.79); moves the model above the persistence baseline and survives the region-holdout split, so it is corridor signal, not autocorrelation. | Built from training-window crashes only; covered by the leakage audit. |
 
 ### Tier 2 — strong candidates, small honest caveats
 
@@ -142,7 +140,7 @@ credibility, not just compute.
    `python scripts/improvement_bakeoff.py --arms current,baseline --threshold 1`
 2. **#2 county training** and **#3 window stacking** — these attack n directly and need no
    new data source. Run them together; both are pure re-partitions of data you already have.
-3. **#5 corridor features** — best information-per-effort of any new feature, no new licence.
+3. ~~**#5 corridor features**~~ — **done and shipped (model E).** Survived both splits.
 4. **#4 exposure/AADT** — biggest single expected effect, but gated on acquiring and
    imputing the counts.
 5. **#6–#9** in whatever order the data lands.

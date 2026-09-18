@@ -4,6 +4,12 @@ This document records the decisions made during the project, including the ones 
 changed from the original research design. The goal is full transparency: what changed,
 when, and why.
 
+> **Current state:** the deployed model is **E** — crash history + road infrastructure +
+> spatial-neighbor structure — on the candidate set **below the City's 5-crash screen**
+> (`crashes_feat < 5`, **D18**). Earlier entries describe superseded choices (the `KSI_feat < 2`
+> candidate screen, the ≥2-KSI operating threshold, the crash-only model); they are kept as the
+> record, not the current design. Results: `../README.md`, `HYPOTHESIS.md`.
+
 ---
 
 ## D1 — Primary modeling target: Tweedie count regression, not binary classification
