@@ -1,32 +1,33 @@
 {
- "generated": "2026-09-17",
- "run": "forward",
+ "generated": "2026-09-18",
+ "run": "forward_E",
  "label": "fatal-or-serious-injury crash in 2025",
- "candidates": 26045,
+ "model": "crash + infrastructure + spatial (E)",
+ "candidates": 25034,
  "catch": {
   "50": {
-   "caught": 2,
-   "total": 108
+   "caught": 1,
+   "total": 62
   },
   "100": {
-   "caught": 3,
-   "total": 108
+   "caught": 2,
+   "total": 62
   },
   "200": {
-   "caught": 9,
-   "total": 108
+   "caught": 2,
+   "total": 62
   },
   "500": {
-   "caught": 24,
-   "total": 108
+   "caught": 9,
+   "total": 62
   },
   "800": {
-   "caught": 34,
-   "total": 108
+   "caught": 11,
+   "total": 62
   },
   "1000": {
-   "caught": 38,
-   "total": 108
+   "caught": 14,
+   "total": 62
   }
  },
  "composition": {
