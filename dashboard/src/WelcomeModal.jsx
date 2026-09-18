@@ -3,11 +3,11 @@ import { useAdvanced } from "./useAdvanced";
 /**
  * Shown once, on first visit.
  *
- * Without this the dashboard opens on a map of coloured dots with no statement
- * of what the dots mean or why they were chosen. The three points below are the
- * minimum needed to read the map honestly -- including the limitation, which is
- * here rather than buried in the methodology because a reviewer who discovers it
- * themselves after trusting the headline is a reviewer you have lost.
+ * Composed as the opening of a printed report rather than an onboarding dialog:
+ * kicker, headline, standfirst, then three numbered notes. The third note states
+ * the limitation up front. A reviewer who discovers that themselves after
+ * trusting the headline is a reviewer you have lost, so it is given the same
+ * weight as the claim.
  */
 export default function WelcomeModal() {
   const { seenWelcome, dismissWelcome, advanced, toggle } = useAdvanced();
@@ -16,71 +16,80 @@ export default function WelcomeModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/75 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-[70] flex items-center justify-center overflow-y-auto bg-ink/30 p-4 backdrop-blur-[2px] sm:p-8"
       role="dialog"
       aria-modal="true"
       aria-labelledby="welcome-title"
       onClick={(e) => e.target === e.currentTarget && dismissWelcome()}
     >
-      <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl sm:p-7">
-        <div className="mb-1 flex items-center gap-2.5">
-          <span className="h-2 w-2 rounded-full bg-orange-500 shadow-[0_0_6px_#f97316]" />
-          <span className="text-[10px] font-semibold uppercase tracking-widest text-slate-500">
-            San Diego
-          </span>
+      <article className="my-auto w-full max-w-[36rem] border border-rule-strong bg-paper shadow-paper">
+        <div className="border-b border-rule-strong px-8 pb-6 pt-7">
+          <p className="label mb-3">San Diego · Independent research</p>
+
+          <h1
+            id="welcome-title"
+            className="font-serif text-[34px] font-medium leading-[1.08] tracking-[-0.02em] text-ink sm:text-[40px]"
+          >
+            Where serious crashes are&nbsp;likely to happen next
+          </h1>
+
+          <p className="mt-4 max-w-[46ch] font-serif text-[16px] leading-[1.55] text-ink-2">
+            A ranking of San Diego street corners that have never had a serious crash —
+            ordered by how likely they are to have one.
+          </p>
         </div>
 
-        <h1 id="welcome-title" className="mb-4 text-lg font-bold leading-snug text-slate-100">
-          Where serious crashes are likely to happen next
-        </h1>
+        <ol className="px-8 py-6">
+          <Note n="01" title="These intersections have no serious-crash history.">
+            That is the point. The city reviews corners that already have five or more
+            crashes, so a street getting more dangerous stays invisible until someone is
+            badly hurt there.
+          </Note>
 
-        <div className="space-y-4 text-sm leading-relaxed text-slate-400">
-          <Point n="1" title="These intersections have no serious-crash history.">
-            That is the point. San Diego reviews intersections that already have five
-            or more crashes — so a street corner trending toward danger stays
-            invisible until someone is badly hurt there.
-          </Point>
-
-          <Point n="2" title="Red dots are the model's highest-risk sites.">
+          <Note n="02" title="Darker dots are higher predicted risk.">
             A model trained on crash records through 2024 ranked every intersection in
-            the city. Tap any dot to see its crash history and why it ranked where it did.
-          </Point>
+            the city. Click any dot for its crash history and the reasons behind its
+            rank.
+          </Note>
 
-          <Point n="3" title="It is right some of the time, not most of the time.">
-            Of the 108 intersections that had a serious crash in 2025, this shortlist of
-            500 flagged 24 in advance — about 11 times better than picking at random,
-            and far from complete. Treat it as a starting point for review, not a verdict.
-          </Point>
+          <Note n="03" title="It is right some of the time — not most of the time." last>
+            Of the 108 intersections that had a serious crash in 2025, a shortlist of 500
+            flagged 24 in advance. Eleven times better than chance, and still missing
+            most. Treat it as somewhere to start looking, not a verdict.
+          </Note>
+        </ol>
+
+        <div className="flex flex-col gap-3 border-t border-rule-strong px-8 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <button
+            onClick={dismissWelcome}
+            className="bg-ink px-6 py-2.5 text-[13px] font-semibold text-paper transition-opacity hover:opacity-85"
+          >
+            View the map
+          </button>
+
+          <button
+            onClick={() => {
+              if (!advanced) toggle();
+              dismissWelcome();
+            }}
+            className="border-b border-ink/25 pb-px text-left text-[12px] text-ink-3 transition-colors hover:border-ink hover:text-ink sm:text-right"
+          >
+            I work in traffic safety — use technical terms
+          </button>
         </div>
-
-        <button
-          onClick={dismissWelcome}
-          className="mt-6 w-full rounded-lg bg-orange-500 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-orange-400"
-        >
-          Show me the map
-        </button>
-
-        <button
-          onClick={() => { if (!advanced) toggle(); dismissWelcome(); }}
-          className="mt-2 w-full py-1.5 text-xs text-slate-500 transition-colors hover:text-slate-300"
-        >
-          I work in traffic safety — use technical terms
-        </button>
-      </div>
+      </article>
     </div>
   );
 }
 
-function Point({ n, title, children }) {
+function Note({ n, title, children, last = false }) {
   return (
-    <div className="flex gap-3">
-      <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-slate-800 text-[11px] font-bold text-orange-400">
-        {n}
-      </span>
+    <li className={`flex gap-5 ${last ? "" : "mb-5 border-b border-rule pb-5"}`}>
+      <span className="tnum mt-[3px] shrink-0 font-mono text-[11px] text-ink-3">{n}</span>
       <div className="min-w-0">
-        <div className="mb-0.5 font-semibold text-slate-200">{title}</div>
-        <div className="text-[13px] text-slate-400">{children}</div>
+        <h2 className="mb-1 text-[14px] font-semibold leading-snug text-ink">{title}</h2>
+        <p className="text-[13.5px] leading-[1.55] text-ink-2">{children}</p>
       </div>
-    </div>
+    </li>
   );
 }

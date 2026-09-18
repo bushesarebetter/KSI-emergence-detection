@@ -1,38 +1,19 @@
 import CrashHistoryChart from "./CrashHistoryChart";
 import ShapChart from "./ShapChart";
 import StreetViewPanel from "./StreetViewPanel";
-import { formatPercentile } from "./lib/format";
 import { useAdvanced } from "./useAdvanced";
-import Term from "./Term";
+import { formatPercentile } from "./lib/format";
 
-// Forward-run candidate set: City of San Diego intersections with no KSI history
-// through 2024 (results/recall_evaluation.json -> prospective_2025.candidates).
-const CANDIDATE_COUNT = 26045;
+import { CANDIDATE_COUNT } from "./constants";
 
-function MapLinkIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
-      <path
-        d="M6 1C4.07 1 2.5 2.57 2.5 4.5 2.5 7.25 6 11 6 11S9.5 7.25 9.5 4.5C9.5 2.57 7.93 1 6 1zm0 4.75a1.25 1.25 0 110-2.5 1.25 1.25 0 010 2.5z"
-        fill="currentColor"
-      />
-    </svg>
-  );
-}
+const TIERS = [
+  { max: 50, hex: "#7F1D1D", label: "Highest risk" },
+  { max: 100, hex: "#C2410C", label: "High risk" },
+  { max: 200, hex: "#D97706", label: "Elevated risk" },
+  { max: Infinity, hex: "#E8B563", label: "Moderate risk" },
+];
 
-function riskColor(rank) {
-  if (rank <= 50) return "#ef4444";
-  if (rank <= 100) return "#f97316";
-  if (rank <= 200) return "#fbbf24";
-  return "#fde68a";
-}
-
-function riskLabel(rank) {
-  if (rank <= 50) return "Highest risk";
-  if (rank <= 100) return "High risk";
-  if (rank <= 200) return "Elevated risk";
-  return "Moderate risk";
-}
+const tierFor = (rank) => TIERS.find((t) => rank <= t.max);
 
 function parseProp(v) {
   return typeof v === "string" ? JSON.parse(v) : (v ?? []);
@@ -41,145 +22,147 @@ function parseProp(v) {
 export default function IntersectionPanel({ intersection, onClose }) {
   const { advanced, copy } = useAdvanced();
   const visible = intersection !== null;
+
   const raw = intersection?.properties ?? {};
   // deck.gl hands back the original feature object, so these are normally real
-  // arrays already -- but the parse is kept so any caller that round-trips a
-  // feature through JSON (table click, saved view, deep link) still works.
+  // arrays already -- the parse is kept so any caller that round-trips a feature
+  // through JSON (table click, saved view, deep link) still works.
   const p = {
     ...raw,
     crash_history: parseProp(raw.crash_history),
     shap_features: parseProp(raw.shap_features),
   };
-  const coords = intersection?.geometry?.coordinates ?? [0, 0];
-  const lon = coords[0];
-  const lat = coords[1];
-  const color = riskColor(p.rank);
+  const [lon, lat] = intersection?.geometry?.coordinates ?? [0, 0];
+  const tier = tierFor(p.rank ?? 1);
 
   return (
-    <div
-      className={`fixed right-0 top-12 bottom-0 w-90 bg-slate-900 border-l border-slate-800 shadow-2xl z-20 transition-transform duration-300 ease-in-out ${
-        visible ? "translate-x-0" : "translate-x-full"
+    <aside
+      aria-hidden={!visible}
+      className={`fixed bottom-0 right-0 top-0 z-40 w-full max-w-[24rem] border-l border-rule-strong bg-paper transition-transform duration-300 ease-out ${
+        visible ? "translate-x-0 shadow-paper" : "translate-x-full"
       }`}
     >
       {visible && (
-        <>
-          {/* Sticky header */}
-          <div className="sticky top-0 bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-start justify-between z-10">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold tabular-nums" style={{ color }}>
-                  #{p.rank}
+        <div className="flex h-full flex-col">
+          {/* Masthead of the record */}
+          <header className="shrink-0 border-b border-rule-strong px-6 pb-5 pt-5">
+            <div className="mb-3 flex items-start justify-between gap-4">
+              <div className="flex items-baseline gap-2.5">
+                <span
+                  className="tnum font-serif text-[38px] font-medium leading-none"
+                  style={{ color: tier.hex }}
+                >
+                  {p.rank}
                 </span>
-                <span className="text-xs text-slate-600">
+                <span className="text-[11px] text-ink-3">
                   {copy.detailOf(CANDIDATE_COUNT.toLocaleString())}
                 </span>
               </div>
-              <div className="text-xs font-medium" style={{ color: color + "bb" }}>
-                {riskLabel(p.rank)}
-                {advanced && <> · {formatPercentile(p.percentile)} pct.</>}
-              </div>
+              <button
+                onClick={onClose}
+                aria-label="Close"
+                className="-mr-1 text-[22px] leading-none text-ink-3 transition-colors hover:text-ink"
+              >
+                ×
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              className="text-slate-600 hover:text-slate-300 text-xl leading-none ml-4 transition-colors mt-0.5"
-              aria-label="Close"
-            >
-              ×
-            </button>
-          </div>
 
-          <div className="overflow-y-auto px-4 py-4 space-y-5">
-            {/* Intersection name */}
-            <div className="text-sm font-semibold text-slate-100 leading-snug">
+            <h2 className="font-serif text-[20px] font-medium leading-[1.2] text-ink">
               {p.intersection_name}
-            </div>
+            </h2>
 
-            {/* Status badges */}
-            <div className="flex flex-wrap gap-1.5">
-              <span className="bg-slate-800 text-slate-300 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-700">
-                District {p.council_district}
+            <p className="mt-2 text-[11.5px] text-ink-2">
+              <span style={{ color: tier.hex }} className="font-semibold">
+                {tier.label}
               </span>
-              {p.is_crash_active ? (
-                <span className="bg-green-950/60 text-green-400 text-xs font-medium px-2.5 py-1 rounded-full border border-green-900/60">
-                  {copy.detailCrashActive}
-                </span>
-              ) : (
-                <span className="bg-slate-800 text-slate-500 text-xs font-medium px-2.5 py-1 rounded-full border border-slate-700">
-                  {copy.detailCrashSilent}
-                </span>
+              <span className="mx-1.5 text-rule-strong">/</span>
+              District {p.council_district}
+              {advanced && (
+                <>
+                  <span className="mx-1.5 text-rule-strong">/</span>
+                  {formatPercentile(p.percentile)} pct.
+                </>
               )}
-              {p.is_known_emergent && (
-                <span className="bg-orange-950/60 text-orange-400 text-xs font-medium px-2.5 py-1 rounded-full border border-orange-900/60">
-                  {copy.detailEmergent}
-                </span>
-              )}
+            </p>
+
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              <Tag>{p.is_crash_active ? copy.detailCrashActive : copy.detailCrashSilent}</Tag>
+              {p.is_known_emergent && <Tag emphasis>{copy.detailEmergent}</Tag>}
             </div>
+          </header>
 
-            <hr className="border-slate-800" />
-
-            {/* Crash history */}
-            <div>
-              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">
-                {copy.detailHistory}
-              </div>
+          <div className="flex-1 overflow-y-auto">
+            <Block heading={copy.detailHistory}>
               <CrashHistoryChart crash_history={p.crash_history} />
-            </div>
+            </Block>
 
-            <hr className="border-slate-800" />
-
-            {/* SHAP features */}
-            <div>
-              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-1">
-                <Term id="rank">{copy.detailSignals}</Term>
-              </div>
-              <div className="text-[10px] text-slate-600 mb-3">
-                {copy.detailSignalsNote}
-              </div>
+            <Block heading={copy.detailSignals} note={copy.detailSignalsNote}>
               <ShapChart shap_features={p.shap_features} />
-            </div>
+            </Block>
 
-            <hr className="border-slate-800" />
-
-            {/* Street View + Google Maps deep links */}
-            <div>
-              <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest mb-3">
-                {copy.detailStreetView}
-              </div>
+            <Block heading={copy.detailStreetView} last>
               <StreetViewPanel lat={lat} lon={lon} />
-              <div className="mt-3 flex flex-col gap-2">
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-orange-400 transition-colors"
-                >
-                  <MapLinkIcon />
-                  Open in Google Maps
-                </a>
-                <a
-                  href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-orange-400 transition-colors"
-                >
-                  <MapLinkIcon />
+              <nav className="mt-3">
+                <ExternalLink href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`}>
                   Full-screen Street View
-                </a>
-                <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-orange-400 transition-colors"
-                >
-                  <MapLinkIcon />
-                  Directions to site
-                </a>
-              </div>
-            </div>
+                </ExternalLink>
+                <ExternalLink href={`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`}>
+                  Open in Google Maps
+                </ExternalLink>
+                <ExternalLink href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`}>
+                  Directions
+                </ExternalLink>
+              </nav>
 
+              {advanced && (
+                <p className="mt-4 font-mono text-[10.5px] text-ink-3">
+                  {lat.toFixed(6)}, {lon.toFixed(6)}
+                </p>
+              )}
+            </Block>
           </div>
-        </>
+        </div>
       )}
-    </div>
+    </aside>
+  );
+}
+
+function Block({ heading, note, children, last = false }) {
+  return (
+    <section className={`px-6 py-5 ${last ? "" : "border-b border-rule"}`}>
+      <h3 className="label">{heading}</h3>
+      {note && <p className="mt-1.5 text-[11px] leading-snug text-ink-3">{note}</p>}
+      <div className="mt-3.5">{children}</div>
+    </section>
+  );
+}
+
+function Tag({ children, emphasis = false }) {
+  return (
+    <span
+      className={`border px-2 py-[3px] text-[10.5px] font-medium ${
+        emphasis
+          ? "border-risk-1 bg-risk-1 text-paper"
+          : "border-rule-strong bg-paper-sunk text-ink-2"
+      }`}
+    >
+      {children}
+    </span>
+  );
+}
+
+function ExternalLink({ href, children }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-center justify-between border-b border-rule py-2.5 text-[13px] text-ink-2 transition-colors last:border-b-0 hover:text-ink"
+    >
+      {children}
+      <span aria-hidden="true" className="text-ink-3 transition-transform group-hover:translate-x-0.5">
+        →
+      </span>
+    </a>
   );
 }

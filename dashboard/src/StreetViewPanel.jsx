@@ -70,10 +70,10 @@ export default function StreetViewPanel({ lat, lon }) {
   }, [lat, lon]);
 
   return (
-    <div className="relative h-36 w-full overflow-hidden rounded-md border border-slate-800 bg-slate-950">
+    <div className="relative h-40 w-full overflow-hidden border border-rule-strong bg-paper-sunk">
       <div ref={containerRef} className="h-full w-full" />
       {status !== "ok" && (
-        <div className="absolute inset-0 flex items-center justify-center text-[11px] text-slate-600">
+        <div className="absolute inset-0 flex items-center justify-center text-[11.5px] text-ink-3">
           {status === "loading" && "Loading Street View…"}
           {status === "none" && "No Street View coverage here"}
           {status === "error" && "Street View unavailable"}

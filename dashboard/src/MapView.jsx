@@ -7,14 +7,14 @@ import MapLegend from "./MapLegend";
 const INITIAL_ZOOM = 13;
 const FLY_ZOOM = 16;
 
-// YlOrRd-derived colorblind-safe ramp: red (most dangerous) → yellow (least).
-// deck.gl wants [r, g, b] 0-255, so these are the same hexes as the old MapLibre
-// `step` expression, pre-converted.
+// Sequential ramp, dark → light, matching MapLegend's RISK_TIERS. Ordering is
+// carried by lightness as well as hue so the tiers survive greyscale printing
+// and colourblind viewing. deck.gl wants [r, g, b] 0-255.
 const RANK_COLORS = [
-  [239, 68, 68],   // rank 1–50:   #ef4444 red
-  [249, 115, 22],  // rank 51–100: #f97316 orange
-  [251, 191, 36],  // rank 101–200:#fbbf24 amber
-  [253, 230, 138], // rank 201+:   #fde68a pale yellow
+  [127, 29, 29],   // rank 1–50    #7F1D1D oxblood
+  [194, 65, 12],   // rank 51–100  #C2410C burnt orange
+  [217, 119, 6],   // rank 101–200 #D97706 amber
+  [232, 181, 99],  // rank 201+    #E8B563 pale amber
 ];
 
 function rankTier(rank) {
@@ -35,7 +35,16 @@ function rankRadius(rank) {
   return [26, 23, 20, 17][rankTier(rank)];
 }
 
-export default function MapView({ intersections, filters, selectedIntersection, onSelectIntersection }) {
+export default function MapView({
+  intersections,
+  filters,
+  selectedIntersection,
+  onSelectIntersection,
+  showLegend = true,
+  // Pixels to push the map after centring a selection. The phone sheet covers
+  // the lower half of the screen; without this the tapped dot sits under it.
+  selectionOffsetY = 0,
+}) {
   const containerRef = useRef(null);
   const overlayRef = useRef(null);
   const infoWindowRef = useRef(null);
@@ -89,10 +98,12 @@ export default function MapView({ intersections, filters, selectedIntersection, 
       const { intersection_name, rank, council_district } = info.object.properties;
       const [lng, lat] = info.object.geometry.coordinates;
       iw.setContent(`
-        <div style="font-family:inherit;padding:2px 4px">
-          <div style="font-weight:600;color:#0f172a;margin-bottom:4px;line-height:1.3">${intersection_name}</div>
-          <div style="color:#475569;font-size:11px">
-            Rank <strong style="color:#c2410c">#${rank}</strong>
+        <div style="font-family:'Public Sans',Helvetica,Arial,sans-serif;padding:9px 12px;min-width:150px">
+          <div style="font-size:13px;font-weight:600;color:#17150F;line-height:1.3;margin-bottom:5px">
+            ${intersection_name}
+          </div>
+          <div style="font-size:11px;color:#8A8272;letter-spacing:.02em">
+            <span style="font-variant-numeric:tabular-nums;color:#17150F;font-weight:600">#${rank}</span>
             &nbsp;·&nbsp;District ${council_district}
           </div>
         </div>
@@ -134,11 +145,13 @@ export default function MapView({ intersections, filters, selectedIntersection, 
         getLineColor: (f) => {
           const r = f.properties.oof_rank;
           const caught = r != null && r <= filters.threshold;
-          return caught ? [255, 255, 255, 255] : [100, 116, 139, 115];
+          // Ink, not white: the basemap is light, and a white ring on light
+          // tiles disappears entirely.
+          return caught ? [23, 21, 15, 255] : [138, 130, 114, 150];
         },
         getLineWidth: (f) => {
           const r = f.properties.oof_rank;
-          return r != null && r <= filters.threshold ? 2 : 1.5;
+          return r != null && r <= filters.threshold ? 2 : 1.2;
         },
         updateTriggers: {
           getLineColor: filters.threshold,
@@ -159,9 +172,9 @@ export default function MapView({ intersections, filters, selectedIntersection, 
         lineWidthUnits: "pixels",
         getPosition: (f) => f.geometry.coordinates,
         getRadius: (f) => rankRadius(f.properties.rank),
-        getFillColor: (f) => [...rankColor(f.properties.rank), 235],
-        getLineColor: [255, 255, 255, 160],
-        getLineWidth: 1.5,
+        getFillColor: (f) => [...rankColor(f.properties.rank), 240],
+        getLineColor: [251, 249, 245, 230],
+        getLineWidth: 1.2,
         onHover: (info) => {
           showTooltip(info);
           handleCursor({ isHovering: Boolean(info.object) });
@@ -180,7 +193,10 @@ export default function MapView({ intersections, filters, selectedIntersection, 
     const [lng, lat] = selectedIntersection.geometry.coordinates;
     map.panTo({ lat, lng });
     if (map.getZoom() < FLY_ZOOM) map.setZoom(FLY_ZOOM);
-  }, [selectedIntersection]);
+    // panBy(0, +y) moves the map's centre down in the world, so the point that
+    // was just centred ends up higher on screen -- above the sheet.
+    if (selectionOffsetY) map.panBy(0, selectionOffsetY);
+  }, [selectedIntersection, selectionOffsetY]);
 
   // Tear the overlay down on unmount so the WebGL context is released.
   useEffect(() => {
@@ -196,15 +212,15 @@ export default function MapView({ intersections, filters, selectedIntersection, 
       <div ref={containerRef} className="w-full h-full" />
 
       {error && (
-        <div className="absolute inset-0 flex items-center justify-center bg-slate-950/90 px-8 text-center">
-          <div className="max-w-md text-sm text-red-400">
-            <div className="mb-2 font-semibold">Map failed to load</div>
-            <div className="text-slate-400 text-xs leading-relaxed">{error}</div>
+        <div className="absolute inset-0 flex items-center justify-center bg-paper px-8">
+          <div className="max-w-md border-l-2 border-risk-1 pl-5">
+            <p className="label mb-2 text-risk-1">Map failed to load</p>
+            <p className="font-serif text-[15px] leading-[1.55] text-ink-2">{error}</p>
           </div>
         </div>
       )}
 
-      <MapLegend threshold={filters.threshold} />
+      {showLegend && <MapLegend threshold={filters.threshold} />}
     </div>
   );
 }

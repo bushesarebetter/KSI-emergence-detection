@@ -8,9 +8,9 @@ the single most useful thing you can cite to everyone else.
 ## Before you send anything
 
 - **Fill in the placeholders.** `[YOUR NAME]`, `[SCHOOL]`, `[GRADE]`, `[DASHBOARD URL]`.
-  Note that `README.md`'s citation block currently credits **Pendharkar, Ayan** —
-  if this is joint work, say "my collaborator and I" and name them; if the citation
-  is wrong, fix it before anyone follows the link.
+- **Authorship is joint.** The emails name Ayan Pendharkar as collaborator. `README.md`'s
+  citation block still credits only Pendharkar — add Zhang before anyone follows the
+  GitHub link.
 - **Find a real person.** Every email below is addressed to a role. Ten minutes on
   the agency's staff directory or LinkedIn beats `info@`. A named recipient roughly
   doubles reply rates, and a wrong-but-close name usually gets forwarded internally.
@@ -50,8 +50,8 @@ annual safety screening.
 >
 > Dear [Name],
 >
-> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. Over the past year I built a model
-> that tries to identify San Diego intersections likely to produce a killed-or-
+> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. Over the past year my collaborator
+> Ayan Pendharkar and I built a model that tries to identify San Diego intersections likely to produce a killed-or-
 > serious-injury crash within three years — restricted to intersections with no
 > severe-crash history, so they're invisible to a screen based on prior crashes.
 >
@@ -71,8 +71,8 @@ annual safety screening.
 > Would someone on your team be willing to spend 20 minutes telling me where this is
 > wrong? Specifically: does the top-50 list contain locations you'd already flagged
 > through other channels, and are there sites on it your engineers would immediately
-> rule out? That kind of feedback would improve the work more than anything I can do
-> on my own.
+> rule out? That kind of feedback would improve the work more than anything we can do
+> on our own.
 >
 > Thank you for your time,
 > [YOUR NAME]
@@ -91,11 +91,12 @@ identifies exposure/AADT as the single largest known gap — SANDAG can close it
 >
 > Dear [Name],
 >
-> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. I've built an open-source model
-> that predicts which San Diego intersections without severe-crash history are most
-> likely to develop one, using SWITRS crash records: [DASHBOARD URL]
+> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. My collaborator Ayan Pendharkar
+> and I have built an open-source model that predicts which San Diego intersections
+> without severe-crash history are most likely to develop one, using SWITRS crash
+> records: [DASHBOARD URL]
 >
-> The model currently has a known weakness I'd like to fix. It uses raw crash counts
+> The model currently has a known weakness we'd like to fix. It uses raw crash counts
 > with no exposure denominator, which means it can't distinguish a genuinely
 > dangerous intersection from a merely busy one. Every Highway Safety Manual safety
 > performance function normalises by AADT for exactly this reason.
@@ -103,7 +104,7 @@ identifies exposure/AADT as the single largest known gap — SANDAG can close it
 > Does SANDAG publish or share intersection-level or link-level volume estimates for
 > the City of San Diego — either from the regional travel demand model or from count
 > programs? Even coarse arterial-level AADT would let me model crash *rate* rather
-> than crash count, which I expect is the largest single improvement available to
+> than crash count, which we expect is the largest single improvement available to
 > this project.
 >
 > Everything is open source (MIT) and I'd be glad to share results, credit SANDAG as
@@ -127,9 +128,10 @@ faster than agencies and are far more likely to reply to a student.
 > Dear [Name],
 >
 > I'm [YOUR NAME], a [GRADE] student at [SCHOOL], and I've been following Circulate's
-> Vision Zero work while building something adjacent to it.
+> Vision Zero work while building something adjacent to it with my collaborator
+> Ayan Pendharkar.
 >
-> I built a model that ranks the roughly 26,000 San Diego intersections with no
+> We built a model that ranks the roughly 26,000 San Diego intersections with no
 > severe-crash history by how likely they are to produce a killed-or-serious-injury
 > crash in the next three years. The point is to get ahead of the City's current
 > screen, which flags intersections with five or more prior crashes and so by
@@ -162,8 +164,8 @@ the engineers, and often more receptive to a prevention argument.
 >
 > Dear [Name],
 >
-> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. I've built a model that identifies
-> San Diego intersections at elevated risk of producing a killed-or-serious-injury
+> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. My collaborator Ayan Pendharkar and
+> I have built a model that identifies San Diego intersections at elevated risk of producing a killed-or-serious-injury
 > crash within three years — before any severe crash has occurred there.
 >
 > Most traffic safety spending is reactive: a location gets attention after people
@@ -179,7 +181,7 @@ the engineers, and often more receptive to a prevention argument.
 > predictive site list is actionable from a public health standpoint, and whether
 > linking SWITRS police reports to hospital discharge or trauma registry data is
 > something the County has done or would consider. Severity misclassification in
-> police-reported data is a known weakness of my labels.
+> police-reported data is a known weakness of our labels.
 >
 > Thank you,
 > [YOUR NAME]
@@ -200,18 +202,18 @@ and reference it — a generic email to a professor gets deleted.
 >
 > Dear Professor [Name],
 >
-> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. I read your work on [SPECIFIC
-> PAPER] and hoped you might be willing to look at something I've built.
+> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. I read your work on
+> [SPECIFIC PAPER] and hoped you might be willing to look at something my collaborator Ayan Pendharkar and I have built.
 >
-> I've spent the past year on a model predicting which San Diego intersections with
+> We've spent the past year on a model predicting which San Diego intersections with
 > no severe-crash history will produce a killed-or-serious-injury crash within three
 > years. XGBoost with a Tweedie objective on 20 crash-history features, evaluated
 > with genuine out-of-fold scoring under both random and spatial-block CV, and a
 > prospective test against 2025 outcomes the model never saw.
 >
-> The result I keep getting stuck on: a two-term persistence baseline ties the tuned
-> model at the severe threshold. I have 21 positive examples, so every comparison has
-> bootstrap CIs wide enough to swallow any effect. I've written up twelve candidate
+> The result we keep getting stuck on: a two-term persistence baseline ties the tuned
+> model at the severe threshold. We have 21 positive examples, so every comparison has
+> bootstrap CIs wide enough to swallow any effect. We've written up twelve candidate
 > improvements and my honest read is that the constraint is label sparsity, not
 > architecture — but I'd very much like to know if I'm reasoning about that correctly.
 >
@@ -241,8 +243,9 @@ duplicating their work, you're covering what they don't.
 >
 > Dear [Name],
 >
-> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. I've built an open-source model
-> that screens City of San Diego surface-street intersections for severe-crash risk
+> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. My collaborator Ayan Pendharkar
+> and I have built an open-source model that screens City of San Diego surface-street
+> intersections for severe-crash risk
 > before any severe crash has occurred there. State highway crashes are excluded
 > throughout, so this is complementary to District 11's network rather than
 > overlapping it.
@@ -257,8 +260,8 @@ duplicating their work, you're covering what they don't.
 > Two questions I'd value your view on. First, would a predictive shortlist of sites
 > with no crash history be fundable under HSIP, or does the benefit-cost methodology
 > effectively require documented crash history? Second, are there systematic SWITRS
-> geocoding issues in District 11 I should know about? I found that POINT_X/POINT_Y
-> is reliable where LATITUDE/LONGITUDE is not, and I'd like to know what else I'm
+> geocoding issues in District 11 I should know about? We found that POINT_X/POINT_Y
+> is reliable where LATITUDE/LONGITUDE is not, and I'd like to know what else we're
 > likely to be getting wrong.
 >
 > Thank you for your time,
@@ -279,8 +282,9 @@ directors do.
 >
 > Dear [Name],
 >
-> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. I've used TIMS extensively over the
-> past year and wanted to share what I built with it, and ask for your critique.
+> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. My collaborator Ayan Pendharkar and I
+> have used TIMS extensively over the past year; I wanted to share what we built with
+> it and ask for your critique.
 >
 > The question: can you predict which San Diego intersections *without* severe-crash
 > history will produce a KSI crash in the next three years? Model is XGBoost-Tweedie
@@ -290,9 +294,9 @@ directors do.
 > The finding I'd most like your reaction to is a negative one. At the ≥2-KSI
 > threshold a persistence baseline — rank by recent crash count and trend — ties the
 > tuned model exactly (10/21 both). The model only shows a consistent edge at the
-> broader ≥1-KSI threshold. With 21 positives I can't distinguish "ML adds nothing
-> here" from "my sample is too small to tell", and I've written up the twelve things
-> I'd try next.
+> broader ≥1-KSI threshold. With 21 positives we can't distinguish "ML adds nothing
+> here" from "our sample is too small to tell", and we've written up the twelve things
+> we'd try next.
 >
 > Code: https://github.com/bushesarebetter/KSI-emergence-detection
 > Map: [DASHBOARD URL]
@@ -300,7 +304,7 @@ directors do.
 > If SafeTREC has interest in student work of this kind, or if someone there would
 > spend 20 minutes poking holes in it, I'd be genuinely grateful. A separate
 > question: is there an approved path to obtaining statewide SWITRS for research,
-> so I could train across multiple cities and get past the sample size problem?
+> so we could train across multiple cities and get past the sample size problem?
 >
 > Thank you,
 > [YOUR NAME]
@@ -319,12 +323,13 @@ retrospective ranking is directly on-mission.
 >
 > Dear [Name],
 >
-> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. I've built an open-source model
-> that ranks San Diego intersections by predicted future severe-crash risk, focused
+> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. My collaborator Ayan Pendharkar
+> and I have built an open-source model that ranks San Diego intersections by
+> predicted future severe-crash risk, focused
 > specifically on locations with no severe-crash history yet.
 >
 > The OTS rankings, like most safety screening, are retrospective by design — they
-> tell a city where harm has already concentrated. What I've tried to build is the
+> tell a city where harm has already concentrated. What we've tried to build is the
 > forward-looking complement: which currently-clean locations are trending toward
 > becoming those sites. On a held-out test the top 500 of 26,423 candidates captured
 > roughly 48% of the intersections that subsequently became severe-crash sites
@@ -337,7 +342,7 @@ retrospective ranking is directly on-mission.
 > predicted rather than observed risk? And is there interest at OTS in this being
 > extended beyond San Diego? The method needs only SWITRS and OpenStreetMap, so it
 > should port to any California city — and more cities would substantially fix the
-> sample-size problem that currently limits what I can conclude.
+> sample-size problem that currently limits what we can conclude.
 >
 > Thank you,
 > [YOUR NAME]
@@ -359,8 +364,9 @@ safety engineer.
 >
 > Dear [Name],
 >
-> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. I've built an open-source
-> predictive screening model for San Diego intersections and I think it sits close to
+> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. My collaborator Ayan Pendharkar
+> and I have built an open-source predictive screening model for San Diego
+> intersections, and I think it sits close to
 > FHWA's systemic safety approach, so I wanted to ask whether I'm reading that
 > correctly.
 >
@@ -373,12 +379,12 @@ safety engineer.
 > [DASHBOARD URL] · https://github.com/bushesarebetter/KSI-emergence-detection
 >
 > Where I'd value guidance: FHWA's systemic approach identifies risk *factors* and
-> treats all locations sharing them. My model ranks individual locations by predicted
+> treats all locations sharing them. Our model ranks individual locations by predicted
 > risk instead. Are those compatible framings for SS4A or HSIP purposes, or is
 > location-level prediction outside what the systemic framework contemplates?
 >
 > I'd also note honestly that at the severe threshold a simple crash-count-and-trend
-> heuristic matches my model's performance. If the practical answer is that
+> heuristic matches our model's performance. If the practical answer is that
 > agencies should use the simple rule, that seems worth knowing too.
 >
 > Respectfully,
@@ -399,13 +405,13 @@ subject line.
 >
 > Dear [Name],
 >
-> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. I've built a free, open-source tool
-> that I think addresses a gap Vision Zero cities run into constantly, and I'd like
+> I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. My collaborator Ayan Pendharkar and
+> I have built a free, open-source tool that I think addresses a gap Vision Zero cities run into constantly, and I'd like
 > your view on whether it's useful beyond San Diego.
 >
 > High-injury networks are built from crashes that have already happened. That's the
 > right foundation, but it means a location can only become a priority after someone
-> is seriously hurt there. My model ranks intersections with *no* severe-crash
+> is seriously hurt there. Our model ranks intersections with *no* severe-crash
 > history by predicted risk over the next three years. On a held-out test, a top-500
 > shortlist out of 26,423 caught about 48% of the sites that went on to become
 > severe-crash locations (10 of 21).
@@ -417,9 +423,9 @@ subject line.
 >
 > Two questions. Is a predictive complement to the high-injury network something your
 > member cities would actually use, or does acting before a crash create political
-> problems I'm not seeing? And would you be open to connecting me with a city willing
-> to let me test the method on their data? More cities is the clearest path past the
-> small-sample limits on what I can currently claim.
+> problems I'm not seeing? And would you be open to connecting us with a city willing
+> to let us test the method on their data? More cities is the clearest path past the
+> small-sample limits on what we can currently claim.
 >
 > Thank you,
 > [YOUR NAME]
