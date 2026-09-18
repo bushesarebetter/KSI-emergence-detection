@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useAdvanced } from "./useAdvanced";
 
 function countKey(threshold) {
   if (threshold <= 50) return "top_50_count";
@@ -21,103 +22,123 @@ function useEmergentsByDistrict(intersections, threshold) {
   }, [intersections, threshold]);
 }
 
+/**
+ * Distribution by council district, as a ranked table with inline bars.
+ *
+ * Council district is the unit of political action — each has a member who can
+ * fund a change — so this doubles as a filter. The bar is drawn as a thin ink
+ * rule under each row rather than a rounded track, keeping the one saturated
+ * colour in the interface reserved for risk.
+ */
 export default function DistrictSummary({ districts, filters, onFiltersChange, intersections }) {
   const [sortBy, setSortBy] = useState("count");
+  const { advanced } = useAdvanced();
+  const key = countKey(filters.threshold);
+  const emergentsByDistrict = useEmergentsByDistrict(intersections, filters.threshold);
 
   if (!districts) return null;
 
-  const key = countKey(filters.threshold);
   const maxCount = Math.max(...districts.map((d) => d[key]), 1);
-  const emergentsByDistrict = useEmergentsByDistrict(intersections, filters.threshold);
-
   const sorted = [...districts].sort((a, b) =>
     sortBy === "count" ? b[key] - a[key] : a.district - b.district
   );
+  const anySelected = filters.districts.length > 0;
 
   function toggleDistrict(d) {
     const current = filters.districts;
-    const next = current.includes(d) ? current.filter((x) => x !== d) : [...current, d];
-    onFiltersChange({ ...filters, districts: next });
+    onFiltersChange({
+      ...filters,
+      districts: current.includes(d) ? current.filter((x) => x !== d) : [...current, d],
+    });
   }
 
-  const anySelected = filters.districts.length > 0;
-
   return (
-    <div className="flex flex-col pb-2">
-      <div className="flex items-center justify-between px-4 pt-4 pb-2">
-        <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-widest">
-          By District
-        </span>
+    <div className="px-6 pb-8 pt-5">
+      <div className="mb-1 flex items-baseline justify-between gap-3">
+        <p className="label">{advanced ? "By district" : "By council district"}</p>
         <button
           onClick={() => setSortBy((s) => (s === "count" ? "district" : "count"))}
-          className="text-[10px] text-slate-600 hover:text-orange-400 transition-colors"
+          className="text-[11px] text-ink-3 transition-colors hover:text-ink"
         >
-          {sortBy === "count" ? "# Sites ↓" : "D# ↑"}
+          {sortBy === "count" ? "by count" : "by number"}
         </button>
       </div>
 
-      {anySelected && (
-        <button
-          onClick={() => onFiltersChange({ ...filters, districts: [] })}
-          className="mx-4 mb-2 text-[10px] text-slate-500 hover:text-orange-400 text-left transition-colors"
-        >
-          ✕ Clear selection
-        </button>
-      )}
+      <p className="mb-4 h-4 text-[11px] text-ink-3">
+        {anySelected ? (
+          <button
+            onClick={() => onFiltersChange({ ...filters, districts: [] })}
+            className="border-b border-ink/25 pb-px transition-colors hover:border-ink hover:text-ink"
+          >
+            Clear {filters.districts.length} selected
+          </button>
+        ) : (
+          "Select to filter the map"
+        )}
+      </p>
 
-      <div className="flex flex-col">
+      <ul>
         {sorted.map((d) => {
           const count = d[key];
-          const emergentCount = emergentsByDistrict[d.district] || 0;
+          const emergent = emergentsByDistrict[d.district] || 0;
           const selected = filters.districts.includes(d.district);
           const pct = (count / maxCount) * 100;
 
           return (
-            <button
-              key={d.district}
-              onClick={() => toggleDistrict(d.district)}
-              className={`w-full text-left px-4 py-2.5 transition-colors group border-l-2 ${
-                selected
-                  ? "bg-orange-500/10 border-orange-500"
-                  : "border-transparent hover:bg-slate-800/60"
-              }`}
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span
-                  className={`text-xs font-semibold ${
-                    selected ? "text-orange-400" : "text-slate-300 group-hover:text-slate-100"
-                  }`}
-                >
-                  District {d.district}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  {emergentCount > 0 && (
-                    <span className="flex items-center gap-0.5 text-[10px] font-bold text-orange-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block" />
-                      {emergentCount}
-                    </span>
-                  )}
+            <li key={d.district}>
+              <button
+                onClick={() => toggleDistrict(d.district)}
+                aria-pressed={selected}
+                className="group w-full border-b border-rule py-2.5 text-left"
+              >
+                <div className="mb-1.5 flex items-baseline justify-between gap-3">
                   <span
-                    className={`text-xs font-bold tabular-nums ${
-                      selected ? "text-orange-400" : "text-slate-500"
+                    className={`text-[13px] transition-colors ${
+                      selected ? "font-semibold text-ink" : "text-ink-2 group-hover:text-ink"
                     }`}
                   >
-                    {count}
+                    {selected && <span aria-hidden="true">■&nbsp;</span>}
+                    District {d.district}
+                  </span>
+
+                  <span className="flex shrink-0 items-baseline gap-2.5">
+                    {emergent > 0 && (
+                      <span
+                        className="tnum text-[11px] text-risk-1"
+                        title={`${emergent} had a serious crash in 2025`}
+                      >
+                        ●&nbsp;{emergent}
+                      </span>
+                    )}
+                    <span
+                      className={`tnum text-[13px] ${
+                        selected ? "font-semibold text-ink" : "text-ink-3"
+                      }`}
+                    >
+                      {count}
+                    </span>
                   </span>
                 </div>
-              </div>
-              <div className="h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    selected ? "bg-orange-500" : "bg-slate-600 group-hover:bg-slate-500"
-                  }`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </button>
+
+                {/* Inline bar as a rule, not a track. */}
+                <div className="h-px w-full bg-rule">
+                  <div
+                    className={`h-px transition-all duration-300 ${
+                      selected ? "bg-ink" : "bg-ink-3 group-hover:bg-ink-2"
+                    }`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
+              </button>
+            </li>
           );
         })}
-      </div>
+      </ul>
+
+      <p className="mt-4 text-[11px] leading-[1.5] text-ink-3">
+        <span className="text-risk-1">●</span> marks sites that went on to have a serious
+        crash in 2025.
+      </p>
     </div>
   );
 }

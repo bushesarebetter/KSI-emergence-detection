@@ -1,105 +1,106 @@
 import { useState } from "react";
 import { useAdvanced } from "./useAdvanced";
 
-// YlOrRd-derived colorblind-safe ramp (red = highest risk, yellow = lower risk)
-const RISK_TIERS = [
-  { range: "1–50", color: "#ef4444", radius: 7 },
-  { range: "51–100", color: "#f97316", radius: 6.5 },
-  { range: "101–200", color: "#fbbf24", radius: 6 },
-  { range: "201–500", color: "#fde68a", radius: 5.5 },
+// Sequential ramp, dark → light. Ordering is carried by lightness as well as
+// hue, so the tiers stay distinguishable in greyscale and to colourblind readers.
+export const RISK_TIERS = [
+  { range: "1–50", hex: "#7F1D1D", r: 7 },
+  { range: "51–100", hex: "#C2410C", r: 6.5 },
+  { range: "101–200", hex: "#D97706", r: 6 },
+  { range: "201–500", hex: "#E8B563", r: 5.5 },
 ];
+
+const TIER_LABELS = ["Highest risk", "High", "Elevated", "Moderate"];
 
 function tierVisible(range, threshold) {
   return parseInt(range.split("–")[0], 10) <= threshold;
 }
 
 /**
- * Collapsible so it does not eat the map on a phone, and opaque rather than
- * translucent because the Google basemap may be light or dark depending on
- * whether a dark style is attached to the Map ID -- a semi-transparent panel
- * that reads fine over dark tiles becomes unreadable over light ones.
+ * Map key.
+ *
+ * Fully opaque. The previous version was a translucent panel, which reads as
+ * unfinished over light basemap tiles and was the first thing people noticed.
+ * A printed map carries a solid key box with a hairline border; so does this.
  */
 export default function MapLegend({ threshold }) {
-  const { advanced, copy } = useAdvanced();
-  // Expanded, the legend covers roughly half a phone screen, so it starts closed
-  // on narrow viewports and open where there is room for it.
+  const { advanced } = useAdvanced();
+  // Expanded it covers roughly half a phone screen, so it starts closed on
+  // narrow viewports and open where there is room.
   const [open, setOpen] = useState(
     () => typeof window === "undefined" || window.innerWidth >= 768
   );
 
   const visible = RISK_TIERS.filter((t) => tierVisible(t.range, threshold));
-  const sub = (fn) => (typeof fn === "function" ? fn(threshold) : fn);
 
   return (
-    <div className="absolute bottom-14 left-3 z-10 overflow-hidden rounded-xl border border-slate-700 bg-slate-900 shadow-2xl">
+    <div className="absolute bottom-16 left-4 z-10 border border-rule-strong bg-paper shadow-paper">
       <button
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex w-full items-center justify-between gap-6 px-3.5 py-2.5 text-left transition-colors hover:bg-slate-800"
+        className="flex w-full items-center justify-between gap-8 px-4 py-2.5 text-left transition-colors hover:bg-paper-edge"
       >
-        <span className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-          {copy.legendTitle}
-        </span>
-        <span className={`text-slate-500 transition-transform ${open ? "rotate-180" : ""}`}>
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
-            <path d="M2 4l3 3 3-3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        <span className="label">{advanced ? "Predicted risk" : "Map key"}</span>
+        <span
+          aria-hidden="true"
+          className={`text-ink-3 transition-transform ${open ? "" : "rotate-180"}`}
+        >
+          <svg width="9" height="9" viewBox="0 0 10 10" fill="none">
+            <path d="M2 6.5l3-3 3 3" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
           </svg>
         </span>
       </button>
 
       {open && (
-        <div className="min-w-[180px] px-3.5 pb-3.5">
-          <div className="flex flex-col gap-2">
-            {visible.map(({ range, color, radius }, i) => (
-              <div key={range} className="flex items-center gap-2.5">
-                <svg width="18" height="18" className="shrink-0" aria-hidden="true">
-                  <circle
-                    cx="9" cy="9" r={radius} fill={color}
-                    stroke="rgba(255,255,255,0.25)" strokeWidth="1.5"
-                  />
+        <div className="min-w-[202px] border-t border-rule px-4 pb-4 pt-3">
+          <ul className="space-y-[7px]">
+            {visible.map(({ range, hex, r }, i) => (
+              <li key={range} className="flex items-center gap-3">
+                <svg width="16" height="16" className="shrink-0" aria-hidden="true">
+                  <circle cx="8" cy="8" r={r} fill={hex} />
                 </svg>
-                <div className="min-w-0">
-                  <div className="text-xs font-medium leading-tight text-slate-200">
-                    {copy.legendTiers[i]}
-                  </div>
-                  <div className="text-[10px] text-slate-500">{copy.legendRange(range)}</div>
-                </div>
-              </div>
+                <span className="flex-1 text-[12.5px] leading-none text-ink">
+                  {TIER_LABELS[i]}
+                </span>
+                <span className="tnum text-[11px] leading-none text-ink-3">{range}</span>
+              </li>
             ))}
+          </ul>
 
-            <div className="mt-0.5 flex items-center gap-2.5 border-t border-slate-700/60 pt-2.5">
-              <svg width="18" height="18" className="shrink-0" aria-hidden="true">
-                <circle cx="9" cy="9" r={5} fill="#ef4444" />
-                <circle cx="9" cy="9" r={8} fill="none" stroke="white" strokeWidth="2" />
+          <div className="mt-3.5 space-y-[9px] border-t border-rule pt-3">
+            <div className="flex items-center gap-3">
+              <svg width="16" height="16" className="shrink-0" aria-hidden="true">
+                <circle cx="8" cy="8" r={5} fill="#7F1D1D" />
+                <circle cx="8" cy="8" r={7.4} fill="none" stroke="#17150F" strokeWidth="1.6" />
               </svg>
-              <div className="min-w-0">
-                <div className="text-xs font-medium leading-tight text-slate-200">
-                  {copy.legendCaught}
-                </div>
-                <div className="text-[10px] text-emerald-500/80">{sub(copy.legendCaughtSub)}</div>
-              </div>
+              <span className="text-[12px] leading-[1.3] text-ink">
+                {advanced ? "2025 KSI, caught" : "Serious crash in 2025"}
+                <span className="block text-[11px] text-ink-3">
+                  {advanced ? `top-${threshold} hit` : "this list flagged it"}
+                </span>
+              </span>
             </div>
 
-            <div className="flex items-center gap-2.5">
-              <svg width="18" height="18" className="shrink-0" aria-hidden="true">
-                <circle cx="9" cy="9" r={5} fill="#ef4444" />
-                <circle cx="9" cy="9" r={8} fill="none" stroke="#64748b" strokeOpacity="0.5" strokeWidth="1.5" />
+            <div className="flex items-center gap-3">
+              <svg width="16" height="16" className="shrink-0" aria-hidden="true">
+                <circle cx="8" cy="8" r={5} fill="#7F1D1D" />
+                <circle
+                  cx="8" cy="8" r={7.4} fill="none"
+                  stroke="#8A8272" strokeWidth="1.2" strokeDasharray="2.2 2"
+                />
               </svg>
-              <div className="min-w-0">
-                <div className="text-xs font-medium leading-tight text-slate-200">
-                  {copy.legendMissed}
-                </div>
-                <div className="text-[10px] text-slate-500">{sub(copy.legendMissedSub)}</div>
-              </div>
+              <span className="text-[12px] leading-[1.3] text-ink">
+                {advanced ? "2025 KSI, missed" : "Serious crash in 2025"}
+                <span className="block text-[11px] text-ink-3">
+                  {advanced ? `outside top-${threshold}` : "this list missed it"}
+                </span>
+              </span>
             </div>
           </div>
 
-          <div className="mt-3 border-t border-slate-700/60 pt-2.5 text-[10px] leading-snug text-slate-500">
-            {copy.legendSize}
-            {!advanced && (
-              <div className="mt-1 text-slate-600">{copy.mapHint}</div>
-            )}
-          </div>
+          <p className="mt-3.5 border-t border-rule pt-2.5 text-[11px] leading-[1.4] text-ink-3">
+            {advanced ? "Dot size ∝ rank tier" : "Larger dot = higher risk. Click one for detail."}
+          </p>
         </div>
       )}
     </div>

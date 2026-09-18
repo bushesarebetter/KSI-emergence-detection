@@ -2,8 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>KSI Emergence Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>San Diego Intersection Risk</title>
+    <meta name="description" content="A ranking of San Diego intersections with no serious-crash history, ordered by how likely they are to have one." />
+    <meta name="theme-color" content="#FBF9F5" />
+
+    <!-- Installable on iOS: Safari ignores the manifest for these and reads the
+         Apple-specific tags instead. -->
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Intersection Risk" />
+
+    <!-- Share previews (iMessage, Slack, Twitter, Facebook, LinkedIn). -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="San Diego Intersection Risk" />
+    <meta property="og:title" content="Where serious crashes are likely to happen next" />
+    <meta property="og:description" content="A ranking of San Diego intersections that have never had a serious crash, ordered by how likely they are to have one." />
+    <meta property="og:url" content="https://ksi-emergence-detection.onrender.com/" />
+    <meta property="og:image" content="https://ksi-emergence-detection.onrender.com/og-card.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Where serious crashes are likely to happen next" />
+    <meta name="twitter:description" content="A ranking of San Diego intersections that have never had a serious crash, ordered by how likely they are to have one." />
+    <meta name="twitter:image" content="https://ksi-emergence-detection.onrender.com/og-card.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <style>html,body{background:#FBF9F5;margin:0}</style>
   </head>
   <body>
     <div id="root"></div>

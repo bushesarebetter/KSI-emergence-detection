@@ -15,10 +15,10 @@ const DRAWER_HEIGHT = "42vh";
 const TOGGLE_HEIGHT = 40;
 
 function rankColor(rank) {
-  if (rank <= 50) return "#ef4444";
-  if (rank <= 100) return "#f97316";
-  if (rank <= 200) return "#fbbf24";
-  return "#fde68a";
+  if (rank <= 50) return "#7F1D1D";
+  if (rank <= 100) return "#C2410C";
+  if (rank <= 200) return "#D97706";
+  return "#B8963F"; // pale amber darkened for text legibility on paper
 }
 
 const makeColumns = (advanced) => [
@@ -29,7 +29,7 @@ const makeColumns = (advanced) => [
     cell: ({ getValue }) => {
       const r = getValue();
       return (
-        <span className="font-semibold tabular-nums" style={{ color: rankColor(r) }}>
+        <span className="tnum font-semibold" style={{ color: rankColor(r) }}>
           #{r}
         </span>
       );
@@ -41,7 +41,7 @@ const makeColumns = (advanced) => [
     header: advanced ? "D" : "District",
     accessorFn: (f) => f.properties.council_district,
     cell: ({ getValue }) => (
-      <span className="text-slate-500">D{getValue()}</span>
+      <span className="tnum text-ink-3">D{getValue()}</span>
     ),
   },
   // Percentile is a precise but opaque way to say "near the top of a list of
@@ -66,7 +66,7 @@ const makeColumns = (advanced) => [
     accessorFn: (f) => f.properties.shap_features?.[0]?.display_label ?? "—",
     enableSorting: false,
     cell: ({ getValue }) => (
-      <span className="text-xs text-slate-500">
+      <span className="text-[12px] text-ink-3">
         {advanced ? getValue() : humanizeSignal(getValue())}
       </span>
     ),
@@ -144,7 +144,7 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
       {/* Toggle button */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-0 left-1/2 -translate-x-1/2 md:left-[calc(50%+9rem)] z-30 bg-slate-900 border border-slate-700 border-b-0 shadow-xl rounded-t-lg px-5 text-xs font-semibold text-slate-400 hover:text-orange-400 hover:border-orange-500/40 transition-colors flex items-center gap-2"
+        className="fixed bottom-0 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 border border-b-0 border-rule-strong bg-paper px-5 text-[12px] font-medium text-ink-2 shadow-paper transition-colors hover:text-ink md:left-[calc(50%+10.25rem)]"
         style={{ height: TOGGLE_HEIGHT }}
       >
         <svg width="13" height="10" viewBox="0 0 13 10" fill="none" aria-hidden="true">
@@ -153,21 +153,19 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
           <rect x="0" y="8" width="13" height="2" rx="1" fill="currentColor" />
         </svg>
         {advanced ? "Ranked Table" : "Full list"}
-        <span className="bg-slate-800 text-slate-500 text-[10px] px-1.5 py-0.5 rounded-full tabular-nums">
-          {total}
-        </span>
-        <span className="text-slate-600 ml-0.5">{open ? "▾" : "▴"}</span>
+        <span className="tnum bg-paper-edge px-1.5 py-0.5 text-[10.5px] text-ink-2">{total}</span>
+        <span aria-hidden="true" className="ml-0.5 text-ink-3">{open ? "▾" : "▴"}</span>
       </button>
 
       {/* Drawer */}
       <div
-        className="fixed left-0 right-0 md:left-72 bg-slate-900 border-t border-slate-800 z-20 overflow-hidden transition-all duration-300 ease-in-out flex flex-col"
+        className="fixed left-0 right-0 z-20 flex flex-col overflow-hidden border-t border-rule-strong bg-paper transition-all duration-300 ease-in-out md:left-[20.5rem]"
         style={{ bottom: TOGGLE_HEIGHT, height: open ? DRAWER_HEIGHT : 0 }}
       >
         {/* Toolbar */}
-        <div className="flex items-center gap-3 px-4 py-2.5 border-b border-slate-800 shrink-0">
+        <div className="flex shrink-0 items-center gap-3 border-b border-rule px-5 py-2.5">
           <div className="relative flex-1 max-w-xs">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-600 text-xs pointer-events-none">
+            <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[12px] text-ink-3">
               ⌕
             </span>
             <input
@@ -175,15 +173,15 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
               placeholder={advanced ? "Search intersections…" : "Filter this list…"}
               value={globalFilter}
               onChange={handleSearch}
-              className="w-full text-sm border border-slate-700 rounded-lg pl-7 pr-3 py-1.5 bg-slate-800 text-slate-300 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-orange-500/40 focus:border-orange-500/50 transition-colors"
+              className="w-full border border-rule-strong bg-paper-sunk py-1.5 pl-7 pr-3 text-[13px] text-ink placeholder-ink-3 focus:border-ink focus:bg-paper focus:outline-none"
             />
           </div>
-          <span className="text-xs text-slate-600 ml-auto">
+          <span className="tnum ml-auto text-[11.5px] text-ink-3">
             {total} site{total !== 1 ? "s" : ""}
           </span>
           <button
             onClick={downloadCsv}
-            className="flex items-center gap-1.5 text-xs bg-orange-500 hover:bg-orange-400 active:bg-orange-600 text-white rounded-lg px-3 py-1.5 font-semibold transition-colors"
+            className="flex items-center gap-1.5 border border-ink bg-ink px-3 py-1.5 text-[12px] font-semibold text-paper transition-opacity hover:opacity-85"
           >
             <svg width="10" height="11" viewBox="0 0 10 11" fill="none" aria-hidden="true">
               <path d="M5 1v6M2 5.5L5 8.5l3-3M1 10h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -195,14 +193,14 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
         {/* Table */}
         <div className="overflow-auto flex-1">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-slate-900 border-b border-slate-800">
+            <thead className="sticky top-0 border-b border-rule-strong bg-paper">
               {table.getHeaderGroups().map((hg) => (
                 <tr key={hg.id}>
                   {hg.headers.map((header) => (
                     <th
                       key={header.id}
-                      className={`px-4 py-2.5 text-left text-[10px] font-semibold text-slate-500 uppercase tracking-wider select-none whitespace-nowrap ${
-                        header.column.getCanSort() ? "cursor-pointer hover:text-slate-300" : ""
+                      className={`label select-none whitespace-nowrap px-5 py-2.5 text-left ${
+                        header.column.getCanSort() ? "cursor-pointer hover:text-ink" : ""
                       }`}
                       onClick={header.column.getToggleSortingHandler()}
                     >
@@ -215,19 +213,17 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
               ))}
             </thead>
             <tbody>
-              {rows.map((row, i) => (
+              {rows.map((row) => (
                 <tr
                   key={row.id}
-                  className={`cursor-pointer transition-colors hover:bg-slate-800 ${
-                    i % 2 === 1 ? "bg-slate-900/50" : "bg-slate-900"
-                  }`}
+                  className="cursor-pointer border-b border-rule transition-colors hover:bg-paper-sunk"
                   onClick={() => {
                     onSelectIntersection(row.original);
                     setOpen(false);
                   }}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <td key={cell.id} className="px-4 py-2 text-slate-300 whitespace-nowrap">
+                    <td key={cell.id} className="whitespace-nowrap px-5 py-2 text-[13px] text-ink-2">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </td>
                   ))}
@@ -238,7 +234,7 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
         </div>
 
         {/* Pagination */}
-        <div className="flex justify-between items-center px-4 py-2 border-t border-slate-800 text-xs text-slate-600 shrink-0">
+        <div className="flex shrink-0 items-center justify-between border-t border-rule px-5 py-2 text-[11.5px] text-ink-3">
           <span>
             {total === 0 ? "No results" : `${start}–${end} of ${total}`}
           </span>
@@ -249,14 +245,14 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
             <button
               onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
               disabled={pageIndex === 0}
-              className="border border-slate-700 rounded-md px-2.5 py-1 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-800 hover:border-slate-600 hover:text-slate-300 transition-colors"
+              className="border border-rule-strong px-2.5 py-1 transition-colors hover:bg-paper-edge hover:text-ink disabled:cursor-not-allowed disabled:opacity-30"
             >
               ‹
             </button>
             <button
               onClick={() => setPageIndex((p) => Math.min(pageCount - 1, p + 1))}
               disabled={pageIndex >= pageCount - 1}
-              className="border border-slate-700 rounded-md px-2.5 py-1 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-slate-800 hover:border-slate-600 hover:text-slate-300 transition-colors"
+              className="border border-rule-strong px-2.5 py-1 transition-colors hover:bg-paper-edge hover:text-ink disabled:cursor-not-allowed disabled:opacity-30"
             >
               ›
             </button>

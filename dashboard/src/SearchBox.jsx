@@ -12,6 +12,10 @@ const MAX_RESULTS = 8;
  * is deliberate: a site ranked #900 should still be findable when the user is
  * looking at the top 200, because "not on the shortlist" is itself the answer
  * they came for.
+ *
+ * `large` is the hero variant for the landing page: bigger on every viewport.
+ * The default is compact on desktop and 44px/16px on phones -- anything under
+ * 16px makes iOS zoom the whole page when the field is focused.
  */
 function scoreMatch(name, query) {
   const n = name.toLowerCase();
@@ -24,7 +28,7 @@ function scoreMatch(name, query) {
   return (atBoundary ? 0 : 500) + idx + name.length * 0.01;
 }
 
-export default function SearchBox({ intersections, threshold, onSelect }) {
+export default function SearchBox({ intersections, threshold, onSelect, large = false }) {
   const { copy } = useAdvanced();
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
@@ -77,12 +81,17 @@ export default function SearchBox({ intersections, threshold, onSelect }) {
 
   const showDropdown = open && query.trim().length >= 2;
 
+  const inputClass = large
+    ? "h-[54px] w-full border border-ink/30 bg-paper pl-12 pr-4 text-[17px] text-ink shadow-paper placeholder:text-ink-3 focus:border-ink focus:outline-none"
+    : "h-11 w-full border border-rule-strong bg-paper-sunk pl-9 pr-3 text-[16px] text-ink placeholder:text-ink-3 focus:border-ink focus:bg-paper focus:outline-none md:h-auto md:py-[7px] md:text-[13px]";
+  const iconSize = large ? 18 : 14;
+
   return (
     <div ref={boxRef} className="relative w-full">
       <div className="relative">
         <svg
-          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
-          width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"
+          className={`pointer-events-none absolute top-1/2 -translate-y-1/2 text-ink-3 ${large ? "left-4" : "left-3"}`}
+          width={iconSize} height={iconSize} viewBox="0 0 14 14" fill="none" aria-hidden="true"
         >
           <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5" />
           <path d="M9.5 9.5L13 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -90,24 +99,24 @@ export default function SearchBox({ intersections, threshold, onSelect }) {
         <input
           type="search"
           name="intersection-search"
-          id="intersection-search"
+          id={large ? "intersection-search-hero" : "intersection-search"}
           value={query}
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          placeholder={copy.searchPlaceholder}
+          placeholder={large ? "Search a San Diego intersection…" : copy.searchPlaceholder}
           aria-label={copy.searchPlaceholder}
           autoComplete="off"
-          className="w-full rounded-lg border border-slate-700 bg-slate-800/80 py-2 pl-9 pr-3 text-sm text-slate-200 placeholder:text-slate-500 focus:border-orange-500/60 focus:outline-none focus:ring-1 focus:ring-orange-500/30"
+          className={inputClass}
         />
       </div>
 
       {showDropdown && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-1.5 overflow-hidden rounded-lg border border-slate-700 bg-slate-800 shadow-2xl">
+        <div className="absolute left-0 right-0 top-full z-50 mt-1 border border-rule-strong bg-paper shadow-paper">
           {results.length === 0 ? (
-            <div className="px-3 py-3 text-xs text-slate-500">
+            <div className="px-3.5 py-3 text-[12px] text-ink-2">
               {copy.searchEmpty}
-              <div className="mt-1 text-[11px] text-slate-600">{copy.searchHint}</div>
+              <div className="mt-1 text-[11px] text-ink-3">{copy.searchHint}</div>
             </div>
           ) : (
             results.map((f, i) => {
@@ -118,18 +127,17 @@ export default function SearchBox({ intersections, threshold, onSelect }) {
                   key={p.rank}
                   onMouseEnter={() => setCursor(i)}
                   onClick={() => choose(f)}
-                  className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left transition-colors ${
-                    i === cursor ? "bg-slate-700/70" : "hover:bg-slate-700/40"
-                  }`}
+                  className={`flex min-h-[44px] w-full items-center justify-between gap-3 border-b border-rule px-3.5 py-2 text-left transition-colors last:border-b-0 md:min-h-0 ${
+                    large ? "md:min-h-[44px]" : ""
+                  } ${i === cursor ? "bg-paper-edge" : "hover:bg-paper-sunk"}`}
                 >
-                  <span className="min-w-0 flex-1 truncate text-xs text-slate-200">
+                  <span className={`min-w-0 flex-1 truncate text-ink ${large ? "text-[14px]" : "text-[12.5px]"}`}>
                     {p.intersection_name}
                   </span>
                   <span
-                    className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold tabular-nums ${
-                      onList
-                        ? "bg-orange-500/15 text-orange-400"
-                        : "bg-slate-700 text-slate-400"
+                    title={onList ? "On the current shortlist" : "Outside the current shortlist"}
+                    className={`tnum shrink-0 px-1.5 py-0.5 text-[10.5px] font-semibold ${
+                      onList ? "bg-ink text-paper" : "bg-paper-edge text-ink-3"
                     }`}
                   >
                     #{p.rank}

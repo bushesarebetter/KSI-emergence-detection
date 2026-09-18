@@ -19,47 +19,6 @@
  *     words.
  */
 
-// Definitions surfaced on hover/tap via <Term>. Written for someone who has
-// never read the methodology.
-export const GLOSSARY = {
-  ksi: {
-    term: "serious crash",
-    technical: "KSI",
-    definition:
-      "A crash where someone was killed or seriously injured. Traffic safety work abbreviates this KSI.",
-  },
-  emergent: {
-    term: "newly emerged site",
-    technical: "emergent site",
-    definition:
-      "An intersection that had no serious-crash history, then had one. These are invisible to screening based on past crashes, which is the gap this tool tries to fill.",
-  },
-  catchRate: {
-    term: "flagged in advance",
-    technical: "recall@K",
-    definition:
-      "Of the intersections that went on to have a serious crash, the share this shortlist had already flagged. Higher is better.",
-  },
-  rank: {
-    term: "risk rank",
-    technical: "predicted rank",
-    definition:
-      "Position on the shortlist, 1 = highest predicted risk. Ranking comes from a model trained on crash records through 2024.",
-  },
-  forwardRun: {
-    term: "prediction for 2025–2027",
-    technical: "forward run",
-    definition:
-      "The model was trained once on 2016–2021 data and never retrained. It is being scored against 2025–2027 outcomes it has never seen.",
-  },
-  district: {
-    term: "City Council district",
-    technical: "council district",
-    definition:
-      "San Diego's nine City Council districts. Useful because each has a council member who can act on street safety.",
-  },
-};
-
 const PLAIN = {
   appName: "San Diego Intersection Risk",
   tagline: "Where serious crashes are likely to happen next",
