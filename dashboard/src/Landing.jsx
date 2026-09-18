@@ -41,10 +41,14 @@ export default function Landing({ intersections, error, onEnter }) {
       {/* Masthead: thinner than the app's -- the search lives in the hero. */}
       <header className="border-b border-rule-strong">
         <div className="mx-auto flex max-w-[76rem] items-center justify-between px-5 py-3 md:px-8">
-          <p className="font-serif text-[17px] font-semibold tracking-[-0.01em] text-ink">
+          <a
+            href="/"
+            title="Home"
+            className="font-serif text-[17px] font-semibold tracking-[-0.01em] text-ink"
+          >
             Intersection Risk
             <span className="ml-2 hidden text-[11px] font-normal text-ink-3 sm:inline">San&nbsp;Diego</span>
-          </p>
+          </a>
           <button
             onClick={() => setAboutOpen(true)}
             className="border-b border-ink/25 pb-px text-[12px] text-ink-2 transition-colors hover:border-ink hover:text-ink"

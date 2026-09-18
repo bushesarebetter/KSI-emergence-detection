@@ -12,7 +12,7 @@ import AboutModal from "./AboutModal";
  * this covers and that it is independent research, which is the context that
  * makes everything below legible.
  */
-export default function Header({ intersections, threshold, onSelectIntersection }) {
+export default function Header({ intersections, threshold, onSelectIntersection, onHome }) {
   const { advanced, toggle } = useAdvanced();
   const [aboutOpen, setAboutOpen] = useState(false);
 
@@ -20,10 +20,23 @@ export default function Header({ intersections, threshold, onSelectIntersection 
     <>
       <header className="shrink-0 border-b border-rule-strong bg-paper">
         <div className="flex flex-col gap-3 px-5 py-3 lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:py-2.5">
-          {/* Wordmark + edition line */}
+          {/* Wordmark + edition line. The wordmark is a real link to the home
+              page -- so open-in-new-tab and screen readers behave -- with the
+              click intercepted for in-app navigation when a handler is given. */}
           <div className="flex items-baseline gap-3">
             <h1 className="font-serif text-[19px] font-semibold leading-none tracking-[-0.01em] text-ink">
-              {advanced ? "KSI Emergence" : "Intersection Risk"}
+              <a
+                href="/"
+                title="Home"
+                onClick={(e) => {
+                  if (!onHome) return;
+                  e.preventDefault();
+                  onHome();
+                }}
+                className="border-b border-transparent transition-colors hover:border-ink"
+              >
+                {advanced ? "KSI Emergence" : "Intersection Risk"}
+              </a>
             </h1>
             <span aria-hidden="true" className="hidden h-3 w-px bg-rule-strong sm:block" />
             <p className="hidden text-[11px] leading-none text-ink-3 sm:block">

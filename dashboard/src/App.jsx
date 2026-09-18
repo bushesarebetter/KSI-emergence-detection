@@ -84,6 +84,17 @@ function Dashboard() {
     [dismissWelcome]
   );
 
+  // The wordmark in the app masthead. Going home clears the selection so the
+  // URL comes back clean; the data stays in memory, so it is instant.
+  const goHome = useCallback(() => {
+    const url = new URL(window.location.href);
+    url.pathname = "/";
+    url.search = "";
+    window.history.pushState(null, "", url);
+    setSelectedIntersection(null);
+    setView("landing");
+  }, []);
+
   // The landing paints immediately; only the map view needs the data gate.
   if (view === "landing") {
     return <Landing intersections={intersections} error={error} onEnter={enterMap} />;
@@ -134,6 +145,7 @@ function Dashboard() {
         intersections={intersections}
         threshold={filters.threshold}
         onSelectIntersection={setSelectedIntersection}
+        onHome={goHome}
       />
 
       <main className="relative flex flex-1 overflow-hidden">
