@@ -12,9 +12,12 @@ M3a changes vs M1/M2:
 Crash -> node assignment rule (unchanged from M1):
   Nearest-within-buffer: one crash -> at most one node (avoids double-counting).
 
-Candidate eligibility (unchanged from M1):
-  Keep node i iff KSI_feat(i) < candidate_max_ksi_feat (default 2)
-  AND node is not in the top decile of feature-window KSI density.
+Candidate eligibility (2026-09: switched to the City-screen definition):
+  Keep node i iff crashes_feat(i) < candidate_city_screen_min (default 5), i.e.
+  the intersection is BELOW San Diego's High Crash List screen (>=5 injury-or-fatal
+  crashes in the feature window) and therefore not something the City already reviews.
+  The old rule (KSI_feat < 2 & not top-decile KSI density) is retained behind
+  labels.candidate_screen='ksi_legacy' for sensitivity only. See docs/DECISIONS.md.
 
 Run via:  python -m src.labels.build_panel
 """
@@ -23,10 +26,12 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-import geopandas as gpd
 import numpy as np
 import pandas as pd
 from scipy.spatial import cKDTree
+
+# geopandas imported lazily inside build_panel(): keeps the pure label logic
+# (_apply_eligibility) importable without the heavy GIS stack.
 
 from src.utils import buffer_feet, load_config, project_root
 
@@ -68,7 +73,34 @@ def _snap_crashes_to_nodes(
     return pd.DataFrame(records)
 
 
+def _apply_eligibility(panel: pd.DataFrame, cfg: dict) -> tuple[pd.DataFrame, str]:
+    """Select the candidate universe: intersections currently invisible to the City.
+
+    "city" (default): keep nodes below San Diego's High Crash List screen, i.e.
+        crashes_feat < candidate_city_screen_min (>=5 injury-or-fatal crashes is
+        what the City already reviews, so those are NOT the model's job to find).
+    "ksi_legacy": the pre-2026-09 rule (KSI_feat < 2 and not top-decile KSI density),
+        kept only so the old candidate set can be reproduced as a sensitivity row.
+    """
+    labels = cfg["labels"]
+    mode = labels.get("candidate_screen", "city")
+    if mode == "city":
+        city_min = labels["candidate_city_screen_min"]
+        eligible = panel["crashes_feat"] < city_min
+        return panel[eligible].copy(), f"city screen: crashes_feat < {city_min}"
+    if mode == "ksi_legacy":
+        max_ksi_feat = labels["candidate_max_ksi_feat"]
+        top_decile = labels["candidate_top_decile_drop"]
+        c1 = panel["KSI_feat"] < max_ksi_feat
+        pct_90 = float(np.percentile(panel["KSI_feat"].values, (1.0 - top_decile) * 100.0))
+        c2 = panel["KSI_feat"] <= pct_90
+        return panel[c1 & c2].copy(), f"legacy KSI: KSI_feat<{max_ksi_feat} & <=p90({pct_90:.1f})"
+    raise ValueError(f"unknown labels.candidate_screen: {mode!r} (expected 'city' or 'ksi_legacy')")
+
+
 def build_panel(cfg: dict) -> pd.DataFrame:
+    import geopandas as gpd  # lazy: only the full pipeline needs GIS deps
+
     proc      = project_root() / cfg["paths"]["proc"]
     model_dir = project_root() / cfg["paths"]["model"]
     model_dir.mkdir(parents=True, exist_ok=True)
@@ -77,10 +109,7 @@ def build_panel(cfg: dict) -> pd.DataFrame:
     buf_ft    = buffer_feet(cfg)
     mode      = cfg["geometry"]["crash_assignment"]
     ksi_codes = cfg["labels"]["ksi_severity_codes"]
-    max_ksi_feat  = cfg["labels"]["candidate_max_ksi_feat"]
-    top_decile    = cfg["labels"]["candidate_top_decile_drop"]
-    pos_min       = cfg["labels"]["positive_min_ksi"]
-    surface_only  = cfg.get("geometry", {}).get("surface_street_only", True)
+    surface_only  = cfg.get("geometry", {}).get("surface_street_only", True)  # eligibility params read in _apply_eligibility
 
     feat_start  = pd.Timestamp(cfg["windows"]["feature_start"])
     feat_end    = pd.Timestamp(cfg["windows"]["feature_end"])
@@ -142,6 +171,15 @@ def build_panel(cfg: dict) -> pd.DataFrame:
     label_assignments = _snap_crashes_to_nodes(ksi_label, nodes, buf_ft, mode)
     ksi_label_counts  = label_assignments.groupby("intersection_id").size().rename("KSI_label")
 
+    # All-severity feature-window crashes for the City-screen eligibility rule.
+    # crashes_all is already severity 1-4 (injury-or-fatal), so this count IS the
+    # City's ">=5 injury-or-fatal" screen input.
+    crashes_feat = crashes_all[
+        (crashes_all["date"] >= feat_start) & (crashes_all["date"] <= feat_end)
+    ].copy()
+    feat_all_assignments = _snap_crashes_to_nodes(crashes_feat, nodes, buf_ft, mode)
+    crashes_feat_counts  = feat_all_assignments.groupby("intersection_id").size().rename("crashes_feat")
+
     # Build panel
     keep_cols = ["intersection_id", "lon", "lat", "geometry"]
     if "geometry_4326" in nodes.columns:
@@ -149,10 +187,12 @@ def build_panel(cfg: dict) -> pd.DataFrame:
     if "is_trunk_borderline" in nodes.columns:
         keep_cols.append("is_trunk_borderline")
     panel = nodes[keep_cols].copy()
-    panel = panel.merge(ksi_feat_counts,  on="intersection_id", how="left")
-    panel = panel.merge(ksi_label_counts, on="intersection_id", how="left")
-    panel["KSI_feat"]  = panel["KSI_feat"].fillna(0).astype(int)
-    panel["KSI_label"] = panel["KSI_label"].fillna(0).astype(int)
+    panel = panel.merge(ksi_feat_counts,     on="intersection_id", how="left")
+    panel = panel.merge(ksi_label_counts,    on="intersection_id", how="left")
+    panel = panel.merge(crashes_feat_counts, on="intersection_id", how="left")
+    panel["KSI_feat"]     = panel["KSI_feat"].fillna(0).astype(int)
+    panel["KSI_label"]    = panel["KSI_label"].fillna(0).astype(int)
+    panel["crashes_feat"] = panel["crashes_feat"].fillna(0).astype(int)
 
     log.info(
         "Before eligibility: %d nodes | KSI_feat>0: %d | KSI_label>0: %d | KSI_label>=2: %d",
@@ -162,15 +202,11 @@ def build_panel(cfg: dict) -> pd.DataFrame:
         (panel["KSI_label"] >= 2).sum(),
     )
 
-    # Candidate eligibility (unchanged from M1)
-    eligible_c1 = panel["KSI_feat"] < max_ksi_feat
-    pct_90 = float(np.percentile(panel["KSI_feat"].values, (1.0 - top_decile) * 100.0))
-    eligible_c2 = panel["KSI_feat"] <= pct_90
-
-    candidates = panel[eligible_c1 & eligible_c2].copy()
+    # Candidate eligibility: intersections currently invisible to the City screen.
+    candidates, elig_desc = _apply_eligibility(panel, cfg)
     log.info(
-        "Eligibility: C1 (KSI_feat<%d) removes %d; top-decile threshold=%.1f; candidates=%d",
-        max_ksi_feat, (~eligible_c1).sum(), pct_90, len(candidates),
+        "Eligibility [%s]: %d nodes -> %d candidates (%d excluded as already screen-visible)",
+        elig_desc, len(panel), len(candidates), len(panel) - len(candidates),
     )
 
     # Label columns

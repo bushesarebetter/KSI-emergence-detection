@@ -549,6 +549,42 @@ report recall@K; it is never passed to the model. This is the same approach
 the prospective evaluation are now the same artifact by construction, so they report
 identical numbers: recall@500 (≥1 KSI) = 24/108 (22.2%), recall@200 = 9/108 (8.3%).
 
+
+## D18 — Candidate eligibility used a KSI threshold, not the City's actual screen
+
+The project's whole claim is that it surfaces future-severe intersections the City's
+current process **can't see**. The City's process is the High Crash List: it reviews
+intersections with **≥5 injury-or-fatal crashes** (SWITRS severity 1-4) in the review
+window, ~14 sites/year (see README "The problem", `scripts/city_screen_overlap.py`).
+
+But candidate eligibility in `src/labels/build_panel.py` defined "currently clean /
+invisible to the City" as `KSI_feat < 2` (fewer than 2 *severe* crashes in history), plus a
+top-decile-KSI-density drop. That is not the City's screen. It admits into the candidate
+universe intersections that already have ≥5 total crashes — sites the City is *already
+reviewing* — as long as they had 0 or 1 KSI specifically. Any future-KSI outcome the model
+"found" at those sites was credit for finding something the City already flags, which
+inflates every "sites the City can't identify at all" and incremental-BCR claim.
+
+**Fix:** eligibility now screens on the City's own definition. `build_panel` counts all
+feature-window crashes per node (`crashes_feat`; the crash extract is already restricted to
+severity 1-4, so this equals the injury-or-fatal count) and keeps a node iff
+`crashes_feat < candidate_city_screen_min` (=5). Config: `labels.candidate_screen: "city"`.
+The old rule is preserved as `labels.candidate_screen: "ksi_legacy"` for one sensitivity row.
+The top-decile-KSI drop is retired from the primary path (with KSI so sparse its 90th
+percentile is 0, it never removed anything anyway).
+
+**Impact (approximate, forward window 2016-2024→2025-2027, county-wide surface nodes; the
+authoritative figure comes from re-running the verified pipeline):** of the candidate sites
+the *old* rule kept, ~1,019 have ≥5 crashes and are dropped by the new rule — and those
+dropped sites contain ~47 of the ~111 ≥1-KSI positive outcomes (≈42%). In other words a
+large share of the model's headline "positives" sat at intersections the City already
+screens. The corrected candidate universe is a slightly smaller set (~80.2k vs ~80.6k) with
+correspondingly fewer positives to find, but every remaining positive is genuinely a site
+the City's volume screen would miss. `scripts/city_screen_overlap.py` (verified run) is the
+place this lands hardest and should be re-read against the new candidate set. Retag all
+downstream artifacts (features → fit → OOF → canonical numbers → README) after regenerating
+the panel.
+
 Because no fitting happens on forward candidates at all, there's nothing left to hold out:
 `refit_forward_run_oof.py`, `results/oof_forward_run_results.json`, and
 `data/model/forward_run/oof_scores.parquet` were deleted rather than kept as dead weight.

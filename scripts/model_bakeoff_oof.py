@@ -8,6 +8,8 @@ Compares, on both the crash-only (A) and all-infrastructure (D) feature sets:
     for small-n / high-imbalance tabular data)
   - A small MLP neural network (PyTorch, Tweedie-deviance loss to match the
     XGBoost objective, ~100 epochs with early stopping per fold)
+  - An FT-Transformer (feature-tokenizer + self-attention across features,
+    Tweedie head; the tabular-transformer architecture, added 2026-09)
 
 All models are evaluated with the SAME 5-fold genuine OOF scheme (random +
 spatial) used in scripts/refit_verified_run_oof.py, so the comparison is
@@ -225,6 +227,72 @@ def oof_mlp(X, y, groups, mode, max_epochs=100, patience=10):
     return oof
 
 
+class FTTransformer(nn.Module):
+    """Feature-Tokenizer Transformer: per-feature linear tokenizer + [CLS] +
+    self-attention ACROSS features, Tweedie-mean head. The 'transformer for
+    tabular' architecture (Gorishniy et al. 2021); a different bet than the
+    earlier GRU-over-year-sequences (reports/nn_sequence_experiment.md)."""
+    def __init__(self, n_feat: int, d: int = 32, heads: int = 4, layers: int = 2, dropout: float = 0.4):
+        super().__init__()
+        self.w = nn.Parameter(torch.randn(n_feat, d) * 0.02)
+        self.b = nn.Parameter(torch.zeros(n_feat, d))
+        self.cls = nn.Parameter(torch.randn(1, 1, d) * 0.02)
+        enc = nn.TransformerEncoderLayer(d, heads, d * 2, dropout, activation="gelu", batch_first=True)
+        self.encoder = nn.TransformerEncoder(enc, layers)
+        self.head = nn.Sequential(nn.LayerNorm(d), nn.Linear(d, 1))
+
+    def forward(self, x):
+        tok = x.unsqueeze(-1) * self.w + self.b            # (B, F, d)
+        h = torch.cat([self.cls.expand(x.size(0), -1, -1), tok], dim=1)
+        h = self.encoder(h)
+        return torch.exp(self.head(h[:, 0]).clamp(-10, 10)).squeeze(-1)
+
+
+def oof_ft_transformer(X, y, groups, mode, max_epochs=200, patience=15, bs=512):
+    """Same leak-free inner-val early-stopping protocol as oof_mlp, mini-batched."""
+    oof = np.full(len(y), np.nan)
+    torch.manual_seed(SEED)
+    for tr, te in make_folds(y, groups, mode):
+        rng = np.random.RandomState(SEED)
+        perm = rng.permutation(len(tr))
+        n_val = max(500, int(0.15 * len(tr)))
+        inner_val, inner_train = tr[perm[:n_val]], tr[perm[n_val:]]
+
+        scaler = StandardScaler().fit(X[inner_train])
+        Xtr = torch.tensor(scaler.transform(X[inner_train]), dtype=torch.float32)
+        ytr = torch.tensor(y[inner_train], dtype=torch.float32)
+        Xva = torch.tensor(scaler.transform(X[inner_val]), dtype=torch.float32)
+        yva = torch.tensor(y[inner_val], dtype=torch.float32)
+        Xte = torch.tensor(scaler.transform(X[te]), dtype=torch.float32)
+
+        model = FTTransformer(X.shape[1])
+        opt = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
+        best_val, best_state, bad = float("inf"), None, 0
+        n = len(inner_train)
+        for _ in range(max_epochs):
+            model.train()
+            order = torch.randperm(n)
+            for i in range(0, n, bs):
+                idx = order[i:i + bs]
+                opt.zero_grad()
+                tweedie_loss(model(Xtr[idx]), ytr[idx]).backward()
+                opt.step()
+            model.eval()
+            with torch.no_grad():
+                val_loss = tweedie_loss(model(Xva), yva).item()
+            if val_loss < best_val - 1e-5:
+                best_val, best_state, bad = val_loss, {k: v.clone() for k, v in model.state_dict().items()}, 0
+            else:
+                bad += 1
+                if bad >= patience:
+                    break
+        model.load_state_dict(best_state)
+        model.eval()
+        with torch.no_grad():
+            oof[te] = model(Xte).numpy()
+    return oof
+
+
 # ---------------------------------------------------------------------------
 # Metrics
 # ---------------------------------------------------------------------------
@@ -288,6 +356,7 @@ def main():
             oof_tuned = oof_xgb(X, y, groups, tuned_params, mode)
             oof_rf_ = oof_rf(X, y, groups, mode)
             oof_mlp_ = oof_mlp(X, y, groups, mode)
+            oof_ft_ = oof_ft_transformer(X, y, groups, mode)
 
             key = f"{set_name}__{mode}"
             all_results[key] = {
@@ -295,6 +364,7 @@ def main():
                 "xgb_freshly_tuned": summarize("xgb_freshly_tuned", oof_tuned, y),
                 "random_forest": summarize("random_forest", oof_rf_, y),
                 "mlp_neural_net": summarize("mlp_neural_net", oof_mlp_, y),
+                "ft_transformer": summarize("ft_transformer", oof_ft_, y),
             }
             all_results[key]["tuned_xgb_params"] = tuned_params
 

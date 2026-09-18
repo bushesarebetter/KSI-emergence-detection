@@ -36,8 +36,18 @@ geometry:
 labels:
   ksi_severity_codes: [1, 2]   # SWITRS COLLISION_SEVERITY: 1=fatal, 2=severe injury
   positive_min_ksi: 2          # y=1 iff KSI_label >= this
-  candidate_max_ksi_feat: 2    # keep node iff KSI_feat < this (strict)
-  candidate_top_decile_drop: 0.10   # also drop top 10% by feature-window KSI density
+
+  # Candidate eligibility = "currently invisible to the City of San Diego's screen".
+  # The City's High Crash List flags intersections with >=5 injury-or-fatal crashes
+  # (SWITRS severity 1-4) in the review window. crashes_4326.parquet is already
+  # restricted to severity 1-4 (no PDO), so crashes_feat == injury-or-fatal count and
+  # the screen is simply ">=5 crashes". See scripts/city_screen_overlap.py, docs/DECISIONS.md.
+  candidate_screen: "city"           # "city" = crashes_feat < min | "ksi_legacy" = old rule
+  candidate_city_screen_min: 5       # keep node iff crashes_feat < this (below the City screen)
+
+  # Legacy (pre-2026-09 city-screen) eligibility. Kept for the ksi_legacy sensitivity row only.
+  candidate_max_ksi_feat: 2          # legacy: keep node iff KSI_feat < this (strict)
+  candidate_top_decile_drop: 0.10    # legacy: also drop top 10% by feature-window KSI density
 
 evaluation:
   recall_at_k: [25, 50, 100]
