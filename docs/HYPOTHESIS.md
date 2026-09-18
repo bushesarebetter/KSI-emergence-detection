@@ -26,6 +26,13 @@ shortlist of sub-threshold sites lets the City inspect and treat before the cras
   trend) by $6–11M prevented harm on both cross-validation splits at the any-KSI threshold. The
   spatial features hold up under a region-holdout split, so the corridor signal is predictive
   rather than spatial autocorrelation.
+- **Feature attribution confirms the mechanism.** SHAP on the E model splits the decision
+  **53% road infrastructure / 32% crash history / 15% corridor.** The top drivers are recency of
+  the last crash, road functional class (arterial vs. local), intersection geometry (legs, lanes),
+  and transit proximity. On the <5-crash set crash history is flat, so road design carries the
+  weight — the direct reason E beats a crash-count baseline the City's screen relies on. Much of
+  that infrastructure weight is exposure by proxy (arterials carry more traffic), which is why
+  measured AADT is the highest-value feature still missing.
 - **Calibration holds.** Predicted KSI counts track observed counts at the top of the ranking.
 
 ## Limits
