@@ -1,0 +1,20 @@
+name: san_diego
+display_name: San Diego, California
+adapter: switrs
+osm_place: "San Diego, California, USA"
+center: [-117.1611, 32.7157]
+
+# Pinned, NOT derived. EPSG:2230 (NAD83 / California State Plane Zone VI, US
+# survey feet) is what every published result in this repo was computed in.
+# Switching to UTM 11N would change buffer geometry slightly and break exact
+# reproducibility of the verified run, for no analytical gain.
+crs_analysis: "EPSG:2230"
+
+source_filters:
+  exclude_state_highway: true
+
+notes: >
+  The original region. SWITRS distinguishes fatal from severe injury, so this is
+  the only region that currently supports the true KSI label. Requires a manual
+  TIMS download (tims.berkeley.edu) into data/raw/switrs/<YYYYMMDD>/ — SWITRS
+  cannot be redistributed, so it is not in the repo.

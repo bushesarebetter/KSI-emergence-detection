@@ -1,23 +1,74 @@
 # Deployment
 
-## Vercel (Recommended)
+The dashboard is a static Vite build with no server component — the model runs
+offline and its output ships as two files in `public/data/`.
 
-1. Push the repository to GitHub.
-2. Go to [vercel.com](https://vercel.com) and import the repository.
-3. Set the **Root Directory** to `dashboard`.
-4. Under **Environment Variables**, add:
-   - Name: `VITE_MAPBOX_TOKEN`
-   - Value: your Mapbox public token (starts with `pk.`)
-5. Click **Deploy**.
-
-Vercel will run `npm run build` and serve the output. The `vercel.json` rewrite rule ensures client-side routing works on direct URL access.
-
-The files in `dashboard/public/data/` are committed to the repository and served as static assets. They do not need to be generated at build time.
-
-To update the data, run the export script locally, commit the updated files, and push. Vercel redeploys automatically on push.
+**The full walkthrough is `docs/HOSTING_RENDER.md` in the repo root.** It covers
+the Google Cloud setup, exact Render settings, the SPA rewrite rule, cache
+headers, custom domains, and cost controls. What follows is the short version for
+each host.
 
 ---
 
-## Custom Domain
+## Render (recommended)
 
-In the Vercel project settings, go to **Domains** and add your custom domain. Vercel provisions a TLS certificate automatically via Let's Encrypt. Point your DNS CNAME record to `cname.vercel-dns.com` (or use Vercel's nameservers for apex domains). Propagation typically takes a few minutes.
+Free, CDN-cached, and static sites never spin down — unlike a free Web Service,
+which sleeps after 15 minutes and takes ~50 seconds to wake.
+
+**New → Static Site**, then:
+
+| Setting | Value |
+|---|---|
+| Root Directory | `dashboard` |
+| Build Command | `npm ci && npm run build` |
+| Publish Directory | `dist` |
+
+Environment variables: `VITE_GOOGLE_MAPS_API_KEY`, `VITE_GOOGLE_MAPS_MAP_ID`,
+`NODE_VERSION=20`.
+
+Redirects/Rewrites: `/*` → `/index.html`, action **Rewrite**.
+
+See `docs/HOSTING_RENDER.md` for cache headers and the pre-launch checklist.
+
+---
+
+## Vercel
+
+Also works, and `vercel.json` in this directory already supplies the SPA rewrite.
+
+1. Import the repository at <https://vercel.com>.
+2. Set **Root Directory** to `dashboard`.
+3. Add environment variables `VITE_GOOGLE_MAPS_API_KEY` and
+   `VITE_GOOGLE_MAPS_MAP_ID`.
+4. Deploy.
+
+---
+
+## Important: rebuild after changing keys
+
+Vite inlines `VITE_`-prefixed variables into the bundle at **build** time. Changing
+one in the host's dashboard has no effect until you trigger a fresh build with the
+cache cleared. On Render that is **Manual Deploy → Clear build cache & deploy**.
+
+## Important: add every domain to the API key
+
+The Maps key is restricted by HTTP referrer. A new custom domain must be added to
+the key's allowed referrer list in Google Cloud, or the map fails with
+`RefererNotAllowedMapError` while everything else on the page keeps working — which
+makes it easy to misdiagnose.
+
+---
+
+## Updating data
+
+`public/data/` is committed to the repo and served as static assets; nothing is
+generated at build time.
+
+```bash
+python scripts/build_export_panel_verified.py --run forward
+git add dashboard/public/data/
+git commit -m "Update dashboard export"
+git push
+```
+
+Both Render and Vercel redeploy automatically on push.

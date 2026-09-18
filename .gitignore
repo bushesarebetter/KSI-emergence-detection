@@ -14,6 +14,10 @@ reports/*.png
 reports/figures/
 reports/nn_sequence_experiment.md
 results/nn_sequence_bakeoff_results.json
+# Synthetic-panel output: generated data, never a real result. Regenerate any time
+# with `make synthetic_check`. Kept out of the repo so it can't be mistaken for one
+# of the canonical files beside it.
+results/improvement_bakeoff_synthetic.json
 # Keep these:
 !reports/verified_canonical_numbers.json
 !reports/milestone_final.md

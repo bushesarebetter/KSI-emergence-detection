@@ -1,0 +1,25 @@
+# Region template. Copy to <slug>.yaml and fill in.
+#
+#   cp configs/regions/_template.yaml configs/regions/austin.yaml
+#   python scripts/audit_crash_source.py --region austin
+#
+name: my_city                       # slug; must match the filename
+display_name: My City, State
+adapter: fars                       # fars | switrs  (see src/ingest/adapters/)
+osm_place: "My City, State, USA"    # must be geocodable by OSMnx/Nominatim
+center: [-97.7431, 30.2672]         # [lon, lat] — sets the UTM zone for the analysis CRS
+
+# Optional: pin the projected CRS instead of deriving UTM from `center`.
+# Only do this to preserve historical reproducibility; UTM is the safe default.
+# crs_analysis: "EPSG:2230"
+
+# Passed straight through to the adapter's load(). For FARS these cut the
+# national file down to one city.
+source_filters:
+  state: "Texas"
+  place: "AUSTIN"
+  exclude_freeway: true
+
+notes: >
+  Anything future-you needs to know: label definition, data quirks, why a
+  particular filter is set the way it is.
