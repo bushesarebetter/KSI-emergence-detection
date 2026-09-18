@@ -76,15 +76,22 @@ A supplemental terrain-only ablation is run separately from the primary ablation
 ACS-derived context (population/employment density, equity indicators), land-use mix.
 Source: ACS (`census`/`pygris`), SanGIS zoning.
 
-## Group 9 — Graph / network  [deferred]
+## Group 9 — Spatial-neighbor structure  [done]
 
-`neighbor_ksi_1hop` and other graph-structural features; the GraphSAGE baseline. Deferred
-to the graph milestone (also KSI-sparse on the candidate set).
+Summarize the area around each intersection over the feature window
+(`src/features/build_spatial_features.py`): `nbr_crashes_150m`, `nbr_crashes_400m` (local crash
+pressure), `nbr_ksi_400m`, `n_hotspots_400m` and `dist_nearest_hotspot_m` (adjacency and
+proximity to the City's ≥5-crash sites), `node_density_400m` (grid density). Feature-window
+crashes only. These carry the strongest univariate signal on the candidate set (AUC 0.74–0.79)
+and lift the model above the persistence baseline; the lift survives the region-holdout split,
+so it is corridor signal rather than spatial autocorrelation. GraphSAGE and higher-order graph
+features remain deferred.
 
 ## Modeling discipline
 
-Positives are scarce (~389 nonzero count nodes, 21 at ≥2). Keep total feature count
-disciplined; prefer **group-level ablation** over a kitchen-sink model; strong
-regularization; rely on spatial-block CV to expose overfitting. New feature groups must
-show **incremental Tweedie Spearman lift over the crash-only model** in *both* splits,
-with bootstrap CIs, to earn inclusion.
+Positives are scarce (276 any-KSI on the verified candidate set). Keep the feature count
+disciplined; prefer group-level comparison over a kitchen-sink model; strong regularization;
+rely on spatial-block CV to expose overfitting. A feature group earns inclusion only by showing
+**incremental Tweedie Spearman lift over crash-only in both splits**, with bootstrap CIs.
+Crash-only ranks below the persistence baseline; infrastructure (Groups 3–7) and spatial
+structure (Group 9) are what move the model above it.

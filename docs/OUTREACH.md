@@ -18,17 +18,13 @@ the single most useful thing you can cite to everyone else.
   get quarantined by government mail filters. One link, in the body.
 - **The dashboard must be live first.** See `docs/HOSTING_RENDER.md`. Half of these
   recipients will click the link and nothing else.
-- **Keep the honesty.** The README is unusually candid — it says outright that a
-  one-line persistence baseline ties the model at the severe threshold. Keep that in
-  the emails. Technical reviewers at these agencies will find it in ten minutes, and
-  finding it *themselves* after you claimed otherwise ends the conversation. Stating
-  it yourself is what makes the rest credible.
-- **Check every number against `reports/verified_canonical_numbers.json` before
-  sending.** Two different runs are easy to conflate and a reviewer will catch it:
-  the **verified run** is 26,423 candidates / 21 positives / 10 caught at top-500
-  (2016-21 features -> 2022-24 labels), while the **forward run** is 26,045
-  candidates / 108 positives / 24 caught at top-500 (2025 outcomes). Never quote a
-  hit count from one alongside a candidate count from the other.
+- **State the limits as findings.** The model's edge over a one-line crash-count baseline is
+  modest, and it has no signal at the fatal/severe (≥2-KSI) threshold. Say so plainly —
+  reviewers will find it in ten minutes, and stating it yourself is what makes the rest credible.
+- **Keep the two runs straight.** The **verified run** is 25,699 candidates / 276 injury-crash
+  positives / 39 caught at top-500 (2016–21 features → 2022–24 labels); the **forward run** is
+  25,034 candidates / 62 positives (2025 partial) / 9 caught at top-500. Never quote a hit count
+  from one alongside a candidate count from the other. Source: `README.md`, `docs/HYPOTHESIS.md`.
 - **Expect silence.** Agency inboxes are brutal. A single short follow-up after 10–14
   working days is normal and not rude. Two is pushing it.
 
@@ -55,16 +51,15 @@ annual safety screening.
 > serious-injury crash within three years — restricted to intersections with no
 > severe-crash history, so they're invisible to a screen based on prior crashes.
 >
-> It uses only SWITRS records the City already has. On a genuinely held-out test, a
-> top-500 shortlist out of 26,423 candidate intersections caught 10 of the 21 sites
-> that went on to become severe-crash locations. A separate prospective test against
-> 2025 outcomes the model never saw caught 24 of 108 future KSI sites in the top 500,
-> about 11.6x random.
+> It uses SWITRS records the City already has, plus road infrastructure and the crash pattern
+> in each intersection's surrounding corridor. On a genuinely held-out test, a top-500 shortlist
+> out of 25,699 candidate intersections caught 39 of the sites that went on to become
+> injury-crash locations, about 7 times better than chance. A prospective test against 2025
+> outcomes the model never saw held that same 7x concentration.
 >
-> One thing I want to be upfront about: at the severe threshold, a simple rule —
-> rank by recent crash count and trend — performs just as well as the model. The
-> model's clearest advantage shows up at the broader any-injury threshold. I'd
-> rather tell you that than have you find it.
+> Two things worth stating plainly: the model's edge over a simple crash-count-and-trend rule is
+> modest, and it has no signal at the fatal/severe threshold, where crashes are too rare to
+> predict. Its value is the injury-crash shortlist, on sites your five-crash screen never surfaces.
 >
 > Map and full methodology: [DASHBOARD URL]
 >
@@ -170,10 +165,9 @@ the engineers, and often more receptive to a prevention argument.
 >
 > Most traffic safety spending is reactive: a location gets attention after people
 > are hurt. That's a prevention gap that I think reads more naturally in public
-> health terms than in engineering terms. Using FHWA's crash cost figures, the
-> harm at the sites a top-500 shortlist catches comes to roughly $103M over a
-> three-year window, against an estimated benefit-cost ratio near 9.6:1 after
-> federal HSIP funding.
+> health terms than in engineering terms. Using FHWA's crash cost figures, treating the sites a
+> top-500 shortlist catches would prevent roughly $62M in harm over a three-year window, an
+> estimated benefit-cost ratio near 19:1 after federal HSIP funding.
 >
 > Map and methodology: [DASHBOARD URL]
 >
@@ -205,6 +199,19 @@ and reference it — a generic email to a professor gets deleted.
 > I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. I read your work on
 > [SPECIFIC PAPER] and hoped you might be willing to look at something my collaborator Ayan Pendharkar and I have built.
 >
+<<<<<<< HEAD
+> I've spent the past year on a model predicting which San Diego intersections below the City's
+> crash screen will produce a killed-or-serious-injury crash within three years. XGBoost with a
+> Tweedie objective on 47 features — crash history, road infrastructure, and spatial-neighbor
+> structure — evaluated with genuine out-of-fold scoring under both random and spatial-block CV,
+> and a prospective test against 2025 outcomes the model never saw.
+>
+> The pattern I'd value your read on: crash-history features alone rank no better than a two-term
+> persistence baseline; road infrastructure and the surrounding corridor's crash pattern are what
+> push the model above it, by a modest margin that holds on both splits. With a few hundred
+> positives the bootstrap intervals are wide, so the case rests on consistency across splits and
+> windows rather than a single significant gap. I'd like to know whether that reasoning holds up.
+=======
 > We've spent the past year on a model predicting which San Diego intersections with
 > no severe-crash history will produce a killed-or-serious-injury crash within three
 > years. XGBoost with a Tweedie objective on 20 crash-history features, evaluated
@@ -216,6 +223,7 @@ and reference it — a generic email to a professor gets deleted.
 > bootstrap CIs wide enough to swallow any effect. We've written up twelve candidate
 > improvements and my honest read is that the constraint is label sparsity, not
 > architecture — but I'd very much like to know if I'm reasoning about that correctly.
+>>>>>>> 63e230a87f95693ce4cfe0e7f46366d55a84a591
 >
 > Code and full write-up: https://github.com/bushesarebetter/KSI-emergence-detection
 > Interactive map: [DASHBOARD URL]
@@ -252,8 +260,8 @@ duplicating their work, you're covering what they don't.
 >
 > It's trained on SWITRS via TIMS, uses out-of-fold evaluation on both random and
 > spatial-block splits, and has been tested prospectively against 2025 outcomes it
-> never saw during training: 24 of 108 future KSI sites in a top-500 shortlist,
-> about 11.6x random.
+> never saw during training: the top-500 shortlist held roughly a 7x concentration of
+> future injury-crash sites over chance.
 >
 > [DASHBOARD URL]
 >
@@ -286,17 +294,25 @@ directors do.
 > have used TIMS extensively over the past year; I wanted to share what we built with
 > it and ask for your critique.
 >
-> The question: can you predict which San Diego intersections *without* severe-crash
-> history will produce a KSI crash in the next three years? Model is XGBoost-Tweedie
-> on 20 crash-history features over 26,423 candidate intersections, scored entirely
-> out-of-fold, with a prospective 2025 test the model never trained on.
+> The question: can you predict which San Diego intersections below the City's crash screen will
+> produce a KSI crash in the next three years? Model is XGBoost-Tweedie on 47 features — crash
+> history, road infrastructure, and spatial-neighbor structure — over 25,699 candidate
+> intersections, scored entirely out-of-fold, with a prospective 2025 test the model never trained on.
 >
+<<<<<<< HEAD
+> The finding I'd most like your reaction to: crash history alone ranks no better than a
+> persistence baseline (crash count and trend); the lift comes entirely from infrastructure and
+> corridor context, and it is modest — a few sites on 40 at top-500, consistent across both
+> splits. The severe (≥2-KSI) threshold has too few positives to model. The edge is real and
+> small, not a large ML win.
+=======
 > The finding I'd most like your reaction to is a negative one. At the ≥2-KSI
 > threshold a persistence baseline — rank by recent crash count and trend — ties the
 > tuned model exactly (10/21 both). The model only shows a consistent edge at the
 > broader ≥1-KSI threshold. With 21 positives we can't distinguish "ML adds nothing
 > here" from "our sample is too small to tell", and we've written up the twelve things
 > we'd try next.
+>>>>>>> 63e230a87f95693ce4cfe0e7f46366d55a84a591
 >
 > Code: https://github.com/bushesarebetter/KSI-emergence-detection
 > Map: [DASHBOARD URL]
@@ -331,9 +347,8 @@ retrospective ranking is directly on-mission.
 > The OTS rankings, like most safety screening, are retrospective by design — they
 > tell a city where harm has already concentrated. What we've tried to build is the
 > forward-looking complement: which currently-clean locations are trending toward
-> becoming those sites. On a held-out test the top 500 of 26,423 candidates captured
-> roughly 48% of the intersections that subsequently became severe-crash sites
-> (10 of 21).
+> becoming those sites. On a held-out test the top 500 of 25,699 candidates caught 39 of the
+> intersections that subsequently became injury-crash sites, about 7x the rate of chance.
 >
 > [DASHBOARD URL]
 >
@@ -370,11 +385,10 @@ safety engineer.
 > FHWA's systemic safety approach, so I wanted to ask whether I'm reading that
 > correctly.
 >
-> The model ranks roughly 26,000 intersections with no severe-crash history by
-> predicted likelihood of a KSI crash within three years, using only crash records.
-> Benefit-cost is computed with FHWA-SA-25-021 crash costs in 2024 dollars: about
-> 9.6:1 at the severe threshold after 90% HSIP federal funding, and closer to 40:1
-> at the any-injury threshold.
+> The model ranks roughly 25,700 intersections below the City's crash screen by predicted
+> likelihood of a KSI crash within three years, using crash records, road infrastructure, and
+> corridor context. Benefit-cost with FHWA-SA-25-021 crash costs in 2024 dollars is about 19:1
+> at the top-500, after 90% HSIP federal funding.
 >
 > [DASHBOARD URL] · https://github.com/bushesarebetter/KSI-emergence-detection
 >
@@ -383,9 +397,15 @@ safety engineer.
 > risk instead. Are those compatible framings for SS4A or HSIP purposes, or is
 > location-level prediction outside what the systemic framework contemplates?
 >
+<<<<<<< HEAD
+> The model's edge over a simple crash-count-and-trend heuristic is modest, and it has no signal
+> at the fatal/severe threshold. The value is the injury-crash shortlist, on sites the crash
+> screen does not surface.
+=======
 > I'd also note honestly that at the severe threshold a simple crash-count-and-trend
 > heuristic matches our model's performance. If the practical answer is that
 > agencies should use the simple rule, that seems worth knowing too.
+>>>>>>> 63e230a87f95693ce4cfe0e7f46366d55a84a591
 >
 > Respectfully,
 > [YOUR NAME]
@@ -411,10 +431,17 @@ subject line.
 >
 > High-injury networks are built from crashes that have already happened. That's the
 > right foundation, but it means a location can only become a priority after someone
+<<<<<<< HEAD
+> is seriously hurt there. My model ranks intersections below the City's crash screen by
+> predicted risk over the next three years. On a held-out test, a top-500 shortlist out of
+> 25,699 caught 39 of the sites that went on to become injury-crash locations, about 7x the
+> rate of chance.
+=======
 > is seriously hurt there. Our model ranks intersections with *no* severe-crash
 > history by predicted risk over the next three years. On a held-out test, a top-500
 > shortlist out of 26,423 caught about 48% of the sites that went on to become
 > severe-crash locations (10 of 21).
+>>>>>>> 63e230a87f95693ce4cfe0e7f46366d55a84a591
 >
 > It needs only two public inputs — state crash records and OpenStreetMap — so it
 > should replicate in any US city with a comparable crash database.

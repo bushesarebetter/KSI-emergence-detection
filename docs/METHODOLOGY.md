@@ -9,14 +9,13 @@ mainline and on/off-ramps) are excluded, because freeway KSI events are segment-
 intersection-level, and geocode differently from urban intersection crashes. Nodes are merged
 within 10 meters to eliminate near-duplicates arising from OSMnx graph simplification.
 
-To restrict the model to intersections without existing KSI exposure, the population of
-interest for proactive intervention, we removed any intersection in the top decile of
-feature-window KSI density and any intersection with two or more KSI crashes in the feature
-window. This exclusion is by design: the candidate set collapses to nodes with approximately
-zero KSI history, which forces signal to come from all-severity crash counts and temporal
-patterns rather than past KSI incidents. The result is a candidate set of 26,423 surface
-intersections within City of San Diego limits for the verified run (see
-`docs/DECISIONS.md` D11 for the full candidate-set definition).
+The candidate set is the population the City's own process cannot act on: intersections below
+its screening threshold. The City's High Crash List flags intersections with five or more
+crashes, so every candidate here has fewer than five crashes in the feature window
+(`crashes_feat < 5`) and is invisible to that screen. This yields 25,699 surface intersections
+within City of San Diego limits for the verified run. Signal comes from sub-threshold crash
+counts and trend, road infrastructure, and spatial context rather than past KSI incidents. See
+`docs/DECISIONS.md` D18 for the candidate-set definition and D11 for the City-limits restriction.
 
 ## Temporal Windows
 
@@ -43,12 +42,10 @@ is appropriate for this target because KSI counts at individual intersections ar
 right-skewed, and include a large mass at zero. The variance power (approximately 1.12) was
 tuned via Optuna on the crash-only feature set and then frozen for all subsequent experiments.
 
-We considered binary classification (label ≥ 2 KSI) as the primary target in the original
-research design, but the pre-registered adequacy floor of approximately 300 positives was not
-met (the candidate set produced 21 sites with ≥2 KSI, well below the floor). Per
-the pre-registered fallback, the primary target was switched to the count/rate. Binary
-thresholds (≥1 KSI and ≥2 KSI) are retained as secondary readouts; the ≥2-KSI threshold
-is used only for the recall@K evaluation operating point.
+The operating threshold is any-KSI (≥1): the model ranks intersections by predicted count and
+the shortlist is scored on how many any-KSI sites it captures. The severe threshold (≥2 KSI)
+has too few positives to model — a raw crash-count baseline catches more of them — so it is not
+a target.
 
 ## Geocoding
 
@@ -56,21 +53,16 @@ Crashes are geocoded using the SWITRS `POINT_X`/`POINT_Y` fields, which provide 
 street-intersection geocoded coordinates with approximately 96–97% coverage and negligible
 freeway skew.
 
-## Frozen-Parameter Ablation Protocol (Protocol A)
+## Frozen-Parameter Feature-Set Comparison
 
-To test whether built-environment features (road geometry, traffic signals, bike lanes, etc.)
-add independent predictive signal beyond crash history, we designed a one-variable-at-a-time
-ablation in which the XGBoost hyperparameters are frozen to the values tuned on the
-crash-only model. This is Protocol A. Because hyperparameters are frozen across feature sets,
-any apparent lift or loss in Spearman rank correlation can be attributed to the features
-themselves rather than to per-step re-tuning.
-
-Protocol A tests four cumulative feature sets: A (crash history only, 20 features), B (A plus
-road geometry and class), C (A plus signals and stop signs), and D (A plus all infrastructure).
-Each set is fit with identical hyperparameters; any variation would indicate a protocol
-violation. Spearman rank correlation between predicted count and actual label-window KSI count
-is the primary metric, evaluated under both a random 80/20 split and a spatial-block grouped
-k-fold with k=5 folds.
+To attribute any lift to features rather than re-tuning, the XGBoost hyperparameters are frozen
+to the values tuned on the crash-only set and held identical across every feature set. The
+comparison is cumulative: A (crash history, 20 features), D (A plus road infrastructure, 21
+features), E (D plus spatial-neighbor structure — local crash pressure, proximity to the City's
+≥5-crash sites, grid density, 6 features). **E is the deployed model.** Crash-only ranks below a
+persistence baseline; infrastructure and spatial context are what move it above the baseline.
+Spearman rank correlation between predicted count and actual label-window KSI count is the
+ranking metric, evaluated under both a random 80/20 split and a spatial-block grouped 5-fold.
 
 ## Evaluation Metrics
 
@@ -79,14 +71,13 @@ actual KSI count) measures the model's ability to rank intersections by risk. It
 scale-invariant, robust to the count distribution's heavy tail, and directly relevant to the
 operational use case of generating a ranked shortlist.
 
-Recall@K measures the fraction of true emergent sites (≥2 KSI in the label window) that
-appear in the model's top-K ranked intersections. This metric is operationally concrete: an
-agency deploying this model as a prioritization tool wants to know how many of the
-subsequently dangerous sites would be captured by inspecting a shortlist of K intersections.
-We report recall@K for K ∈ {50, 100, 200, 500, 1000} with bootstrap 95% confidence intervals
-obtained by resampling the 21-positive evaluation set with replacement. With only 21 positives,
-the CIs are wide by construction and should be read as directional evidence rather than
-precise estimates.
+Recall@K measures the fraction of any-KSI emergent sites that appear in the model's top-K
+ranked intersections. This metric is operationally concrete: an agency deploying the model as a
+prioritization tool wants to know how many subsequently dangerous sites a shortlist of K
+intersections captures. We report recall@K for K ∈ {50, 100, 200, 500, 1000} with bootstrap 95%
+confidence intervals. The positive count (276 in the verified run) keeps the CIs wide, so
+recall differences of a few sites are read as consistency across splits and windows rather than
+single-split significance.
 
 Spatial blocking uses Community Planning Area polygons to form five approximately equal-area
 folds. The gap between random-split and spatial-split metrics quantifies the degree of

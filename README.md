@@ -61,7 +61,7 @@ recall@K tables below with that in mind.
 ### Primary threshold — ≥2 KSI: 21 confirmed emergent sites
 
 | Shortlist | Sites found (random / spatial split) | Recall | Persistence baseline |
-|---|---|---|---|---|
+|---|---|---|---|
 | Top 50 | 1 / 1 | 4.8% | 3/21 (14.3%) 
 | Top 100 | 3 / 1 | 4.8-14.3% | 4/21 (19.0%) |
 | Top 200 | 5 / 5 | 23.8% | 6/21 (28.6%) |
@@ -367,3 +367,4 @@ LATITUDE/LONGITUDE).
 ## License
 
 MIT License. See `LICENSE`.
+

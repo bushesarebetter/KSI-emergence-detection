@@ -4,8 +4,8 @@ Status: **crash-source layer built and audited on real data. Downstream stages n
 yet ported.**
 
 The headline finding is that universality and accuracy are not in tension here —
-they are the same problem. The project's binding constraint has always been 21
-positive examples. FARS supplies **70,900 intersection-related fatal crashes on
+they are the same problem. The project's binding constraint has always been the
+scarce positive count. FARS supplies **70,900 intersection-related fatal crashes on
 surface streets across 2016–2023**, in 288 cities with enough volume to model. The
 reason to go multi-city is not distribution; it is that the sample-size ceiling
 capping every result in this repo disappears.
@@ -24,7 +24,7 @@ So there are exactly two tiers, and the architecture keeps them apart:
 | | Source | Coverage | Label | Positives |
 |---|---|---|---|---|
 | **Universal spine** | [FARS](https://www.nhtsa.gov/crash-data-systems/fatality-analysis-reporting-system) | All 50 states + DC + PR | **Fatal only** | 70,900 (2016–2023) |
-| **KSI where available** | SWITRS, state DOTs | Per-jurisdiction | Killed **or** seriously injured | 21 (San Diego verified run) |
+| **KSI where available** | SWITRS, state DOTs | Per-jurisdiction | Killed **or** seriously injured | 276 (San Diego verified run, ≥1 KSI) |
 
 `CrashSource.supports_ksi` is the guard. A `fatal_only` source reports
 `label_name() == "fatal"`, and **a model trained on it predicts fatal crashes, not
@@ -61,7 +61,7 @@ every axis.
 | Chicago, IL | 495 | | Albuquerque, NM | 333 |
 | Philadelphia, PA | 394 | | **San Diego, CA** | **152** |
 
-San Diego's 152 fatal-crash records against the verified run's 21 KSI positives is
+San Diego's 152 fatal-crash records against the verified run's 276 any-KSI positives is
 the comparison worth sitting with.
 
 ---
@@ -126,7 +126,7 @@ published result byte-for-byte reproducible.
 
 ---
 
-## Honest limits
+## Limits
 
 - **Not yet ported:** everything downstream of ingestion still reads SWITRS
   column names directly. `build_panel.py`, `build_crash_emergence.py`, and the

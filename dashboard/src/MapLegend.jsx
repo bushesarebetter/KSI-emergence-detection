@@ -135,3 +135,4 @@ export default function MapLegend({ threshold }) {
     </div>
   );
 }
+

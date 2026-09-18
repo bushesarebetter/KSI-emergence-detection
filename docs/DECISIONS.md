@@ -627,7 +627,7 @@ City's screen cannot see: no KSI history, under the ≥5-crash rule. Asked for "
 unsafe intersections in San Diego", that ranking is the wrong answer on its own. It would
 omit every corner where someone has already been killed or seriously hurt, which misleads
 in the opposite direction from the D18 problem. A resident or a council office reading a
-list with that title expects the record first and the forecast second.
+list with that title expects a record first and a forecast second.
 
 Resolution: `--combined N` on `scripts/build_export_panel_verified.py` exports one list of
 N sites in three stacked tiers. (1) **known**: every spine node with ≥1 KSI crash in the
