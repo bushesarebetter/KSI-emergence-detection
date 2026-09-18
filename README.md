@@ -16,9 +16,21 @@ A simple, no-ML baseline (just rank intersections by recent crash count and tren
 the exact same result at the severe-emergence threshold. The model's clearest validated
 edge over that baseline shows up at the broader any-injury threshold.
 
-> **Note on scope:** the candidate set is restricted to intersections actually inside City
-> of San Diego limits (26,423 surface intersections). See `docs/DECISIONS.md` D11 for the
-> full candidate-set definition.
+> **⚠️ Candidate-set correction (2026-09).** Eligibility was changed from "no severe (KSI)
+> history" to the City's *actual* screen: candidates are now only intersections **below the
+> City's High Crash List threshold** (`crashes_feat < 5` injury-or-fatal crashes in the
+> feature window), so every candidate is a site the City's process genuinely ignores. See
+> `docs/DECISIONS.md` D18. **The headline numbers in this section predate that correction** —
+> they were computed on the old candidate set, ~51–60% of whose "positives" sat at
+> intersections the City already screens, so they overstate the incremental value.
+> Regenerated figures are pending a full pipeline re-run. Preliminary corrected result on the
+> city-ignored set: a crash + **infrastructure** model beats the persistence baseline
+> out-of-sample (+$6–8M prevented harm, consistent on both CV splits) at the any-KSI
+> threshold — the project's first robust edge over the baseline; the severe (≥2-KSI)
+> threshold remains too rare to call.
+>
+> The candidate set is also restricted to intersections inside City of San Diego limits
+> (26,423 surface intersections); see `docs/DECISIONS.md` D11.
 
 ---
 
