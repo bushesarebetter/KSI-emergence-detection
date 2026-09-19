@@ -4,6 +4,12 @@ This document records the decisions made during the project, including the ones 
 changed from the original research design. The goal is full transparency: what changed,
 when, and why.
 
+> **Current state:** the deployed model is **E** — crash history + road infrastructure +
+> spatial-neighbor structure — on the candidate set **below the City's 5-crash screen**
+> (`crashes_feat < 5`, **D18**). Earlier entries describe superseded choices (the `KSI_feat < 2`
+> candidate screen, the ≥2-KSI operating threshold, the crash-only model); they are kept as the
+> record, not the current design. Results: `../README.md`, `HYPOTHESIS.md`.
+
 ---
 
 ## D1 — Primary modeling target: Tweedie count regression, not binary classification
@@ -619,82 +625,3 @@ Updated: `scripts/predict_forward_run.py` (new), `scripts/predict_protocol_a_for
 `README.md`, `tests/test_d11_d16_regressions.py`, `data/model/frozen_scores.parquet`,
 `data/model/forward_run/frozen_scores.parquet`, `dashboard/public/data/intersections.geojson`,
 `results/top500_forward_2025_2027.csv`.
-
-## D19 — "Most unsafe" is a list of records first, predictions second
-
-The ranking the dashboard shows is, by construction (D18), restricted to intersections the
-City's screen cannot see: no KSI history, under the ≥5-crash rule. Asked for "the 800 most
-unsafe intersections in San Diego", that ranking is the wrong answer on its own. It would
-omit every corner where someone has already been killed or seriously hurt, which misleads
-in the opposite direction from the D18 problem. A resident or a council office reading a
-list with that title expects a record first and a forecast second.
-
-Resolution: `--combined N` on `scripts/build_export_panel_verified.py` exports one list of
-N sites in three stacked tiers. (1) **known**: every spine node with ≥1 KSI crash in the
-feature window (`feat_crash_assignments.parquet`), ordered by KSI count, then total crashes
-in the window, then id. (2) **screen**: nodes the City's own rule flags, ≥5 crashes snapped
-within the assignment buffer in the last full feature year, ordered by that count.
-(3) **predicted**: the model's rank order for whatever remains. Tiers are stacked, not
-blended: no score is invented for a record, and a site admitted by a higher tier is never
-re-ordered by a lower one. Every exported feature carries `source`, `model_rank` (null for
-sites the model never scored), `ksi_history`, `screen_count` and `city_screen` (flagged by
-the rule regardless of tier). `meta.json`, written beside the geojson, holds recall@K
-computed on `model_rank` alone plus the tier composition, so the catch figures on the site
-score the model and never take credit for the records.
-
-The dashboard was rewired to read `meta.json` instead of hardcoded numbers (a fallback
-table in `constants.js` covers exports that predate it), the default shortlist moved from
-500 to 800, and a known site renders as a record: heavy ink outline on the map, "already
-had N serious crashes" where the tier label would be, and "no prediction needed" where the
-SHAP signals would be. At the time of writing the deployed data is still the predicted-only
-export (composition known=0, screen=0). The combined export needs the SWITRS pipeline
-artefacts, which are not on the development machine, so the local `meta.json` was computed
-from the exported top-1000 and the other tiers' UI paths are exercised only by unit tests.
-
-Updated: `src/export/combined_list.py` (new, pure), `src/export/build_combined.py` (new),
-`scripts/export_predictions.py`, `scripts/build_export_panel_verified.py`,
-`tests/test_combined_list.py` (new), `tests/test_export_predictions.py` (new),
-`dashboard/src/useMeta.jsx` (new), `dashboard/src/constants.js`, `dashboard/src/lib/signals.js`,
-`dashboard/src/{App,Landing,CatchFigure,FilterBar,DistrictSummary,MapLegend,MapView,
-IntersectionPanel,MobileSheet,RankedTable,WelcomeModal,AboutModal}.jsx`,
-`dashboard/public/data/meta.json` (new), `dashboard/public/data/districts.json`
-(top_800/top_1000 counts), `README.md`, `docs/HOSTING_RENDER.md`.
-
-## D20 — Intersection labels name the cross street, and never borrow one
-
-Labels in the export are "A & B" from the street names on the edges incident to the
-graph node. Where the cross road carries no `name` in OpenStreetMap (a signalised
-connector, a ramp, an unnamed residential stub) the label collapsed to one street,
-"Park Boulevard", which reads as a road, not a place. 90 of the 1,070 exported sites (56
-of the top 800) looked like that, and a reviewer asked, reasonably, for "street 1 x
-street 2".
-
-Two options were rejected. Borrowing the name from the nearest named node one block
-along produces a *different* intersection's name, which is worse than a plain one.
-Dropping such sites hides exactly the ramp and connector junctions the model flags most.
-Instead `src/gis/intersection_names.py` describes the unnamed cross road from its OSM
-tags ("Park Boulevard & connector road", "Brant Street & ramp", "Grove Avenue & unnamed
-street"), so the label says as much as the data supports and still reads as a meeting of
-two things. Two further defects were fixed in the same module: when OSMnx merges ways an
-edge's `name` is a list of spelling variants and the old builder could emit both
-("Genesee Ave & Genesee Avenue"), so each edge now contributes its longest variant; and
-the builder now names every spine node, not only candidates, because the combined list
-(D19) exports non-candidates.
-
-The pipeline's graph is not present on the development machine, so the already-exported
-geojson was patched by `scripts/refine_intersection_names.py`. It re-fetches the drive
-network around each single-name point from Overpass in batches of twenty (on 2026-09-17
-one request per point took one to five minutes under load; a batch cost the same),
-rebuilds a local graph with the same drive filter the pipeline uses, applies the same
-rules, and accepts a new label only if one of its streets is the original (`same_road`).
-Result: 49 relabelled, 36 confirmed as genuine single-road nodes (dead ends, boundary
-cuts), 5 with no named road within 15 m, 0 rejected by the guard. Single-street labels
-fell from 90 to 41 overall and from 56 to 26 in the top 800. One site gained a genuinely
-named cross street the pipeline graph lacked ("Bob Wilson Drive & Florida Drive"). The
-patch touches `intersection_name` only; the pipeline regenerates
-`intersection_names.csv` and the results CSVs with the same module on its next run.
-
-Updated: `src/gis/intersection_names.py` (new), `scripts/build_intersection_names.py`,
-`scripts/refine_intersection_names.py` (new), `tests/test_intersection_names.py` (new),
-`tests/test_refine_intersection_names.py` (new), `dashboard/public/data/intersections.geojson`.
-

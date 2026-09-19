@@ -1,16 +1,16 @@
 rank,feature_name,mean_abs_shap,feature_group,plain_english
-1,years_since_last_crash,0.59501,TREND,Years since the last crash of any severity at this intersection
-2,changepoint_prob,0.17332,TREND,Probability of a structural changepoint toward higher crash rates
-3,distinct_crash_days_72mo,0.04142,VOLUME,Number of distinct calendar days with a crash in the past 72 months
-4,crashes_72mo,0.03138,VOLUME,Total crash count in the past 72 months
-5,ewma_crashes,0.03029,RECENCY,Exponentially weighted moving average of annual crash count
-6,worst_severity_72mo,0.01313,SEVERITY,Worst SWITRS collision severity code observed in the past 72 months
-7,night_72mo,0.01224,SEVERITY,Number of crashes occurring at night or dusk/dawn in the past 72 months
-8,crash_trend_slope,0.00537,TREND,Theil-Sen regression slope of annual crash counts
-9,emergence_velocity,0.00525,RECENCY,Change in crash count from the first to the last year of the feature window
-10,broadside_72mo,0.00343,SEVERITY,Number of broadside (T-bone) crashes in the past 72 months
-11,bike_crashes_72mo,0.00316,SEVERITY,Number of crashes involving a bicycle in the past 72 months
-12,left_turn_72mo,0.00205,SEVERITY,Number of crashes involving a left-turn movement in the past 72 months
-13,mann_kendall_tau,0.00187,TREND,Mann-Kendall tau statistic for monotone trend in annual crash counts
-14,covid_period_share,0.00178,TREND,Share of 72-month crashes occurring after March 2020
-15,crashes_36mo,0.00159,RECENCY,Total crash count in the most recent 36 months
+1,years_since_last_crash,0.4745,crash,Years since the last crash at this intersection
+2,functional_class,0.4411,infra,Road functional class (arterial vs. local street)
+3,edge_count,0.2027,infra,Number of approach legs at the intersection
+4,lane_count,0.1772,infra,Approximate lane count
+5,transit_prox_m,0.1544,infra,Distance to the nearest transit stop
+6,nbr_crashes_150m,0.1097,spatial,Crashes within 150 m (local crash pressure)
+7,changepoint_prob,0.0919,crash,Probability of a rising crash-rate changepoint
+8,nbr_crashes_400m,0.0866,spatial,Crashes within 400 m (corridor crash pressure)
+9,node_density_400m,0.0866,spatial,Intersection density within 400 m
+10,stop_control,0.0776,infra,Stop sign present at the intersection
+11,slope_pct,0.0633,infra,Roadway grade (percent)
+12,intersection_type,0.0629,infra,"Intersection geometry type (T, 4-way, complex)"
+13,ewma_crashes,0.0599,crash,Exponentially weighted recent crash rate
+14,dist_nearest_hotspot_m,0.0559,spatial,Distance to the nearest 5+-crash site
+15,speed_limit,0.0359,infra,Posted or estimated speed limit

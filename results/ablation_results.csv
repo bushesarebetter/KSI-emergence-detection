@@ -1,5 +1,0 @@
-set,description,n_features,spearman_random,spearman_spatial,recall_at_500_ge2_random,recall_at_500_ge2_spatial
-A_crash_only,"A: crash only (City of San Diego only, corrected candidate set)",20,0.1279,0.1305,10/21,9/21
-B_road_geometry,B: crash + road geometry,25,0.148,0.15,12/21,9/21
-C_signals,C: crash + signals/signs,22,0.1342,0.1353,10/21,10/21
-D_all_infra,D: crash + all OSM infra,30,0.1485,0.1496,11/21,9/21

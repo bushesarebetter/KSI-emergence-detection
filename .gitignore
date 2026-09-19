@@ -66,3 +66,9 @@ data/raw/gmail/token.json
 
 # generated model figures
 figures/
+
+# generated model outputs (keep only the current deliverables)
+results/*
+!results/top500_forward_2025_2027.csv
+!results/top500_verified_2022_2024.csv
+!results/feature_importance.csv
