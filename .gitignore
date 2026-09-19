@@ -63,3 +63,6 @@ dashboard/.env
 # credential for the account.
 data/raw/gmail/credentials.json
 data/raw/gmail/token.json
+
+# generated model figures
+figures/
