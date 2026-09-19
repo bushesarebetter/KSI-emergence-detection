@@ -46,9 +46,17 @@ shortlist of sub-threshold sites lets the City inspect and treat before the cras
 - **The strongest features track exposure.** Neighbor crash pressure and hotspot proximity are
   largely traffic-volume proxies; part of the signal is that busy areas have more crashes.
   Separating dangerous design from high exposure needs ADT data the project does not yet have.
-- **The dollar figures are illustrative.** The ~20:1 BCR comes from a $5.18M fatal-crash cost
-  against a ~$6.4k/site spend and an assumed 30% treatment effectiveness. The baseline carries a
-  similar BCR, so the ratio measures the economics of crash prevention, not the model's contribution.
+- **The dollar figures are illustrative.** Prevented harm at top-500 is $21–62M across a 10–30%
+  treatment-effectiveness range; the ~20:1 BCR uses the optimistic 30% and a ~$6.4k/site spend the
+  analysis does not verify. The program clears break-even while average treatment stays under
+  ~$40–120k/site. The baseline carries a similar BCR, so the ratio measures the economics of crash
+  prevention, not the model's contribution. And the City treats ~14 spot sites a year, so a 500-site
+  program is only realistic as systemic low-cost treatment, not spot fixes.
+- **The City already uses the main signal.** Road design (SHAP: 53% of the E decision — functional
+  class, geometry, lanes) is what San Diego's Systemic Safety Analysis (SSARP, built with SafeTREC)
+  screens on. The model's contribution over that program is a site-specific ranking on the
+  sub-threshold population, not a new risk factor. "Fully incremental to the City" holds against the
+  reactive ≥5-crash review, not against the systemic program.
 - **The forward edge is unconfirmed.** Only the overall 7.3x lift replicated on 2025. Whether E
   specifically outperforms the baseline on the forward window waits on the complete 2025–2027 labels.
 

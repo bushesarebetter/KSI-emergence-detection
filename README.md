@@ -6,11 +6,17 @@ them before the harm happens.
 
 ## The problem
 
-San Diego's safety program is reactive. Its High Crash List flags intersections that already carry
-**≥5 reported crashes**, about 14 sites a year. Intersections trending toward danger but still under
-that bar are invisible to it. This project predicts which of those **City-invisible** intersections —
-fewer than 5 crashes — will emerge as KSI sites within three years, from crash records the City
-already collects, road infrastructure, and corridor context.
+San Diego screens for traffic safety two ways. Its **annual high-crash review** evaluates
+intersections with **five or more injury-or-fatal crashes** — 14 locations in the 2024 review —
+and recommends spot treatments (signs, beacons, signal upgrades). Separately, its **Systemic Safety
+Analysis** (built with UC Berkeley SafeTREC, the same data source this project uses) scans the whole
+network for high-risk road features and applies low-cost countermeasures broadly.
+
+The reactive review, by construction, cannot flag an intersection until crashes have piled up. This
+project ranks the intersections **below that 5-crash bar** by how likely they are to emerge as KSI
+sites within three years — a site-specific shortlist that complements the reactive review. It leans
+on the same signal the City's systemic program uses (road design; see SHAP below), so its
+contribution is *prioritization on the sub-threshold population*, not a new risk factor.
 
 ## The model
 
@@ -21,20 +27,27 @@ figure below is **out-of-fold**: each site is scored by a model that never train
 
 ## Results
 
-A **top-500 shortlist** of City-ignored intersections:
+A **top-500 shortlist** of intersections below the City's 5-crash review bar:
 
 | Metric | Value |
 |---|---|
-| Future KSI sites caught | **39 / 500** (40 events) |
-| Concentration vs. random | **7.3x** |
-| Prevented societal harm (30% treatment effectiveness) | **$62M** |
-| Net of program cost (~$3.2M after 90% HSIP) | **$59M** — **BCR ~19:1** |
-| Incremental to the City | **100%** — its 5-crash screen catches $0 of these sites |
+| KSI sites in the top-500 shortlist | **39 of 500** (40 KSI crashes) |
+| Share of all future-KSI sites caught | **39 / 276 ≈ 14%** at top-500 |
+| Concentration vs. picking 500 at random | **7.3x** |
+| Prevented harm at top-500 (10–30% treatment effectiveness) | **$21M – $62M** |
+| Break-even | pays off while average treatment stays under **~$40–120k/site** |
+| Vs. the reactive ≥5-crash review | fully incremental — that review flags **none** of these sites |
 
 The spatial-neighbor features make this the first model in the project to beat a no-ML persistence
 baseline (rank by crash count and trend) on **both** cross-validation splits, by $6–11M prevented
 harm. Infrastructure and corridor context carry the signal: once the sites the City already flags
 are removed, crash counts alone stop discriminating.
+
+**Reading the numbers.** "39 of 500" means 39 of the 500 shortlisted sites became KSI sites — not 39
+of 40; the 40 is the KSI-crash count at those 39. The City treats ~14 spot locations a year, so the
+shortlist is meant to be worked top-down to capacity, or fed to the systemic low-cost-countermeasure
+program; the top-500 dollar figures assume that broad, cheap treatment, and both the effectiveness
+(10–30%) and per-site cost are assumptions the analysis does not verify.
 
 **Prospective 2025 (predict-only).** Fit once and never retrained, the model scored a fresh
 2016–2024 candidate cohort against true 2025 outcomes it never saw. Top-500: **9 sites / 10 events,
