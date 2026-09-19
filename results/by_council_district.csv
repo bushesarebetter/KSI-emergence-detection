@@ -1,0 +1,1001 @@
+rank,district,name,crashes,top_reason
+3,1,North Torrey Pines Road & Torrey Pines Scenic Drive,4,Arterial
+8,1,Genesee Avenue & Scripps Hospital Drive,2,Arterial
+18,1,La Jolla Boulevard & Via del Norte,2,Arterial
+37,1,La Jolla Boulevard & Rosemont Street,4,Arterial
+38,1,Mission Boulevard & Missouri Street,2,Arterial
+40,1,Gilman Drive & Via Alicante,4,Secondary arterial
+62,1,Prospect Street & Silverado Street,2,Secondary arterial
+88,1,North Torrey Pines Road & Science Park Road,0,Arterial
+92,1,Exploration Drive & North Torrey Pines Road,3,Arterial
+102,1,La Jolla Shores Drive & North Torrey Pines Road,0,Arterial
+106,1,La Jolla Shores Drive & Shellback Way,2,Secondary arterial
+107,1,Electric Avenue & La Jolla Boulevard,2,Arterial
+186,1,La Jolla Boulevard & Tourmaline Street,4,Arterial
+188,1,La Jolla Village Drive,0,Arterial
+216,1,Holiday Court & Villa La Jolla Drive,3,Secondary arterial
+225,1,La Jolla Boulevard & Palomar Avenue,3,Arterial
+238,1,Ivanhoe Avenue & Torrey Pines Road,2,Arterial
+245,1,Carmel Valley Road & Old El Camino Real,4,Major arterial
+247,1,Nobel Drive & Villa La Jolla Drive,3,Secondary arterial
+266,1,Herschel Avenue & Prospect Street,3,Secondary arterial
+268,1,La Jolla Boulevard & Mira Monte,1,Arterial
+269,1,Ingraham Street & La Cima Drive,2,Arterial
+277,1,North Torrey Pines Road & Pangea Drive,4,Arterial
+284,1,Ingraham Street & Yosemite Street,3,Last crash ~5 years ago
+322,1,La Jolla Village Square Driveway & Nobel Drive,3,Secondary arterial
+328,1,Girard Avenue & Kline Street,3,Secondary arterial
+335,1,La Jolla Scenic Way & La Jolla Village Drive,4,Arterial
+343,1,Balboa Avenue & Grand Avenue,0,Arterial
+361,1,North Torrey Pines Court & North Torrey Pines Road,1,Arterial
+363,1,High Avenue & Torrey Pines Road,4,Arterial
+367,1,Amalfi Street & Torrey Pines Road,4,Arterial
+377,1,Everts Street & Grand Avenue,0,Arterial
+380,1,Expedition Way & North Torrey Pines Road,2,Arterial
+407,1,La Jolla Boulevard & Tyrian Street,1,Arterial
+411,1,Beryl Street & Jewell Street,3,Secondary arterial
+419,1,Glenbrook Way & Torrey Pines Road,1,Arterial
+428,1,Genesee Avenue & Scripps Hospital Drive,1,~3 lanes
+429,1,Ingraham Street & La Mancha Drive,1,Arterial
+457,1,La Jolla Boulevard & Marine Street,4,Arterial
+462,1,Carmel Mountain Road & Vista Sorrento Parkway,2,Arterial
+469,1,Mission Bay Drive & North Mission Bay Drive,1,Secondary arterial
+476,1,East Mission Bay Drive & Mission Bay Drive,2,Secondary arterial
+477,1,La Jolla Boulevard & Playa del Norte,1,Arterial
+479,1,La Jolla Scenic Drive South & Soledad Mountain Road,2,Secondary arterial
+493,1,Greenhouse Lane & Pepper Canyon Drive,3,Secondary arterial
+500,1,Mission Bay Drive & Rosewood Street,3,Arterial
+501,1,Gilman Drive,3,Last crash ~5 years ago
+526,1,El Camino Real,2,Arterial
+530,1,Genesee Avenue & Science Center Drive,2,Arterial
+543,1,Caminito Pacifica Trail & San Dieguito Road,3,Secondary arterial
+551,1,Camino del Oro & La Jolla Shores Drive,1,Secondary arterial
+555,1,North Torrey Pines Road,1,Arterial
+578,1,La Jolla Boulevard & Turquoise Street,3,Arterial
+600,1,Spindrift Drive & Torrey Pines Road,2,Arterial
+610,1,Haines Street & Oliver Avenue,2,4-leg intersection
+622,1,Grand Avenue,3,Arterial
+625,1,Intersection 98dd9335,2,Arterial
+636,1,Calle Clara & La Jolla Shores Drive,2,Secondary arterial
+642,1,Gilman Drive,1,4-leg intersection
+650,1,Bayard Street & Grand Avenue,0,Arterial
+651,1,Beryl Street & Mission Boulevard,0,Arterial
+652,1,Callan Road,1,Arterial
+667,1,North Torrey Pines Road & Salk Institute Road,0,Arterial
+677,1,Ashley Falls Drive & Del Mar Heights Road,4,Arterial
+680,1,Sorrento Valley Boulevard & Sorrento Valley Road,3,Arterial
+683,1,Fanuel Street & Grand Avenue,0,Arterial
+686,1,Carmel Valley Road & Edgewood Bend Court,0,Secondary arterial
+689,1,Exchange Place & Prospect Street,4,Secondary arterial
+694,1,Avenida de la Playa & La Jolla Shores Drive,4,Secondary arterial
+703,1,Fay Avenue & Prospect Street,2,Secondary arterial
+715,1,Park Row & Prospect Place,3,Secondary arterial
+742,1,Girard Avenue & Silverado Street,2,Secondary arterial
+746,1,La Jolla Boulevard & Sea Ridge Drive,4,Arterial
+761,1,Donaldson Drive & Garnet Avenue,4,Arterial
+764,1,La Jolla Village Drive & North Torrey Pines Road,0,Arterial
+814,1,Del Mar Heights Road & Durango Drive,2,Arterial
+821,1,Grand Avenue & Haines Street,0,Arterial
+829,1,San Andres Drive & Via de la Valle,3,Arterial
+836,1,Grand Avenue & Morrell Street,1,Arterial
+865,1,North Torrey Pines Road,1,Last crash ~3 years ago
+866,1,Crown Point Drive & Ingraham Street,2,Arterial
+887,1,Kilroy Driveway & Valley Centre Drive,2,Secondary arterial
+888,1,Prospect Street,0,Secondary arterial
+890,1,North Torrey Pines Road,0,Last crash ~3 years ago
+891,1,Carmel Mountain Road & Sorrento Valley Road,0,Secondary arterial
+905,1,Clairemont Drive & Mission Bay Drive,4,Secondary arterial
+920,1,Charlotte Street & Torrey Pines Road,1,Arterial
+924,1,Jewell Street & Missouri Street,2,4-leg intersection
+949,1,La Jolla Shores Drive & Torrey Pines Lane,2,Arterial
+952,1,Coast Walk & Torrey Pines Road,3,Arterial
+964,1,Cass Street & Grand Avenue,1,Arterial
+985,1,Grand Avenue & Olney Street,0,Arterial
+987,1,Carmel Mountain Road & Vista Sorrento Parkway,3,Arterial
+999,1,Mc Graw Street & Morena Boulevard,3,Arterial
+4,2,Sunset Cliffs Boulevard,4,Arterial
+25,2,West Washington Street,1,Arterial
+26,2,Balboa Avenue & Mount Everest Boulevard,2,Arterial
+29,2,Cauby Street & Rosecrans Street,4,Arterial
+31,2,Chatsworth Boulevard & Garrison Street,2,Secondary arterial
+36,2,Clairemont Drive & Knapp Street,4,Arterial
+44,2,West Point Loma Boulevard,4,Secondary arterial
+51,2,Cañon Street & Del Mar Avenue,4,Arterial
+56,2,Malaga Street & Rosecrans Street,2,Arterial
+61,2,Goldsmith Street & Rosecrans Street,2,Arterial
+68,2,Pescadero Avenue & Sunset Cliffs Boulevard,4,Secondary arterial
+78,2,Clairemont Drive & Dalles Avenue,1,Arterial
+79,2,Mc Cain Road & North Harbor Drive,0,Arterial
+80,2,Kamloop Avenue & Moraga Avenue,3,Secondary arterial
+95,2,Mission Boulevard & San Juan Place,4,Arterial
+97,2,Littlefield Street & Morena Boulevard,2,Arterial
+103,2,Balboa Avenue & Balboa Way,1,Arterial
+116,2,Galveston Street & Milton Street,3,Secondary arterial
+120,2,Carleton Street & Rosecrans Street,2,Arterial
+130,2,Frankfort Street & Morena Boulevard,2,Secondary arterial
+137,2,Asher Street & Morena Boulevard,2,Arterial
+144,2,Nimitz Boulevard & Sunset Cliffs Boulevard,1,Arterial
+148,2,Orchard Avenue & Sunset Cliffs Boulevard,4,Secondary arterial
+149,2,Ingraham Street & Perez Cove Way,1,Arterial
+158,2,Conde Street & Congress Street,2,Secondary arterial
+168,2,Camino del Rio West & Jefferson Street,1,Arterial
+170,2,James Street & Rosecrans Street,2,Arterial
+173,2,Chatsworth Boulevard & Evergreen Street,3,Secondary arterial
+175,2,Genesee Avenue & Genesee East Court,4,Arterial
+196,2,Point Loma Avenue & Sunset Cliffs Boulevard,4,Secondary arterial
+198,2,North Harbor Drive,2,Arterial
+200,2,Sunset Place & Taylor Street,3,Arterial
+212,2,Mission Boulevard & San Jose Place,4,Arterial
+213,2,Clairemont Drive & Joplin Avenue,3,Arterial
+218,2,Froude Street & Voltaire Street,4,Secondary arterial
+224,2,Balboa Avenue & Mount Rias Place,4,Arterial
+226,2,Clairemont Drive & Feather Avenue,3,Arterial
+233,2,Moore Street & Old Town Avenue,4,Secondary arterial
+250,2,Burgener Boulevard & Field Street,2,Secondary arterial
+256,2,Freeman Street & Rosecrans Street,4,Arterial
+257,2,Clairemont Drive & Hiawatha Way,4,Arterial
+262,2,Old Town Avenue & San Diego Avenue,3,Secondary arterial
+264,2,Balboa Arms Drive & Mount Abernathy Avenue,1,Secondary arterial
+271,2,Ibsen Street & Rosecrans Street,2,Arterial
+278,2,Juan Street & Mason Street,2,Secondary arterial
+279,2,Loma Riviera Drive & West Point Loma Boulevard,4,Secondary arterial
+286,2,Mendocino Boulevard & Voltaire Street,1,Secondary arterial
+308,2,Blackfoot Avenue & Clairemont Drive,1,Arterial
+314,2,Couts Street,2,Arterial
+323,2,Clairemont Drive & Merrimac Avenue,3,Secondary arterial
+329,2,Mount Acadia Boulevard & Mount Alifan Drive,4,Secondary arterial
+344,2,Clairemont Drive & Emet Court,2,Arterial
+347,2,Catalina Boulevard & Cañon Street,2,Arterial
+348,2,Cañon Street & Talbot Street,4,Arterial
+369,2,Frankfort Street & Milton Street,1,Secondary arterial
+372,2,Rosecrans Street & Seville Street,4,Arterial
+374,2,Rosecrans Street & Sterne Street,3,Arterial
+378,2,Clairemont Drive & Erie Street,2,Arterial
+398,2,Clairemont Mesa Boulevard & Pocahontas Avenue,0,Secondary arterial
+399,2,Clairemont Drive & Fairfield Street,3,Arterial
+401,2,Calle Neil & Clairemont Drive,4,Arterial
+402,2,Admiral Boland Way,1,Secondary arterial
+410,2,Balboa Avenue,0,Arterial
+416,2,Bernice Drive & Catalina Boulevard,4,Secondary arterial
+436,2,Clairemont Mesa Boulevard & Doliva Drive,2,Arterial
+448,2,Hortensia Street & San Diego Avenue,1,Secondary arterial
+449,2,Abbott Street & Long Branch Avenue,2,4-leg intersection
+455,2,Clairemont Drive & Feather Avenue,3,Arterial
+465,2,Anchorage Lane & Talbot Street,2,Secondary arterial
+470,2,Catalina Boulevard & Talbot Street,2,Secondary arterial
+471,2,Ebers Street & Niagara Avenue,2,4-leg intersection
+481,2,Ashford Street & Salizar Street,2,4-leg intersection
+486,2,Balboa Avenue & Mount Culebra Avenue,2,Arterial
+490,2,Pacific Highway & Sports Arena Boulevard,2,Arterial
+499,2,Atascadero Drive & Nimitz Boulevard,4,Arterial
+503,2,Mission Boulevard & San Gabriel Place,4,Secondary arterial
+505,2,Rosecrans Street & Shelter Island Drive,0,Arterial
+508,2,Abbott Street & Muir Avenue,2,4-leg intersection
+509,2,Chatsworth Boulevard & Milan Street,3,Secondary arterial
+510,2,Chateau Drive & Genesee Avenue,2,Arterial
+513,2,Clairemont Drive & Hartford Street,1,Arterial
+521,2,Clairemont Mesa Boulevard & Regents Road,2,Secondary arterial
+534,2,Congress Street & Harney Street,2,Secondary arterial
+536,2,Cañon Street,2,Arterial
+538,2,Midway Drive,4,Arterial
+541,2,Froude Street & Santa Monica Avenue,3,4-leg intersection
+548,2,Sports Arena Boulevard,1,Arterial
+550,2,Balboa Avenue,3,Arterial
+561,2,Catalina Boulevard & Cañon Street,3,Arterial
+574,2,Venice Street & Voltaire Street,3,Secondary arterial
+577,2,Avenida de Portugal & Scott Street,2,Secondary arterial
+588,2,Balboa Avenue & Genesee Avenue,3,Arterial
+628,2,Pacific Highway,1,Arterial
+640,2,Dana Landing Road & West Mission Bay Drive,0,Arterial
+644,2,Jellett Street & Morena Boulevard,2,Arterial
+647,2,Brighton Avenue & Cable Street,3,Transit stop 19 m away
+660,2,Moraga Avenue & Moraga Court,2,Secondary arterial
+661,2,Bermuda Avenue & Sunset Cliffs Boulevard,3,Secondary arterial
+663,2,Chatsworth Boulevard & Quimby Street,0,Secondary arterial
+668,2,West Mission Bay Drive,2,Arterial
+673,2,Catalina Boulevard & Chatsworth Boulevard,3,Secondary arterial
+678,2,Sports Arena Boulevard,1,Arterial
+687,2,Midway Drive,1,Arterial
+688,2,Nimitz Boulevard & West Point Loma Boulevard,4,Arterial
+702,2,West Laurel Street,2,Arterial
+706,2,Lotus Street & Sunset Cliffs Boulevard,4,Secondary arterial
+710,2,Bacon Street & Cape May Avenue,3,4-leg intersection
+712,2,Lee Court & North Harbor Drive,4,Arterial
+714,2,Froude Street & Point Loma Avenue,1,Secondary arterial
+719,2,Bermuda Circle & Santa Barbara Street,2,4-leg intersection
+733,2,Catalina Boulevard & Famosa Boulevard,2,Secondary arterial
+738,2,Poe Street & Rosecrans Street,0,Arterial
+755,2,Catalina Boulevard & Del Monte Avenue,2,Secondary arterial
+758,2,Abbott Street & Voltaire Street,2,4-leg intersection
+762,2,Chatsworth Boulevard & Freeman Street,3,Secondary arterial
+763,2,Chateau Drive & Derrick Drive,2,4-leg intersection
+772,2,Laning Road & Rosecrans Street,2,Arterial
+788,2,Catalina Boulevard & Varona Street,2,Secondary arterial
+790,2,Catalina Boulevard & Catalina Court,2,Secondary arterial
+791,2,Camino del Rio West & Jefferson Street,1,Arterial
+793,2,North Harbor Drive,1,Arterial
+794,2,Intersection 2cd2fdc8,1,Arterial
+800,2,Bacon Street & Brighton Avenue,3,4-leg intersection
+803,2,Lowell Street & Willow Street,4,Transit stop 22 m away
+804,2,East Drive & Sports Arena Boulevard,0,Secondary arterial
+805,2,Catalina Boulevard & Dupont Street,1,Arterial
+806,2,Morena Boulevard & Napier Street,1,Arterial
+815,2,Mount Acadia Boulevard & Mount Burnham Drive,4,Secondary arterial
+816,2,Ebers Street & Narragansett Avenue,2,4-leg intersection
+825,2,Ebers Street & Orchard Avenue,3,Transit stop 30 m away
+827,2,Mount Abraham Avenue & Mount Alifan Drive,4,Secondary arterial
+832,2,Catalina Boulevard & Charles Street,1,Arterial
+833,2,Balboa Avenue,0,Arterial
+845,2,Kettner Boulevard & West Palm Street,1,Secondary arterial
+849,2,Catalina Boulevard & La Paloma Street,1,Secondary arterial
+850,2,Juan Street & Wallace Street,2,Secondary arterial
+857,2,Morena Boulevard & West Morena Boulevard,2,Arterial
+868,2,Genesee Avenue & Mount Etna Drive,0,Arterial
+878,2,Farragut Road & Rosecrans Street,2,Arterial
+896,2,Cañon Street & Valemont Street,0,Arterial
+901,2,Froude Street & Long Branch Avenue,2,4-leg intersection
+912,2,Dickens Street & Scott Street,2,Secondary arterial
+914,2,Oliphant Street & Rosecrans Street,0,Arterial
+916,2,Witherby Street,2,Arterial
+919,2,Emerson Street & Rosecrans Street,3,Arterial
+938,2,Keats Street & Rosecrans Street,2,Arterial
+939,2,Etiwanda Street & Voltaire Street,1,Secondary arterial
+942,2,Dickens Street & Rosecrans Street,4,Arterial
+943,2,Alicia Drive & Catalina Boulevard,3,Secondary arterial
+951,2,West Mission Bay Drive,2,89 km/h speed limit
+953,2,Rosecrans Street & Whittier Street,1,Arterial
+955,2,Airport Terminal Road & Harbor Island Drive,2,Arterial
+961,2,Chatsworth Boulevard & Wawona Drive,1,Secondary arterial
+966,2,Nimitz Boulevard & North Harbor Drive,0,Arterial
+969,2,Capistrano Street & Nimitz Boulevard,1,Arterial
+977,2,Pacific Highway,1,Arterial
+997,2,Friars Road & Sea World Drive,0,Arterial
+1000,2,North Harbor Drive & Scott Street,0,Secondary arterial
+7,3,Donahue Street & Friars Road,0,Arterial
+32,3,4th Avenue & Juniper Street,4,Secondary arterial
+46,3,Friars Road & Gill Village Way,3,Major arterial
+48,3,Friars Road & Gaines Street,1,Arterial
+49,3,26th Street & A Street,2,Secondary arterial
+55,3,30th Street & Palm Street,2,Secondary arterial
+65,3,Pacific Highway & West Ash Street,4,Arterial
+66,3,30th Street & Dwight Street,3,Secondary arterial
+71,3,30th Street & Monroe Avenue,3,Secondary arterial
+93,3,6th Avenue & Ivy Lane,2,Arterial
+99,3,Camino de la Siesta & Camino del Rio North,3,Secondary arterial
+109,3,Herbert Street & University Avenue,3,Arterial
+117,3,Friars Road,3,Major arterial
+121,3,Colusa Street & Friars Road,3,Arterial
+123,3,Lincoln Avenue & Texas Street,4,Secondary arterial
+124,3,Madison Avenue & Oregon Street,3,Secondary arterial
+131,3,Camino del Rio North,1,Secondary arterial
+134,3,University Avenue,4,Arterial
+135,3,Albatross Street & West Hawthorn Street,3,Secondary arterial
+139,3,13th Street & J Street,3,Secondary arterial
+145,3,Idaho Street & Madison Avenue,3,Secondary arterial
+153,3,Ibis Street & Washington Place,3,Arterial
+162,3,30th Street & Myrtle Avenue,2,Secondary arterial
+163,3,Idaho Street & University Avenue,3,Arterial
+165,3,University Avenue,2,Arterial
+166,3,Fern Street & Juniper Street,2,Secondary arterial
+167,3,Union Street & West Broadway,2,Arterial
+180,3,Hotel Circle North & Hotel Circle South,3,Secondary arterial
+205,3,Kettner Boulevard & West Laurel Street,3,Secondary arterial
+208,3,Inspiration Point Way & Park Boulevard,2,Arterial
+214,3,5th Avenue & Brookes Avenue,4,Secondary arterial
+232,3,India Street & West Juniper Street,2,Secondary arterial
+236,3,28th Street & Broadway,3,Arterial
+244,3,6th Avenue & Palm Street,4,Arterial
+258,3,Jacaranda Drive & Jacaranda Place,3,Secondary arterial
+281,3,Adams Avenue & Arizona Street,3,Last crash ~5 years ago
+282,3,Georgia Street & Madison Avenue,3,Secondary arterial
+287,3,4th Avenue & Nutmeg Street,1,Secondary arterial
+291,3,Bancroft Street & Boundary Street,3,Secondary arterial
+296,3,MTS Rapid Busway & Park Boulevard,2,Arterial
+299,3,K Street & North 10th Avenue,1,Arterial
+300,3,4th Avenue & Palm Street,3,Secondary arterial
+310,3,Fashion Valley Road & River Park Drive,4,Secondary arterial
+315,3,29th Street & Broadway,1,Arterial
+324,3,Mission Center Road,2,Major arterial
+337,3,Iowa Street & Lincoln Avenue,2,Secondary arterial
+342,3,Boundary Street & Suncrest Drive,3,Secondary arterial
+346,3,Illinois Street & Lincoln Avenue,3,Secondary arterial
+350,3,Pershing Drive & Upas Street,3,Secondary arterial
+352,3,University Avenue & Vermont Street,0,Arterial
+353,3,6th Avenue & Grape Street,2,Arterial
+356,3,Madison Avenue & Utah Street,3,Secondary arterial
+358,3,Camino de la Reina & Camino del Arroyo,3,Secondary arterial
+360,3,Cleveland Avenue & Richmond Street,2,Secondary arterial
+375,3,Park Boulevard & Village Place,2,Arterial
+383,3,4th Avenue & Upas Street,2,Secondary arterial
+388,3,Friars Road,0,Arterial
+389,3,30th Street & Fern Street,3,Secondary arterial
+390,3,30th Street & Landis Street,3,Secondary arterial
+392,3,State Street & West Date Street,2,Secondary arterial
+397,3,27th Street & B Street,3,Secondary arterial
+405,3,4th Avenue & Kalmia Street,3,Secondary arterial
+406,3,Adams Avenue & Alabama Street,2,Secondary arterial
+415,3,Kettner Boulevard & West Date Street,2,Secondary arterial
+418,3,Eagle Street & West Washington Street,2,Arterial
+422,3,India Street & West Spruce Street,3,Secondary arterial
+426,3,California Street & Kettner Boulevard,1,Secondary arterial
+430,3,F Street & Front Street,4,Secondary arterial
+440,3,Columbia Street & West Cedar Street,1,Secondary arterial
+443,3,Howard Avenue & Park Boulevard,1,Arterial
+445,3,West Washington Street,1,Arterial
+447,3,Park Boulevard & Polk Avenue,0,Arterial
+453,3,Falcon Street & West Washington Street,4,Arterial
+456,3,Brookes Avenue & Park Boulevard,3,Arterial
+466,3,21st Street & Broadway,3,Arterial
+484,3,Friars Road,4,Major arterial
+485,3,Bayfront Court & Pacific Highway,4,Arterial
+496,3,Hotel Circle Court & Hotel Circle South,4,Secondary arterial
+502,3,2nd Avenue & Hawthorn Street,1,Secondary arterial
+507,3,Friars Road & Via Las Cumbres,0,Arterial
+520,3,Kansas Street & Meade Avenue,3,Secondary arterial
+523,3,Alabama Street & Madison Avenue,2,Secondary arterial
+531,3,Colusa Street & Friars Road,1,Arterial
+532,3,28th Street & B Street,4,Secondary arterial
+537,3,17th Street & Island Avenue,4,Secondary arterial
+542,3,Alabama Street & University Avenue,0,Arterial
+546,3,5th Avenue & Quince Street,2,Secondary arterial
+552,3,India Street & West Kalmia Street,2,Secondary arterial
+553,3,El Cajon Boulevard,1,Arterial
+554,3,Kettner Boulevard & West Beech Street,4,Secondary arterial
+564,3,Pacific Highway & West G Street,2,Arterial
+565,3,30th Street & Thorn Street,4,Secondary arterial
+571,3,West Harbor Drive & West Market Street,2,Arterial
+573,3,Adams Avenue & Panorama Drive,2,Secondary arterial
+575,3,21st Street & B Street,2,Secondary arterial
+580,3,Indiana Street & Park Boulevard,2,Arterial
+583,3,8th Avenue & University Avenue,0,Arterial
+586,3,26th Street & C Street,2,Transit stop 10 m away
+591,3,Date Street & Fern Street,2,Secondary arterial
+592,3,India Street & West Ash Street,3,Secondary arterial
+597,3,State Street & West G Street,4,Secondary arterial
+598,3,Mission Center Road & Mission Valley Road,3,Secondary arterial
+601,3,University Avenue & Uptown Center,1,Arterial
+605,3,Park Boulevard & Space Theater Way,1,Last crash ~5 years ago
+611,3,Hazard Center Drive & Mission Center Road,0,Secondary arterial
+616,3,Pershing Drive,3,Secondary arterial
+618,3,25th Street & C Street,4,Secondary arterial
+655,3,Lincoln Avenue & Ohio Street,3,Secondary arterial
+669,3,Front Street & West Island Avenue,3,Secondary arterial
+671,3,Hawthorn Street & Third Avenue,2,Secondary arterial
+675,3,Normal Street,2,Arterial
+682,3,India Street & West Fir Street,2,Secondary arterial
+684,3,Arizona Street & Madison Avenue,3,Secondary arterial
+700,3,Hotel Circle North & Hotel Circle Place North,2,Secondary arterial
+704,3,University Avenue,0,Arterial
+708,3,29th Street & University Avenue,4,Arterial
+709,3,5th Avenue & Redwood Street,2,Secondary arterial
+720,3,6th Avenue,1,Arterial
+721,3,North Harbor Drive & West Hawthorn Street,2,Arterial
+727,3,El Cajon Boulevard,2,Arterial
+729,3,University Avenue,2,Arterial
+740,3,Columbia Street & West A Street,4,Secondary arterial
+743,3,Robinson Avenue & Robinson Place,2,Secondary arterial
+744,3,Washington Street & West Washington Street,1,Arterial
+753,3,Arizona Street & University Avenue,4,Arterial
+757,3,24th Street & Broadway,2,Arterial
+759,3,30th Street & Kalmia Street,2,Secondary arterial
+773,3,6th Avenue & Apollo Way,2,Arterial
+783,3,Camino del Rio North & Qualcomm Way,2,Arterial
+785,3,1st Avenue & West Washington Street,1,Arterial
+789,3,Hawk Street & West Washington Street,0,Arterial
+792,3,1st Avenue & F Street,2,Secondary arterial
+795,3,2nd Avenue & Fir Street,2,Transit stop 17 m away
+796,3,State Street & West A Street,4,Secondary arterial
+799,3,India Street & San Diego Avenue,1,Secondary arterial
+801,3,8th Avenue & A Street,4,Secondary arterial
+812,3,5th Avenue & Juniper Street,2,Transit stop 30 m away
+813,3,Columbia Street & West Broadway,4,Arterial
+820,3,3rd Avenue & A Street,3,Secondary arterial
+823,3,9th Avenue & G Street,3,Secondary arterial
+837,3,6th Avenue & Olive Street,2,Arterial
+838,3,5th Avenue & Maple Street,2,Secondary arterial
+841,3,2nd Avenue & Broadway Circle,2,Arterial
+843,3,Brookes Avenue & West Brookes Avenue,3,Transit stop 12 m away
+844,3,Camino del Rio North & Qualcomm Way,1,Arterial
+847,3,29th Street & Date Street,2,4-leg intersection
+855,3,Pacific Highway & West Grape Street,3,Arterial
+858,3,5th Avenue & Palm Street,3,Secondary arterial
+859,3,25th Street & E Street,3,Secondary arterial
+860,3,Meade Avenue & Ohio Street,3,Secondary arterial
+861,3,Pershing Drive,4,Secondary arterial
+864,3,Andrews Street & West Washington Street,4,Arterial
+873,3,India Street & West Palm Street,3,Secondary arterial
+874,3,Park Boulevard & Russ Boulevard,3,Arterial
+875,3,32nd Street & Landis Street,3,Secondary arterial
+884,3,Mississippi Street & University Avenue,0,Arterial
+886,3,30th Street & Date Street,2,Transit stop 20 m away
+892,3,11th Avenue,1,Arterial
+894,3,Florida Drive & Pershing Drive,3,Secondary arterial
+899,3,Grim Avenue & Thorn Street,4,4-leg intersection
+907,3,26th Street & B Street,4,Secondary arterial
+911,3,8th Avenue & Robinson Avenue,1,Secondary arterial
+918,3,Monroe Avenue & Park Boulevard,4,Transit stop 17 m away
+921,3,6th Avenue & Fir Street,2,Arterial
+933,3,4th Avenue & Pennsylvania Avenue,4,Secondary arterial
+936,3,33rd Street & Upas Street,3,4-leg intersection
+937,3,28th Street & A Street,2,4-leg intersection
+940,3,West Fir Street & West Grape Street,2,Secondary arterial
+944,3,Dale Street & Hawthorn Street,3,4-leg intersection
+948,3,El Cajon Boulevard & Georgia Street,2,Arterial
+965,3,8th Avenue & Cedar Street,1,4-leg intersection
+970,3,5th Avenue & Thorn Street,2,Secondary arterial
+971,3,9th Avenue & Ash Street,2,Secondary arterial
+981,3,Hamilton Street & Polk Avenue,3,4-leg intersection
+982,3,Kettner Boulevard & West Juniper Street,2,4-leg intersection
+983,3,North Harbor Drive & West Harbor Drive,1,Arterial
+1,4,National Avenue & South 40th Street,3,Arterial
+17,4,Imperial Avenue,2,Arterial
+39,4,47th Street & F Street,1,Secondary arterial
+45,4,Detroit Place & Duluth Avenue,3,Secondary arterial
+59,4,Chester Street & Lisbon Street,4,Secondary arterial
+74,4,68th Street & Imperial Avenue,0,Arterial
+75,4,East Market Street & Uvas Street,2,Arterial
+77,4,Cardiff Street & Wade Street,3,Secondary arterial
+81,4,Bullock Drive & South Woodman Street,2,Secondary arterial
+82,4,South Euclid Avenue & Trinidad Way,2,Arterial
+101,4,Bayview Heights Drive & Federal Boulevard,3,Secondary arterial
+127,4,Alcona Street & South Woodman Street,4,Secondary arterial
+128,4,Plaza Boulevard & South Woodman Street,3,Secondary arterial
+140,4,Glencoe Drive & Jamacha Road,1,Secondary arterial
+141,4,North R Avenue & South 47th Street,2,Secondary arterial
+142,4,Chollas Parkway & Fairmount Avenue,1,Arterial
+150,4,Car Street & Jamacha Road,4,Secondary arterial
+160,4,Skyline Drive & Tuther Way,2,Secondary arterial
+178,4,Ocean View Boulevard & South 46th Street,3,Secondary arterial
+189,4,Skyline Drive & South Siena Street,4,Secondary arterial
+207,4,Lisbon Street & Porter Street,4,Secondary arterial
+211,4,La Paz Drive & South Euclid Avenue,3,Arterial
+227,4,Brookhaven Road & South Meadowbrook Drive,4,Secondary arterial
+231,4,Lisbon Street & Pons Street,1,Secondary arterial
+234,4,Federal Boulevard & Mallard Street,4,Secondary arterial
+254,4,Jamacha Road & Lincoln Place,2,Secondary arterial
+255,4,50th Street & Imperial Avenue,0,Arterial
+259,4,Alta View Drive & Parkside Avenue,3,Secondary arterial
+283,4,Reo Drive & Winchester Street,2,Secondary arterial
+289,4,Jester Street & Paradise Valley Road,4,Arterial
+294,4,Jarrett Court & Logan Avenue,4,Arterial
+295,4,Plaza Boulevard & South Woodman Street,3,Secondary arterial
+301,4,63rd Street & Brooklyn Avenue,4,Transit stop 22 m away
+309,4,Rancho Hills Drive & Reo Drive,4,Secondary arterial
+312,4,Cumberland Street & Reo Drive,4,Secondary arterial
+319,4,49th Street & Imperial Avenue,1,Arterial
+327,4,Cardiff Street & San Felipe Street,4,Secondary arterial
+331,4,Lausanne Drive & South Lausanne Drive,3,Secondary arterial
+349,4,Fairmount Avenue & Ridge View Drive,4,Last crash ~5 years ago
+364,4,Benson Avenue & Woodman Street,2,Last crash ~5 years ago
+368,4,Flicker Street & Lisbon Street,3,Secondary arterial
+381,4,Skyline Drive & South 66th Street,2,Secondary arterial
+394,4,Dusk Drive & Parkside Avenue,2,Secondary arterial
+400,4,Reo Drive & Roanoke Street,2,Secondary arterial
+404,4,63rd Street & Imperial Avenue,0,Arterial
+427,4,Reo Drive & Reo Place,2,Secondary arterial
+460,4,Paradise Valley Road & Zest Street,2,Arterial
+467,4,47th Street & Cereza Street,2,Secondary arterial
+478,4,Euclid Avenue,1,Arterial
+483,4,Bayview Heights Drive & Bayview Heights Way,3,Secondary arterial
+522,4,Skyline Drive & Sychar Road,0,Secondary arterial
+556,4,65th Street & Imperial Avenue,4,Arterial
+569,4,54th Street & Olive Street,4,Arterial
+581,4,Division Street & Paradise Road,3,Secondary arterial
+594,4,Potomac Street & Reo Drive,1,Secondary arterial
+596,4,Brandywood Street & Skyline Drive,3,Secondary arterial
+604,4,Alta View Drive & Tooma Street,2,Secondary arterial
+612,4,Brookhaven Road & South Meadowbrook Drive,1,Secondary arterial
+623,4,Skyline Drive & Valencia Parkway,3,Secondary arterial
+635,4,Imperial Avenue & Lisbon Street,4,Arterial
+645,4,Holly Drive & South Euclid Avenue,2,Arterial
+649,4,Jamie Avenue & South Woodman Street,0,Secondary arterial
+672,4,East Market Street & Radio Drive,3,Secondary arterial
+701,4,Boston Avenue & South 38th Street,2,4-leg intersection
+713,4,South Woodman Street & Windward Street,2,Last crash ~5 years ago
+730,4,Flintridge Drive & Potomac Street,1,Secondary arterial
+736,4,Knollwood Road & Meadowbrook Drive,1,Secondary arterial
+748,4,Imperial Avenue & Woodman Street,1,Arterial
+775,4,61st Street & Imperial Avenue,3,Arterial
+853,4,Alta View Drive & Bougainville Road,2,4-leg intersection
+854,4,Logan Avenue & South 36th Street,2,4-leg intersection
+870,4,Lemon Grove Avenue & Viewcrest Drive,2,Arterial
+877,4,Dardaina Drive & Parkside Avenue,2,Secondary arterial
+880,4,National Avenue & Wallace Court,1,Arterial
+913,4,East Market Street & Euclid Avenue,2,Arterial
+915,4,Logan Avenue & Magenta Street,4,~3 lanes
+930,4,East Market Street,1,Last crash ~4 years ago
+934,4,54th Street & Redwood Street,0,Arterial
+941,4,54th Street & College Grove Drive,1,Arterial
+967,4,Bolivar Street & Reo Drive,0,Secondary arterial
+974,4,Richeth Road & Valencia Parkway,1,Secondary arterial
+979,4,Jamacha Road & Lisbon Street,1,Transit stop 24 m away
+992,4,Altamont Drive & Reo Drive,2,Secondary arterial
+6,5,Carmel Mountain Road & Conference Way,3,Arterial
+42,5,Glenhurst Way & Rancho Carmel Drive,1,Secondary arterial
+105,5,Acena Drive & Rancho Bernardo Road,1,Arterial
+129,5,Carmel Mountain Road,2,Arterial
+132,5,Camino del Norte & World Trade Drive,3,Arterial
+151,5,Hibert Street & Mira Mesa Boulevard,3,Arterial
+152,5,Caminito Bolsa & Carmel Mountain Road,3,Arterial
+154,5,Rancho Peñasquitos Boulevard & Via del Sud,2,Arterial
+155,5,Evening Creek Drive East & Evening Creek Drive North,2,Secondary arterial
+176,5,Avenida Abeja & Bernardo Center Drive,3,Arterial
+187,5,Highland Ranch Road & Ted Williams Parkway,2,Arterial
+199,5,Rancho Carmel Drive,4,Secondary arterial
+217,5,Bernardo Center Drive & Fairlie Road,2,Secondary arterial
+219,5,Carmel Mountain Road & Cuca Street,3,Secondary arterial
+220,5,Carmel Mountain Express Drive & Sabre Springs Parkway,4,Secondary arterial
+222,5,Calle Saucillo & Paseo Lucido,3,Secondary arterial
+248,5,Avenida Villaha & Bernardo Heights Parkway,4,Secondary arterial
+251,5,George Cooke Express Drive & West Bernardo Drive,4,Secondary arterial
+253,5,Sabre Springs Parkway & Savannah Creek Drive,4,Secondary arterial
+275,5,Carmel Mountain Road & Via San Marco,0,Secondary arterial
+332,5,Erma Road & Scripps Ranch Boulevard,1,Secondary arterial
+339,5,Carmel Mountain Road,1,Arterial
+385,5,Bernardo Center Drive & Cloudcrest Drive,4,Arterial
+391,5,Black Mountain Road & Pimpernel Drive,2,Arterial
+414,5,Bernardo Center Drive & Bernardo Terrace,1,Secondary arterial
+420,5,Carmel Mountain Road & Via Rimini,3,Secondary arterial
+434,5,Rancho Carmel Drive & Shoal Creek Drive,0,Secondary arterial
+439,5,Via del Campo & West Bernardo Drive,2,Secondary arterial
+450,5,Camino del Sur & Casey Glen,2,Arterial
+451,5,Carmel Mountain Road & Via Cima Bella,3,Arterial
+463,5,Rancho Carmel Drive & Sabre Springs Parkway,4,Arterial
+468,5,Old Milky Way & San Pasqual Valley Road,4,Arterial
+474,5,Scripps Ranch Boulevard,4,Arterial
+480,5,Carmel Mountain Road,2,Arterial
+491,5,Carmel Mountain Road & Conference Way,3,~4 lanes
+525,5,Provencal Place & Rancho Carmel Drive,4,Secondary arterial
+528,5,Carmel Mountain Road & Paseo Montalban,2,Arterial
+544,5,Bernardo Center Drive & Maturin Drive,4,Arterial
+547,5,Babcock Street & Camino del Sur,2,Arterial
+557,5,Bryn Glen Way & Camino del Sur,3,Arterial
+567,5,Scripps Lake Drive & Scripps Ranch Boulevard,1,Arterial
+579,5,Alondra Drive & Rancho Bernardo Road,2,Secondary arterial
+582,5,Eastbourne Road & Highland Ranch Road,3,Secondary arterial
+590,5,Rancho Peñasquitos Boulevard,2,Arterial
+599,5,Camino del Sur & Lazanja Drive,3,Arterial
+614,5,Carmel Mountain Road & Gerana Street,0,Secondary arterial
+615,5,Paseo Montalban & Via Cima Bella,2,Secondary arterial
+617,5,Avenida la Valencia & Pomerado Road,4,Last crash ~5 years ago
+627,5,Rancho Carmel Drive,2,Secondary arterial
+630,5,Nacido Drive & Pomerado Road,1,Last crash ~4 years ago
+633,5,Poway Road & Springhurst Drive,3,Arterial
+666,5,Camino del Norte & Camino del Sur,2,Arterial
+734,5,Caminito Vistana & Carmel Valley Road,2,Arterial
+739,5,West Bernardo Drive,4,Secondary arterial
+745,5,Carmel Ridge Road & Ted Williams Parkway,1,Arterial
+750,5,Carmel Mountain Road & Paseo Aldabra,2,Arterial
+760,5,Bernardo Center Drive & West Bernardo Drive,2,Secondary arterial
+766,5,Rancho Carmel Drive & Sabre Springs Parkway,2,Arterial
+781,5,Sabre Springs Parkway,1,Secondary arterial
+809,5,West Bernardo Court & West Bernardo Drive,3,Secondary arterial
+856,5,Olmeda Way & Rancho Bernardo Road,0,Arterial
+869,5,Carmel Mountain Road & Stoney Creek Road,3,Secondary arterial
+927,5,Matinal Road & Rancho Bernardo Road,4,Arterial
+929,5,Calle de Las Rosas & Rancho Peñasquitos Boulevard,0,Arterial
+990,5,Spring Canyon Road & Waterton Road,2,Secondary arterial
+9,6,Eastgate Mall & Judicial Drive,3,Secondary arterial
+16,6,Convoy Court & Ruffner Street,2,Secondary arterial
+20,6,April Court & Genesee Avenue,4,Arterial
+24,6,Lusk Boulevard & Wateridge Vista Drive,3,Secondary arterial
+27,6,Pennant Way & Regents Road,4,Secondary arterial
+41,6,Eastgate Mall & Towne Centre Drive,0,Secondary arterial
+52,6,Governor Drive & Radcliffe Drive,2,Secondary arterial
+53,6,Camino Santa Fe & Flanders Drive,4,Secondary arterial
+57,6,Convoy Street & Raytheon Road,4,Arterial
+64,6,Clairemont Mesa Boulevard & Industrial Park Driveway,4,Arterial
+67,6,Miramar Road & Rigel Avenue,3,Arterial
+76,6,Lusk Boulevard & Pacific Center Boulevard,3,Secondary arterial
+86,6,Mira Mesa Boulevard & New Salem Street,4,Arterial
+90,6,AleSmith Court & Miramar Road,3,Arterial
+94,6,Eastgate Mall & Genesee Avenue,2,Arterial
+104,6,Dabney Drive & Mira Mesa Boulevard,2,Arterial
+111,6,Miracrest Place & Miramar Road,2,Arterial
+112,6,Eastgate Mall & Regents Road,2,Secondary arterial
+113,6,Camino Ruiz & Jade Coast Road,4,Secondary arterial
+133,6,Clairemont Mesa Boulevard & Complex Street,1,Arterial
+147,6,Kearny Mesa Road & Mercury Street,4,Secondary arterial
+161,6,Lightwave Avenue & Overland Avenue,1,Secondary arterial
+184,6,Camino Santa Fe & Top Gun Street,0,Secondary arterial
+194,6,Clairemont Mesa Boulevard & Overland Avenue,3,Arterial
+195,6,Executive Drive & Miramar Street,4,Secondary arterial
+197,6,Ronson Road & Ruffner Street,3,4-leg intersection
+201,6,Convoy Street,3,Arterial
+215,6,Caminito Plaza Centro & Nobel Drive,3,Secondary arterial
+221,6,Clairemont Mesa Boulevard & Industrial Park Driveway,1,~4 lanes
+229,6,Galvin Avenue & Westview Parkway,4,Secondary arterial
+242,6,Camino Santa Fe & Construction Court,2,Secondary arterial
+243,6,Mira Mesa Boulevard & Penridge Street,3,Arterial
+249,6,Sorrento Valley Road,2,Arterial
+260,6,Clairemont Mesa Boulevard & Murphy Canyon Road,0,Arterial
+265,6,Avenida del Gato & Calle Cristobal,1,Secondary arterial
+270,6,Cargill Avenue & Nobel Drive,2,Secondary arterial
+272,6,Camino Ruiz & Jade Coast Drive,4,Secondary arterial
+297,6,Renaissance Avenue & Towne Centre Drive,4,Secondary arterial
+302,6,Clairemont Mesa Boulevard & Industrial Park Driveway,2,~4 lanes
+303,6,Caminito Jovial & Carroll Canyon Road,1,Secondary arterial
+317,6,Morehouse Drive & Scranton Road,2,Secondary arterial
+320,6,Miramar Road & Miramar Way,0,Arterial
+321,6,Kearny Villa Road & Miramar Road,2,Arterial
+325,6,Lombard Place & Nobel Drive,3,Secondary arterial
+330,6,Camino Ruiz & Carroll Canyon Road,3,Secondary arterial
+340,6,Miramar Road & Padgett Street,0,Arterial
+345,6,Black Mountain Road & Maya Linda Road,4,Arterial
+354,6,Costa Verde Boulevard & La Jolla Village Drive,1,Arterial
+355,6,La Jolla Village Drive & Lebon Drive,2,Arterial
+359,6,Campus Point Drive & Genesee Avenue,2,Arterial
+370,6,Kearny Villa Road,0,Secondary arterial
+387,6,Clayton Drive & Miramar Road,0,Arterial
+412,6,Commerce Avenue & Miramar Road,3,Arterial
+423,6,Health Sciences Drive & Regents Road,1,Secondary arterial
+437,6,Camino Ruiz & Miramar Road,0,Arterial
+438,6,Autoport Mall & Eastgate Mall,2,Secondary arterial
+446,6,Alemania Road & Mercy Road,0,Arterial
+464,6,Costa Verde Boulevard & La Jolla Village Drive,2,Arterial
+487,6,Flanders Drive & Flanders Place,3,Secondary arterial
+497,6,Genesee Avenue & La Jolla Village Drive,1,Arterial
+512,6,Mira Mesa Boulevard & Pacific Heights Boulevard,0,Arterial
+514,6,Kearny Villa Road & Tierra Grande Street,2,Last crash ~5 years ago
+518,6,Barnes Canyon Road & Lusk Boulevard,4,Secondary arterial
+519,6,Convoy Street & Vickers Street,2,Arterial
+529,6,Erlanger Street & Governor Drive,1,Secondary arterial
+535,6,Carroll Canyon Road,2,Secondary arterial
+587,6,La Jolla Village Drive & Towne Centre Drive,3,Arterial
+593,6,Kearny Villa Road & Tierra Grande Street,1,Arterial
+595,6,Genesee Avenue & Regents Road,2,~3 lanes
+634,6,Mira Mesa Boulevard & Westview Parkway,2,Arterial
+643,6,Chesapeake Drive & Clairemont Mesa Boulevard,1,Transit stop 33 m away
+653,6,Cozzens Street & Governor Drive,1,Secondary arterial
+662,6,Dagget Street & Mercury Street,4,Secondary arterial
+679,6,Darden Road & Flanders Drive,1,Secondary arterial
+690,6,Stadium Street & Stetson Avenue,3,Secondary arterial
+698,6,Genesee Avenue & Regents Road,1,Last crash ~5 years ago
+707,6,Clairemont Mesa Boulevard & Convoy Street,3,Arterial
+723,6,Clairemont Mesa Boulevard & Shawline Street,1,Arterial
+726,6,Esplanade Court & Genesee Avenue,4,Arterial
+752,6,Business Access Road & Carroll Canyon Road,1,Secondary arterial
+754,6,Ashford Street & Batista Street,2,4-leg intersection
+767,6,Clairemont Mesa Boulevard & Mercury Street,0,Arterial
+768,6,Balboa Avenue & Convoy Street,4,Arterial
+774,6,McKellar Court & Pacific Center Boulevard,2,4-leg intersection
+779,6,Camino Santa Fe & Commerce Avenue,2,Secondary arterial
+787,6,Balboa Avenue & Mercury Street,3,Arterial
+798,6,Chesapeake Drive & Ruffin Road,2,Arterial
+808,6,Scranton Road & Sorrento South Driveway,2,~3 lanes
+811,6,Camino Santa Fe & Flanders Drive,1,~4 lanes
+818,6,Flanders Drive & Sequence Drive,1,Secondary arterial
+826,6,Clairemont Mesa Boulevard & Kearny Mesa Road,3,Arterial
+828,6,Balboa Avenue & Kearny Villa Road,4,Arterial
+834,6,Mercury Street & Ronson Road,4,4-leg intersection
+840,6,Legacy Road & Pomerado Road,4,Arterial
+876,6,Calle Cristobal & Camino Ruiz,0,Secondary arterial
+882,6,Clairemont Mesa Boulevard & Ruffner Street,1,Arterial
+885,6,Opportunity Road & Ruffner Street,2,4-leg intersection
+893,6,Camino Ruiz & Hydra Lane,2,Secondary arterial
+900,6,Mira Mesa Boulevard,0,Arterial
+908,6,Towne Center Plaza & Towne Centre Drive,1,Secondary arterial
+922,6,Executive Drive & Genesee Avenue,0,Arterial
+932,6,Camino Santa Fe & Frost-Mar Place,4,Arterial
+956,6,Aderman Avenue & Mira Mesa Boulevard,0,Arterial
+957,6,Armstrong Street & Ashford Street,3,4-leg intersection
+959,6,Convoy Street & Opportunity Road,2,4-leg intersection
+972,6,Dowdy Drive & Miramar Road,2,Arterial
+975,6,Black Mountain Road & Miramar Road,1,Arterial
+980,6,Balboa Avenue,1,Secondary arterial
+989,6,Carroll Road & Crestmar Point,3,Secondary arterial
+991,6,Balboa Avenue & Kearny Villa Road,4,Arterial
+994,6,Ruffin Road & Spectrum Center Boulevard,4,~6 lanes
+995,6,Sorrento Valley Boulevard & Sunny Mesa Road,2,Secondary arterial
+2,7,Ridgehaven Court & Ruffin Road,4,Secondary arterial
+5,7,Mission Gorge Road & Vandever Avenue,3,Arterial
+12,7,Rueda Drive & Tierrasanta Boulevard,2,Secondary arterial
+21,7,Goshen Street & Linda Vista Road,4,Arterial
+28,7,Navajo Road,0,Arterial
+30,7,Alcala Park Way & Linda Vista Road,2,Arterial
+35,7,Fontaine Street & Princess View Drive,4,Secondary arterial
+47,7,Aero Drive & West Canyon Avenue,1,Arterial
+50,7,Antigua Boulevard & Santo Road,4,Arterial
+60,7,Rancho Mission Road & Ward Road,3,Secondary arterial
+87,7,Galewood Street & Waring Road,0,Secondary arterial
+89,7,Greenbrier Avenue & Mission Gorge Road,3,Arterial
+96,7,Camino Estrellado & Margerum Avenue,2,Arterial
+110,7,Health Center Drive & Vista Hill Avenue,3,Secondary arterial
+115,7,Rueda Drive & Tierrasanta Boulevard,2,Secondary arterial
+125,7,Friars Road,2,Major arterial
+126,7,Aero Drive & Glen L Curtis Road,4,Arterial
+136,7,Fashion Hills Boulevard & Ulric Street,3,Secondary arterial
+143,7,Greenbrier Avenue & Waring Road,3,Secondary arterial
+146,7,Linda Vista Road & North Rim Court,3,Arterial
+172,7,Clairemont Mesa Boulevard & Repecho Drive,2,Arterial
+177,7,Morena Boulevard & Savannah Street,2,Secondary arterial
+182,7,Ducos Place & Tierrasanta Boulevard,2,Secondary arterial
+190,7,Mission Gorge Road,1,Arterial
+203,7,Ulric Street,0,Secondary arterial
+204,7,Navajo Road & Park Ridge Boulevard,0,Arterial
+206,7,Morena Boulevard & Viola Street,2,Secondary arterial
+228,7,Larkdale Avenue & Murray Ridge Road,4,Secondary arterial
+235,7,Alcala Knolls Drive & Linda Vista Road,3,Last crash ~5 years ago
+237,7,Remora Street & Santo Road,3,Arterial
+261,7,Aero Drive,3,Arterial
+263,7,Navajo Road,4,Arterial
+267,7,Friars Road,4,Major arterial
+273,7,Cardinal Road & Genesee Avenue,3,Arterial
+274,7,Caminito Cuervo & Rancho Mission Road,3,Secondary arterial
+276,7,Friars Road,1,Arterial
+280,7,East Jewett Street & Eastman Street,4,Secondary arterial
+285,7,La Cuenta Drive & Tierrasanta Boulevard,4,Secondary arterial
+306,7,Mission Gorge Road & Mission Montana Drive,2,Arterial
+307,7,Murray Ridge Court & Murray Ridge Road,2,Secondary arterial
+326,7,51st Street & Zion Avenue,2,Secondary arterial
+351,7,Clairemont Mesa Boulevard & La Cuenta Drive,2,Secondary arterial
+357,7,Golfcrest Drive & Jackson Drive,3,Secondary arterial
+365,7,Crawford Street & Zion Avenue,1,Secondary arterial
+366,7,Genesee Avenue & Park Mesa Way,3,Arterial
+386,7,Azusa Street & Gaines Street,3,Secondary arterial
+395,7,Cowles Mountain Boulevard & Jackson Drive,0,Secondary arterial
+396,7,Genesee Avenue & Health Center Drive,4,Secondary arterial
+408,7,Friars Road & Santo Road,1,Arterial
+424,7,Princess View Drive & Princess View Way,2,Secondary arterial
+425,7,Mission Village Drive & Shawn Avenue,4,Secondary arterial
+452,7,Navajo Road,1,4-leg intersection
+458,7,Burroughs Street & Ulric Street,3,Secondary arterial
+506,7,Orleck Street & Santo Road,2,Arterial
+516,7,Clairemont Mesa Boulevard & Santo Road,1,Arterial
+517,7,Rancho Mission Road,0,Secondary arterial
+524,7,Birchwood Street & Waring Road,2,Secondary arterial
+533,7,Clairemont Mesa Boulevard & Santo Road,2,Arterial
+539,7,La Cuenta Drive & Lamentin Court,1,Secondary arterial
+545,7,Cariuto Court & La Cuenta Drive,2,Secondary arterial
+549,7,Aero Drive & Santo Road,4,Arterial
+563,7,Berger Avenue & Mesa College Drive,1,Secondary arterial
+572,7,John J Montgomery Drive & Sandrock Road,3,Arterial
+576,7,Osler Street & Ulric Street,4,Secondary arterial
+589,7,Jackson Drive & Twin Lake Drive,2,Secondary arterial
+607,7,Linda Vista Road & Metro Street,3,Arterial
+608,7,Princess View Drive & Waring Road,2,~4 lanes
+621,7,Balboa Avenue & Ruffin Road,4,Secondary arterial
+629,7,Friars Road & Northside Drive,2,Major arterial
+631,7,Morena Boulevard & Sherman Street,2,Arterial
+639,7,Allied Road & Mission Gorge Road,1,~3 lanes
+656,7,Comstock Street & Osler Street,2,4-leg intersection
+670,7,Friars Road & Rancho Mission Road,2,Arterial
+676,7,Gramercy Drive,2,Last crash ~5 years ago
+681,7,Friars Road & River Park Road,1,~5 lanes
+691,7,Esplendente Boulevard & Tierrasanta Boulevard,0,Secondary arterial
+692,7,Macawa Avenue & Murray Ridge Road,2,Secondary arterial
+696,7,Princess View Court & Princess View Drive,1,Secondary arterial
+697,7,Friars Road & Mission Gorge Road,4,Arterial
+724,7,Qualcomm Way & Rio San Diego Drive,4,Arterial
+732,7,Ulric Street,1,Secondary arterial
+749,7,Friars Road,1,Last crash ~3 years ago
+751,7,Buenos Avenue & Morena Boulevard,3,Secondary arterial
+771,7,Golfcrest Drive & Jackson Drive,2,~4 lanes
+802,7,Jackson Drive & Lake Badin Avenue,3,Secondary arterial
+846,7,Golfcrest Drive & Golfcrest Place,1,Secondary arterial
+871,7,Jackson Drive & Winding Creek Drive,3,Secondary arterial
+895,7,Friars Road,1,Major arterial
+898,7,College Avenue & Waring Road,3,Arterial
+906,7,Margerum Avenue & Mission Gorge Road,4,Arterial
+926,7,Adobe Falls Road & Waring Road,3,Secondary arterial
+931,7,Lake Murray Boulevard,1,Arterial
+947,7,Cowles Mountain Boulevard & Navajo Road,2,Arterial
+960,7,Bisby Lake Avenue & Navajo Road,0,Arterial
+973,7,Seaman Street & Zion Avenue,2,Secondary arterial
+996,7,Friars Road,1,Major arterial
+11,8,Atwater Street & Coronado Avenue,4,Arterial
+13,8,Desty Street & Palm Avenue,3,Arterial
+14,8,National Avenue & South 27th Street,4,Arterial
+15,8,Eta Street & North Highland Avenue,2,Arterial
+19,8,Camino Maquiladora & Otay Mesa Road,3,Arterial
+22,8,25th Street & K Street,4,Secondary arterial
+23,8,19th Street & J Street,3,Secondary arterial
+69,8,Michael Faraday Drive & Siempre Viva Road,4,Secondary arterial
+70,8,National Avenue & South 26th Street,4,Arterial
+73,8,Emerald Crescent & Otay Mesa Road,4,Arterial
+91,8,Corporate Center Drive & Otay Mesa Road,4,Arterial
+100,8,Otay Mesa Road & Piper Ranch Road,4,Arterial
+108,8,Beejay Drive & Palm Avenue,1,Arterial
+119,8,Coronado Avenue,0,Arterial
+138,8,Beardsley Street & National Avenue,4,Arterial
+156,8,East Harbor Drive & Pier 24 Street,2,Arterial
+157,8,National Avenue & South 33rd Street,4,Arterial
+159,8,Drucker Lane & Siempre Viva Road,2,Secondary arterial
+164,8,West San Ysidro Boulevard,1,Arterial
+171,8,Iris Avenue & Monterey Pine Drive,4,Secondary arterial
+174,8,Britannia Boulevard & Otay Mesa Road,2,Arterial
+181,8,Ailsa Court & Otay Mesa Road,2,Arterial
+192,8,Keeler Avenue & South 43rd Street,3,Arterial
+202,8,Customhouse Plaza & Siempre Viva Road,0,Secondary arterial
+209,8,Main Street & Schley Street,2,Secondary arterial
+210,8,Main Street & Thor Street,1,Secondary arterial
+230,8,Otay Pacific Drive & Siempre Viva Road,3,Secondary arterial
+241,8,Beyer Way & Coronado Avenue,3,Secondary arterial
+246,8,Del Sol Boulevard & Marcwade Drive,4,Secondary arterial
+252,8,25th Street & L Street,2,Secondary arterial
+288,8,Martin Avenue & South 32nd Street,3,Secondary arterial
+292,8,South 43rd Street,2,Arterial
+298,8,Palm Avenue & Wailea Way,3,Arterial
+304,8,Alamitos Avenue & Main Street,2,Secondary arterial
+316,8,Harrison Avenue & South 28th Street,2,Secondary arterial
+318,8,Otay Center Drive & Siempre Viva Road,0,Secondary arterial
+333,8,Main Street & South 28th Street,0,Arterial
+338,8,Paseo de Las Americas & Siempre Viva Road,3,Secondary arterial
+362,8,Main Street & South 27th Street,1,Secondary arterial
+371,8,Beyer Boulevard & Del Sur Boulevard,4,Secondary arterial
+373,8,National Avenue & Sigsbee Street,2,Arterial
+379,8,Avenida Costa Brava & Siempre Viva Road,1,Secondary arterial
+384,8,19th Street & Island Avenue,4,Secondary arterial
+393,8,Main Street & Siva Street,2,Secondary arterial
+403,8,Harris Avenue & Palm Avenue,4,Arterial
+417,8,Logan Avenue & South 32nd Street,4,Secondary arterial
+421,8,Beyer Boulevard & Kaanapali Way,0,Arterial
+431,8,27th Street & Iris Avenue,3,Secondary arterial
+432,8,Enrico Fermi Drive & Siempre Viva Road,2,Secondary arterial
+435,8,Calle Primera & Sycamore Road,1,Secondary arterial
+441,8,22nd Street & G Street,4,Secondary arterial
+442,8,22nd Street & Island Avenue,3,Secondary arterial
+444,8,La Media Road & Otay Mesa Road,3,Arterial
+454,8,Bibler Drive & Camino de la Plaza,3,Secondary arterial
+459,8,Palm Avenue & Saturn Boulevard,0,Major arterial
+482,8,Airway Road & Enrico Fermi Drive,2,Secondary arterial
+488,8,Coronado Avenue,0,Arterial
+492,8,24th Street & G Street,3,Secondary arterial
+504,8,Coronado Avenue & Madden Avenue,1,~3 lanes
+511,8,Sigsbee Street & South 16th Street,3,4-leg intersection
+527,8,Beyer Boulevard & Caulfield Drive,2,Arterial
+558,8,Hensley Street & Imperial Avenue,1,Arterial
+560,8,Del Sol Boulevard,1,Secondary arterial
+584,8,East Harbor Drive & South 28th Street,0,Arterial
+585,8,Del Sol Boulevard & Del Sur Boulevard,2,Secondary arterial
+603,8,Coronado Avenue,4,Arterial
+606,8,East Harbor Drive & Sigsbee Street,0,Arterial
+609,8,Siempre Viva Court & Siempre Viva Road,2,Secondary arterial
+619,8,Main Street & Sampson Street,4,4-leg intersection
+626,8,30th Street & J Street,2,4-leg intersection
+632,8,Smythe Avenue & Via de la Melodia,4,Secondary arterial
+637,8,Enrico Fermi Drive & Marconi Drive,1,Secondary arterial
+646,8,Airway Road & Caliente Avenue,1,Secondary arterial
+648,8,Paseo de Las Americas & Siempre Viva Road,4,Last crash ~5 years ago
+657,8,Ocean View Boulevard & South Evans Street,4,Secondary arterial
+665,8,Beyer Boulevard & Palm Avenue,0,Arterial
+695,8,Beyer Boulevard & West Foothill Road,1,Secondary arterial
+705,8,Citrus Avenue & Hollister Street,2,Last crash ~5 years ago
+711,8,Dewey Street & Ocean View Boulevard,1,Secondary arterial
+717,8,Franklin Avenue & South 32nd Street,2,Secondary arterial
+722,8,Manning Way & Palm Avenue,1,Last crash ~4 years ago
+725,8,Palm Avenue,0,Arterial
+728,8,25th Street,1,Secondary arterial
+731,8,Del Sol Boulevard & Riviera Shores Street,2,Secondary arterial
+737,8,Chicano Park Boulevard & Harrison Avenue,3,Secondary arterial
+741,8,Cottonwood Road & West Foothill Road,1,Secondary arterial
+747,8,26th Street & K Street,2,4-leg intersection
+756,8,Beyer Boulevard & Madden Avenue,3,Arterial
+769,8,Beardsley Street & Main Street,1,Transit stop 10 m away
+776,8,Main Street,1,Secondary arterial
+786,8,Beardsley Street & Commercial Street,3,Secondary arterial
+797,8,Logan Avenue & South 31st Street,4,4-leg intersection
+810,8,Avenida de la Fuente South & Paseo de la Fuente,1,Secondary arterial
+819,8,30th Street & Iris Avenue,2,Secondary arterial
+830,8,Coronado Avenue & Gaywood Street,3,Arterial
+831,8,East Harbor Drive,1,Arterial
+848,8,East Harbor Drive & Vesta Street,0,Major arterial
+852,8,Otay Mesa Center Road & Otay Mesa Road,0,Arterial
+863,8,Marconi Drive & Paseo de Las Americas,4,4-leg intersection
+867,8,29th Street & South 29th Street,3,Secondary arterial
+881,8,Gailes Boulevard & Otay Mesa Road,1,Arterial
+897,8,Ocean View Hills Parkway & Otay Mesa Road,1,Arterial
+902,8,Via de San Ysidro & West San Ysidro Boulevard,3,Arterial
+910,8,Palm Avenue & Saturn Boulevard,4,Major arterial
+928,8,East San Ysidro Boulevard & West San Ysidro Boulevard,0,Arterial
+946,8,Coronado Avenue,1,Arterial
+962,8,Chicano Park Boulevard & Irving Avenue,1,4-leg intersection
+976,8,Center Street & East Beyer Boulevard,1,Secondary arterial
+978,8,Main Street & South 31st Street,1,Last crash ~5 years ago
+984,8,Coronado Avenue,0,Arterial
+986,8,Beyer Way & Via Tonga,4,Secondary arterial
+988,8,Kentmere Terrace & Ocean View Hills Parkway,2,Arterial
+10,9,Francis Street & Imperial Avenue,4,Arterial
+33,9,Adams Avenue & West Mountain View Drive,3,Secondary arterial
+34,9,Imperial Avenue & South 39th Street,2,Arterial
+43,9,47th Street & Monroe Avenue,3,Secondary arterial
+54,9,Euclid Avenue & Monroe Avenue,2,Secondary arterial
+58,9,Imperial Avenue & Messina Way,2,Arterial
+63,9,Chollas Parkway & University Avenue,2,Arterial
+72,9,37th Street & Wightman Street,2,Secondary arterial
+83,9,Fairmount Avenue,4,Arterial
+84,9,Cherokee Avenue & Wightman Street,4,Secondary arterial
+85,9,40th Street & East Market Street,0,Arterial
+98,9,East Market Street & Morrison Street,2,Arterial
+114,9,51st Street & Orange Avenue,3,Secondary arterial
+118,9,32nd Street & K Street,4,Secondary arterial
+122,9,Estrella Avenue & University Avenue,4,Arterial
+169,9,54th Street,2,Arterial
+179,9,Fairmount Avenue,3,Arterial
+183,9,Altadena Avenue & Orange Avenue,2,Secondary arterial
+185,9,67th Street & El Cajon Boulevard,2,Arterial
+191,9,Chollas Parkway,0,Arterial
+193,9,Adams Avenue & Hawley Boulevard,3,Secondary arterial
+223,9,Menlo Avenue & Wightman Street,4,Secondary arterial
+239,9,East Market Street & Raven Street,0,Arterial
+240,9,College Grove Drive & College Grove Way,1,Secondary arterial
+290,9,El Cajon Boulevard & Montezuma Road,3,Arterial
+293,9,Mission Village Drive,3,Major arterial
+305,9,Euclid Avenue & Isla Vista Drive,2,Secondary arterial
+311,9,Montezuma Road,4,Arterial
+313,9,43rd Street & East Market Street,3,Arterial
+334,9,39th Street & El Cajon Boulevard,2,Arterial
+336,9,East Market Street & Gateway Center Way,2,Arterial
+341,9,Collwood Boulevard & Collwood Lane,0,Secondary arterial
+376,9,43rd Street & Myrtle Avenue,4,Arterial
+382,9,35th Street & El Cajon Boulevard,4,Arterial
+409,9,Aldine Drive,1,Arterial
+413,9,50th Street & Orange Avenue,3,~3 lanes
+433,9,71st Street & El Cajon Boulevard,0,Arterial
+461,9,University Avenue,2,Arterial
+472,9,42nd Street & El Cajon Boulevard,2,Arterial
+473,9,Fairmount Avenue & Laurel Street,3,Arterial
+475,9,Marlborough Avenue & Thorn Street,4,4-leg intersection
+489,9,41st Street & El Cajon Boulevard,2,Arterial
+494,9,43rd Street,0,Arterial
+495,9,35th Street & Meade Avenue,3,Secondary arterial
+498,9,College Avenue & Estelle Street,4,Arterial
+515,9,College Avenue & Pontiac Street,3,Arterial
+540,9,Adams Avenue & East Mountain View Drive,2,Secondary arterial
+559,9,Adams Avenue & Edgeware Road,3,Secondary arterial
+562,9,Bancroft Street & Meade Avenue,3,Secondary arterial
+566,9,Friars Road & Rio Bonito Way,2,~4 lanes
+568,9,Imperial Avenue & South 37th Street,2,Arterial
+570,9,Cherokee Avenue & El Cajon Boulevard,3,Arterial
+602,9,68th Street & University Avenue,3,Arterial
+613,9,34th Street & El Cajon Boulevard,1,Arterial
+620,9,Collwood Boulevard & Montezuma Road,4,Arterial
+624,9,Copeland Avenue & El Cajon Boulevard,0,Arterial
+638,9,33rd Place & El Cajon Boulevard,2,Arterial
+641,9,Collwood Boulevard & Collwood Way,4,Secondary arterial
+654,9,49th Street & Orange Avenue,1,Secondary arterial
+658,9,Euclid Avenue & Laurel Street,2,Secondary arterial
+659,9,55th Street & Hardy Avenue,4,4-leg intersection
+664,9,37th Street & El Cajon Boulevard,3,Arterial
+674,9,Copeland Avenue & Meade Avenue,4,Secondary arterial
+685,9,46th Street & Wightman Street,2,Secondary arterial
+693,9,Landis Street & Wightman Street,4,Secondary arterial
+699,9,Marlborough Avenue & Polk Avenue,4,4-leg intersection
+716,9,Euclid Avenue & Myrtle Avenue,3,Secondary arterial
+718,9,54th Street & University Avenue,0,Arterial
+735,9,University Avenue,0,Arterial
+765,9,Columbine Street & Fairmount Avenue,2,Arterial
+770,9,Chamoune Avenue & Myrtle Avenue,2,4-leg intersection
+777,9,Shiloh Road & University Avenue,0,Arterial
+778,9,Swift Avenue & Wightman Street,2,Secondary arterial
+780,9,El Cajon Boulevard & Esther Street,2,Arterial
+782,9,50th Street & Wightman Street,4,4-leg intersection
+784,9,College Avenue & Cresita Drive,1,Arterial
+807,9,Friars Road,4,Last crash ~5 years ago
+817,9,Chamoune Avenue & Landis Street,3,4-leg intersection
+822,9,Franklin Avenue & South 36th Street,3,Secondary arterial
+824,9,33rd Street & Meade Avenue,2,Secondary arterial
+835,9,Cherokee Avenue & Landis Street,2,4-leg intersection
+839,9,Bancroft Street & Island Avenue,3,Secondary arterial
+842,9,35th Street & Madison Avenue,4,Secondary arterial
+851,9,Gateway Drive & Midvale Drive,2,Transit stop 21 m away
+862,9,Fairmount Avenue,3,Last crash ~5 years ago
+872,9,Monroe Avenue & Winona Avenue,2,4-leg intersection
+879,9,Meade Avenue & Van Dyke Avenue,2,Secondary arterial
+883,9,Dayton Street & El Cajon Boulevard,0,Arterial
+889,9,70th Street & Amherst Street,3,Secondary arterial
+903,9,68th Street & El Cajon Boulevard,1,Arterial
+904,9,58th Street,1,Arterial
+909,9,41st Street & Orange Avenue,2,Secondary arterial
+917,9,Dawson Avenue & El Cajon Boulevard,0,Arterial
+923,9,42nd Street & Wightman Street,3,Secondary arterial
+925,9,Camino del Rio South & Montezuma Road,1,Last crash ~4 years ago
+935,9,Rolando Boulevard & University Avenue,2,Arterial
+945,9,Fairmount Avenue,2,89 km/h speed limit
+950,9,60th Street & University Avenue,0,Arterial
+954,9,El Cajon Boulevard & Wilson Avenue,1,Arterial
+958,9,37th Street & El Cajon Boulevard,1,Arterial
+963,9,Estrella Avenue & Trojan Avenue,1,4-leg intersection
+968,9,45th Street & Orange Avenue,4,Secondary arterial
+993,9,46th Street & Olive Street,2,4-leg intersection
+998,9,39th Street & Wightman Street,2,Secondary arterial

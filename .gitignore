@@ -72,3 +72,4 @@ results/*
 !results/top500_forward_2025_2027.csv
 !results/top500_verified_2022_2024.csv
 !results/feature_importance.csv
+!results/by_council_district.csv
