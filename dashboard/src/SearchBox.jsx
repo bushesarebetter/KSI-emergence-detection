@@ -82,7 +82,7 @@ export default function SearchBox({ intersections, threshold, onSelect, large = 
   const showDropdown = open && query.trim().length >= 2;
 
   const inputClass = large
-    ? "h-[54px] w-full border border-ink/30 bg-paper pl-12 pr-4 text-[17px] text-ink shadow-paper placeholder:text-ink-3 focus:border-ink focus:outline-none"
+    ? "h-[54px] w-full border border-ink/30 bg-paper pl-12 pr-4 text-[17px] text-ink placeholder:text-ink-3 focus:border-ink focus:outline-none"
     : "h-11 w-full border border-rule-strong bg-paper-sunk pl-9 pr-3 text-[16px] text-ink placeholder:text-ink-3 focus:border-ink focus:bg-paper focus:outline-none md:h-auto md:py-[7px] md:text-[13px]";
   const iconSize = large ? 18 : 14;
 
@@ -127,7 +127,7 @@ export default function SearchBox({ intersections, threshold, onSelect, large = 
                   key={p.rank}
                   onMouseEnter={() => setCursor(i)}
                   onClick={() => choose(f)}
-                  className={`flex min-h-[44px] w-full items-center justify-between gap-3 border-b border-rule px-3.5 py-2 text-left transition-colors last:border-b-0 md:min-h-0 ${
+                  className={`flex min-h-[44px] w-full items-center justify-between gap-3 border-b border-rule px-3.5 py-2 text-left last:border-b-0 md:min-h-0 ${
                     large ? "md:min-h-[44px]" : ""
                   } ${i === cursor ? "bg-paper-edge" : "hover:bg-paper-sunk"}`}
                 >

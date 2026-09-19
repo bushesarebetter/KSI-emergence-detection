@@ -36,11 +36,11 @@ import time
 from pathlib import Path
 
 import networkx as nx
-import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 from src.gis.intersection_names import build_name_index, label_for_nodes  # noqa: E402
+from src.gis.overpass import fetch  # noqa: E402
 
 GEOJSON = ROOT / "dashboard" / "public" / "data" / "intersections.geojson"
 CACHE = ROOT / "data" / "proc" / "refined_names_cache.json"
@@ -58,17 +58,6 @@ DRIVE_EXCLUDE = (
     "elevator|escalator|footway|path|pedestrian|planned|platform|proposed|"
     "raceway|service|steps|track"
 )
-
-# Fastest first. On 2026-09-17 overpass-api.de answered every interpreter
-# request from this network with 406 or a connect timeout, so it is tried last.
-OVERPASS_ENDPOINTS = (
-    "https://overpass.kumi.systems/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter",
-    "https://overpass-api.de/api/interpreter",
-)
-RETRY_WAITS_S = (0, 10, 30, 60)
-HTTP_TIMEOUT = (30, 600)  # connect, read: queries queue for minutes under load
-USER_AGENT = "KSI-emergence-detection/refine_intersection_names (+https://github.com/bushesarebetter/KSI-emergence-detection)"
 
 # ── Street-name comparison ──────────────────────────────────────────────────────
 
@@ -114,27 +103,6 @@ def overpass_query(points) -> str:
         for lat, lon in points
     )
     return f"[out:json][timeout:240];({parts});out body;>;out skel qt;"
-
-
-def fetch(query: str):
-    """POST the query, rotating mirrors with backoff. Returns (json, None) or (None, error)."""
-    err: Exception | None = None
-    for attempt, wait in enumerate(RETRY_WAITS_S):
-        if wait:
-            time.sleep(wait)
-        url = OVERPASS_ENDPOINTS[attempt % len(OVERPASS_ENDPOINTS)]
-        try:
-            r = requests.post(url, data={"data": query}, timeout=HTTP_TIMEOUT,
-                              headers={"User-Agent": USER_AGENT})
-            r.raise_for_status()
-            data = r.json()
-            remark = data.get("remark") or ""
-            if "error" in remark.lower():
-                raise RuntimeError(remark)
-            return data, None
-        except Exception as exc:  # timeouts, 429/504, malformed JSON
-            err = exc
-    return None, err
 
 
 # ── Geometry and graph ──────────────────────────────────────────────────────────

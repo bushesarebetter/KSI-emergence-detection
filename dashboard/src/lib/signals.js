@@ -1,61 +1,75 @@
 /**
- * Turn a model feature label into something a non-specialist can act on.
+ * Turn a model feature label into a sentence a non-specialist can read.
  *
  * The `display_label` strings come from the export
- * (scripts/build_export_panel_verified.py) and are written in feature-space:
- * "EWMA crash rate 3.1", "16 distinct crash days (72 months)". Those are exactly
- * right for a traffic engineer reading SHAP values and meaningless to everyone
- * else, so plain mode rewrites them.
+ * (scripts/build_export_panel_verified.py) and are written in feature space:
+ * "EWMA crash rate 3.1", "16 distinct crash days (72 months)". A traffic
+ * engineer reading SHAP values wants exactly that; everyone else needs words.
  *
- * Rewrites must stay faithful. "EWMA crash rate 3.1" becomes "steady recent
- * crash rate" — a fair reading of an exponentially-weighted moving average,
- * which by construction weights recent years most. It must not become "this
- * intersection is dangerous", which is a claim about hazard the model does not
- * make.
+ * Rewrites stay faithful. "EWMA crash rate 3.1" becomes "steady recent crash
+ * rate", a fair reading of an exponentially weighted average that counts recent
+ * years most. It never becomes "this intersection is dangerous", which is a
+ * claim about hazard the model does not make.
  *
- * Unmatched labels fall through unchanged rather than being dropped: showing a
- * technical string is better than showing nothing.
+ * Unmatched labels fall through unchanged. A technical string beats nothing.
  */
 
 const RULES = [
   {
-    // Exponentially-weighted moving average of crashes: recent years dominate.
     test: /ewma crash rate\s*([\d.]+)/i,
-    render: (m) => `Steady recent crash rate, about ${m[1]} a year`,
+    render: (m) => `A steady crash rate, about ${m[1]} a year, weighted toward recent years`,
   },
   {
     test: /([\d.]+)\s*years? since last crash/i,
     render: (m) => {
       const yrs = parseFloat(m[1]);
-      if (yrs < 1) return "A crash happened here within the last year";
-      // Round first, then pluralise: 1.6 years is "about 2 years", not "2 year".
+      if (yrs < 1) return "A crash within the past year";
       const n = Math.round(yrs);
-      return n <= 1 ? "Last crash here was about a year ago" : `Last crash here was about ${n} years ago`;
+      return n <= 1 ? "The last crash was about a year ago" : `The last crash was about ${n} years ago`;
     },
   },
   {
-    test: /(\d+)\s*distinct crash days/i,
-    render: (m) => `Crashes on ${m[1]} separate days, not one bad incident`,
+    test: /(\d+)\s*distinct crash days \((\d+) months\)/i,
+    render: (m) => `Crashes on ${m[1]} separate days in ${Math.round(Number(m[2]) / 12)} years`,
   },
   {
     test: /(\d+)\s*crashes in last (\d+) months/i,
     render: (m) => `${m[1]} crashes in the last ${Math.round(Number(m[2]) / 12)} years`,
   },
-  { test: /left[_\s-]?turn/i, render: () => "Several crashes involved left turns" },
-  { test: /broadside/i, render: () => "Several crashes were side-impact collisions" },
-  { test: /\bped(estrian)?\b/i, render: () => "Pedestrians were involved in crashes here" },
-  { test: /\bbike|bicycle\b/i, render: () => "Cyclists were involved in crashes here" },
-  { test: /\bnight\b/i, render: () => "Several crashes happened after dark" },
+  {
+    test: /(\d+)\s*left-turn crashes? \((\d+) months\)/i,
+    render: (m) => `${m[1]} left-turn ${Number(m[1]) === 1 ? "crash" : "crashes"} in ${Math.round(Number(m[2]) / 12)} years`,
+  },
+  {
+    test: /(\d+)\s*night crashes? \((\d+) months\)/i,
+    render: (m) => `${m[1]} ${Number(m[1]) === 1 ? "crash" : "crashes"} after dark in ${Math.round(Number(m[2]) / 12)} years`,
+  },
+  {
+    test: /(\d+)\s*bicycle crashes? \((\d+) months\)/i,
+    render: (m) => `${m[1]} ${Number(m[1]) === 1 ? "crash" : "crashes"} involving a bike in ${Math.round(Number(m[2]) / 12)} years`,
+  },
+  {
+    test: /(\d+)\s*pedestrian crashes? \((\d+) months\)/i,
+    render: (m) => `${m[1]} ${Number(m[1]) === 1 ? "crash" : "crashes"} involving someone on foot in ${Math.round(Number(m[2]) / 12)} years`,
+  },
+  {
+    test: /(\d+)\s*broadside crashes? \((\d+) months\)/i,
+    render: (m) => `${m[1]} side-impact ${Number(m[1]) === 1 ? "crash" : "crashes"} in ${Math.round(Number(m[2]) / 12)} years`,
+  },
   { test: /\bdui\b|alcohol/i, render: () => "Alcohol was involved in crashes here" },
-  { test: /changepoint/i, render: () => "Crash rate here recently jumped from a stable baseline" },
-  { test: /trend|slope|mann.?kendall/i, render: () => "Crashes here are trending upward" },
-  { test: /momentum|velocity|acceleration/i, render: () => "Crashes here are speeding up" },
-  { test: /worst severity/i, render: () => "Past crashes here caused injuries" },
-  { test: /covid/i, render: () => "Crash pattern shifted during the pandemic years" },
+  {
+    test: /(\d+)% structural break probability/i,
+    render: (m) => `The crash rate jumped from its earlier level (${m[1]}% likely)`,
+  },
+  { test: /crash trend slope \+/i, render: () => "Crashes rising year over year" },
+  { test: /mann.?kendall trend tau = -/i, render: () => "Crashes falling year over year" },
+  { test: /trend|slope|mann.?kendall/i, render: () => "A crash trend over the years" },
+  { test: /worst severity\s*([\d.]+)/i, render: () => "Past crashes here caused injuries" },
+  { test: /covid/i, render: () => "The crash pattern shifted in the pandemic years" },
 ];
 
 export function humanizeSignal(label) {
-  if (!label || label === "—") return "—";
+  if (!label || label === "—") return "";
   for (const { test, render } of RULES) {
     const m = label.match(test);
     if (m) return render(m);
@@ -79,34 +93,33 @@ export function sourceLine(props, advanced) {
   if (s === "known") {
     const n = props.ksi_history ?? 1;
     return advanced
-      ? `Known KSI site · ${plural(n, "KSI crash")} in the history window`
+      ? `Known KSI site, ${plural(n, "KSI crash")} in the history window`
       : `Already had ${plural(n, "serious crash")} here`;
   }
   if (s === "screen") {
     const n = props.screen_count ?? 5;
     return advanced
-      ? `City screen · ${n} crashes in one year (≥5 rule)`
-      : `On the City's own list · ${n} crashes in one year`;
+      ? `City screen, ${n} crashes in one year (5-or-more rule)`
+      : `On the City's own list, ${n} crashes in one year`;
   }
   return null;
 }
 
 /**
  * What to show in place of model signals for a site that has none. A known or
- * screen site was not ranked by the model, and saying so is the honest reading
- * of an empty SHAP list.
+ * screen site was never ranked by the model, and the panel says so.
  */
 export function inclusionReason(props, advanced) {
   const s = sourceOf(props);
   if (s === "known") {
     return advanced
-      ? "Included from the known-KSI tier; no model prediction applies."
-      : "Included because a serious crash has already happened here — no prediction needed.";
+      ? "Included from the known-KSI tier. No model prediction applies."
+      : "A serious crash has already happened here, so it is on the list by record. The model did not rank it.";
   }
   if (s === "screen") {
     return advanced
-      ? "Included from the City-screen tier (≥5 crashes in a year); no model prediction applies."
-      : "Included because it meets the City's own screening rule: five or more crashes in a year.";
+      ? "Included from the City-screen tier (5 or more crashes in a year). No model prediction applies."
+      : "It meets the City's own screening rule, five or more crashes in a year, so it is on the list by record. The model did not rank it.";
   }
   return null;
 }

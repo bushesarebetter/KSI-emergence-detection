@@ -9,6 +9,10 @@ import {
 import { formatScore, intersectionsToCsv } from "./lib/format";
 import { useAdvanced } from "./useAdvanced";
 import { humanizeSignal, inclusionReason } from "./lib/signals";
+import { patternOf } from "./lib/advice";
+import { passesFilters } from "./lib/filters";
+import { crashRate, fmtPerYear, roundVehicles } from "./lib/rates";
+import { trafficFor } from "./useTraffic";
 
 const PAGE_SIZE = 50;
 const DRAWER_HEIGHT = "42vh";
@@ -21,7 +25,7 @@ function rankColor(rank) {
   return "#B8963F"; // pale amber darkened for text legibility on paper
 }
 
-const makeColumns = (advanced) => [
+const makeColumns = (advanced, traffic) => [
   {
     id: "rank",
     header: "Rank",
@@ -40,9 +44,7 @@ const makeColumns = (advanced) => [
     id: "district",
     header: advanced ? "D" : "District",
     accessorFn: (f) => f.properties.council_district,
-    cell: ({ getValue }) => (
-      <span className="tnum text-ink-3">D{getValue()}</span>
-    ),
+    cell: ({ getValue }) => <span className="tnum text-ink-3">D{getValue()}</span>,
   },
   // Percentile is a precise but opaque way to say "near the top of a list of
   // 26,045", and it duplicates the rank column for anyone not reading closely.
@@ -56,50 +58,73 @@ const makeColumns = (advanced) => [
       }]
     : []),
   {
-    id: "crashes",
-    header: advanced ? "Crashes" : "Crashes since 2016",
-    accessorFn: (f) => f.properties.crashes_training,
+    id: "rate",
+    header: advanced ? "Crashes/yr" : "Crashes a year",
+    accessorFn: (f) => crashRate(f.properties.crash_history)?.perYear ?? 0,
+    cell: ({ getValue }) => <span className="tnum">{fmtPerYear(getValue())}</span>,
   },
   {
-    id: "signal",
-    header: advanced ? "Top signal" : "Main reason",
-    accessorFn: (f) => f.properties.shap_features?.[0]?.display_label ?? "—",
-    enableSorting: false,
-    // A known or City-screen site has no model signals; say why it is listed
-    // instead of showing a dash.
+    id: "trend",
+    header: "Trend",
+    accessorFn: (f) => crashRate(f.properties.crash_history)?.trend ?? "",
+    cell: ({ getValue }) => {
+      const t = getValue();
+      return <span className={t === "rising" ? "font-semibold text-risk-1" : "text-ink-3"}>{t}</span>;
+    },
+  },
+  {
+    id: "adt",
+    header: advanced ? "ADT" : "Vehicles a day",
+    // Unknown sorts to the bottom in either direction by reading as zero.
+    accessorFn: (f) => trafficFor(traffic, f)?.entering ?? 0,
     cell: ({ row, getValue }) => {
-      const reason = inclusionReason(row.original.properties, advanced);
+      const v = getValue();
+      if (!v) return <span className="text-ink-3">no count</span>;
+      const t = trafficFor(traffic, row.original);
       return (
-        <span className="text-[12px] text-ink-3">
-          {reason ?? (advanced ? getValue() : humanizeSignal(getValue()))}
+        <span className="tnum">
+          {roundVehicles(v).toLocaleString()}
+          {t && !t.complete && <span className="text-ink-3" title="Only one street is counted here">+</span>}
         </span>
       );
     },
   },
+  {
+    id: "signal",
+    header: advanced ? "Top signal" : "What happens here",
+    accessorFn: (f) => f.properties.shap_features?.[0]?.display_label ?? "",
+    enableSorting: false,
+    // Plain mode names the crash pattern ("Left turns", "After dark"), which is
+    // what a reader can act on; technical mode shows the top SHAP feature. A
+    // known or City-screen site has no model signals, so it says why it is listed.
+    cell: ({ row, getValue }) => {
+      const props = row.original.properties;
+      const reason = inclusionReason(props, advanced);
+      const text = reason ?? (advanced ? getValue() : patternOf(props) ?? humanizeSignal(getValue()));
+      return <span className="text-[12px] text-ink-3">{text}</span>;
+    },
+  },
 ];
 
-export default function RankedTable({ intersections, filters, onSelectIntersection }) {
-  const { advanced, copy } = useAdvanced();
-  const columns = useMemo(() => makeColumns(advanced), [advanced]);
+export default function RankedTable({ intersections, filters, onSelectIntersection, traffic = null }) {
+  const { advanced } = useAdvanced();
+  const columns = useMemo(() => makeColumns(advanced, traffic), [advanced, traffic]);
   const [open, setOpen] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const [globalFilter, setGlobalFilter] = useState("");
 
   const filteredFeatures = useMemo(() => {
     if (!intersections) return [];
-    let feats = intersections.features.filter((f) => f.properties.rank <= filters.threshold);
-    if (filters.districts.length > 0) {
-      const dset = new Set(filters.districts);
-      feats = feats.filter((f) => dset.has(f.properties.council_district));
-    }
+    let feats = intersections.features.filter((f) => passesFilters(f.properties, filters));
     if (globalFilter) {
       const q = globalFilter.toLowerCase();
-      feats = feats.filter((f) =>
-        f.properties.intersection_name.toLowerCase().includes(q)
-      );
+      feats = feats.filter((f) => f.properties.intersection_name.toLowerCase().includes(q));
     }
-    return feats;
-  }, [intersections, filters, globalFilter]);
+    // TanStack caches each row's accessor values on first read, so a column that
+    // depends on traffic.json would keep "no count" from before the file landed.
+    // Returning a fresh array when traffic changes gives the table new rows.
+    return traffic ? [...feats] : feats;
+  }, [intersections, filters, globalFilter, traffic]);
 
   const table = useReactTable({
     data: filteredFeatures,
@@ -128,7 +153,7 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
   function downloadCsv() {
     if (!intersections) return;
     const all = [...intersections.features].sort((a, b) => a.properties.rank - b.properties.rank);
-    const csv = intersectionsToCsv(all);
+    const csv = intersectionsToCsv(all, traffic);
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -146,39 +171,34 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
 
   return (
     <>
-      {/* Toggle button */}
       <button
         onClick={() => setOpen((o) => !o)}
-        className="fixed bottom-0 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 border border-b-0 border-rule-strong bg-paper px-5 text-[12px] font-medium text-ink-2 shadow-paper transition-colors hover:text-ink md:left-[calc(50%+10.25rem)]"
+        className="fixed bottom-0 left-1/2 z-30 flex -translate-x-1/2 items-center gap-2 border border-b-0 border-rule-strong bg-paper px-5 text-[12px] font-medium text-ink-2 shadow-paper hover:text-ink md:left-[calc(50%+10.25rem)]"
         style={{ height: TOGGLE_HEIGHT }}
       >
         <svg width="13" height="10" viewBox="0 0 13 10" fill="none" aria-hidden="true">
-          <rect x="0" y="0" width="13" height="2" rx="1" fill="currentColor" />
-          <rect x="0" y="4" width="13" height="2" rx="1" fill="currentColor" />
-          <rect x="0" y="8" width="13" height="2" rx="1" fill="currentColor" />
+          <rect x="0" y="0" width="13" height="2" fill="currentColor" />
+          <rect x="0" y="4" width="13" height="2" fill="currentColor" />
+          <rect x="0" y="8" width="13" height="2" fill="currentColor" />
         </svg>
-        {advanced ? "Ranked Table" : "Full list"}
+        {advanced ? "Ranked table" : "Full list"}
         <span className="tnum bg-paper-edge px-1.5 py-0.5 text-[10.5px] text-ink-2">{total}</span>
         <span aria-hidden="true" className="ml-0.5 text-ink-3">{open ? "▾" : "▴"}</span>
       </button>
 
-      {/* Drawer */}
       <div
         className="fixed left-0 right-0 z-20 flex flex-col overflow-hidden border-t border-rule-strong bg-paper transition-all duration-300 ease-in-out md:left-[20.5rem]"
         style={{ bottom: TOGGLE_HEIGHT, height: open ? DRAWER_HEIGHT : 0 }}
       >
-        {/* Toolbar */}
         <div className="flex shrink-0 items-center gap-3 border-b border-rule px-5 py-2.5">
           <div className="relative flex-1 max-w-xs">
-            <span className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[12px] text-ink-3">
-              ⌕
-            </span>
             <input
               type="text"
-              placeholder={advanced ? "Search intersections…" : "Filter this list…"}
+              placeholder={advanced ? "Search intersections" : "Filter this list by name"}
               value={globalFilter}
               onChange={handleSearch}
-              className="w-full border border-rule-strong bg-paper-sunk py-1.5 pl-7 pr-3 text-[13px] text-ink placeholder-ink-3 focus:border-ink focus:bg-paper focus:outline-none"
+              aria-label="Filter this list by name"
+              className="w-full border border-rule-strong bg-paper-sunk px-3 py-1.5 text-[13px] text-ink placeholder-ink-3 focus:border-ink focus:bg-paper focus:outline-none"
             />
           </div>
           <span className="tnum ml-auto text-[11.5px] text-ink-3">
@@ -186,16 +206,12 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
           </span>
           <button
             onClick={downloadCsv}
-            className="flex items-center gap-1.5 border border-ink bg-ink px-3 py-1.5 text-[12px] font-semibold text-paper transition-opacity hover:opacity-85"
+            className="border border-ink bg-ink px-3 py-1.5 text-[12px] font-semibold text-paper hover:border-ink-2 hover:bg-ink-2"
           >
-            <svg width="10" height="11" viewBox="0 0 10 11" fill="none" aria-hidden="true">
-              <path d="M5 1v6M2 5.5L5 8.5l3-3M1 10h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            CSV
+            Download CSV
           </button>
         </div>
 
-        {/* Table */}
         <div className="overflow-auto flex-1">
           <table className="w-full text-sm">
             <thead className="sticky top-0 border-b border-rule-strong bg-paper">
@@ -221,7 +237,7 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
               {rows.map((row) => (
                 <tr
                   key={row.id}
-                  className="cursor-pointer border-b border-rule transition-colors hover:bg-paper-sunk"
+                  className="cursor-pointer border-b border-rule hover:bg-paper-sunk"
                   onClick={() => {
                     onSelectIntersection(row.original);
                     setOpen(false);
@@ -236,13 +252,15 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
               ))}
             </tbody>
           </table>
+          {total === 0 && (
+            <p className="px-5 py-6 text-[13px] text-ink-3">
+              No corners match these filters. Widen the shortlist or pick a different kind of crash.
+            </p>
+          )}
         </div>
 
-        {/* Pagination */}
         <div className="flex shrink-0 items-center justify-between border-t border-rule px-5 py-2 text-[11.5px] text-ink-3">
-          <span>
-            {total === 0 ? "No results" : `${start}–${end} of ${total}`}
-          </span>
+          <span>{total === 0 ? "No results" : `${start} to ${end} of ${total}`}</span>
           <div className="flex items-center gap-2">
             <span>
               {pageCount === 0 ? "0" : pageIndex + 1} / {pageCount}
@@ -250,16 +268,16 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
             <button
               onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
               disabled={pageIndex === 0}
-              className="border border-rule-strong px-2.5 py-1 transition-colors hover:bg-paper-edge hover:text-ink disabled:cursor-not-allowed disabled:opacity-30"
+              className="border border-rule-strong px-2.5 py-1 hover:bg-paper-edge hover:text-ink disabled:cursor-not-allowed disabled:opacity-30"
             >
-              ‹
+              Previous
             </button>
             <button
               onClick={() => setPageIndex((p) => Math.min(pageCount - 1, p + 1))}
               disabled={pageIndex >= pageCount - 1}
-              className="border border-rule-strong px-2.5 py-1 transition-colors hover:bg-paper-edge hover:text-ink disabled:cursor-not-allowed disabled:opacity-30"
+              className="border border-rule-strong px-2.5 py-1 hover:bg-paper-edge hover:text-ink disabled:cursor-not-allowed disabled:opacity-30"
             >
-              ›
+              Next
             </button>
           </div>
         </div>

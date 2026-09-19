@@ -7,31 +7,54 @@ import IntersectionPanel from "./IntersectionPanel";
 import WelcomeModal from "./WelcomeModal";
 import MobileShell from "./MobileShell";
 import Landing from "./Landing";
+import Privacy from "./Privacy";
+import NotFound from "./NotFound";
+import Notice from "./Notice";
+import DistrictReport from "./DistrictReport";
 import useIntersections from "./useIntersections";
 import useMediaQuery from "./useMediaQuery";
+import usePageMeta from "./usePageMeta";
+import useTraffic from "./useTraffic";
+import { useOptionalJson } from "./useSiteData";
 import { readSiteFromUrl, writeSiteToUrl } from "./useDeepLink";
 import { AdvancedProvider, useAdvanced } from "./useAdvanced";
 import { MetaProvider, useMetaFetch } from "./useMeta";
-import { DEFAULT_THRESHOLD } from "./constants";
+import { DEFAULT_THRESHOLD, CANDIDATE_COUNT } from "./constants";
 
-const DEFAULT_FILTERS = { threshold: DEFAULT_THRESHOLD, districts: [], crashActiveOnly: false };
+const DEFAULT_FILTERS = { threshold: DEFAULT_THRESHOLD, districts: [], pattern: null };
 const PHONE = "(max-width: 767px)";
 
+const DESCRIPTIONS = {
+  landing: "Every San Diego intersection with no serious crash on record, ranked by how likely one is next.",
+  map: "The map of San Diego intersections ranked by serious-crash risk for 2025 to 2027, with the crash record, traffic, and what to do differently at each one.",
+  privacy: "What this site collects (nothing of its own), what Google Maps and the host collect, and the terms the ranking is offered under.",
+  district: "A printable report of the listed corners in one San Diego council district: the top ten, the kinds of crashes, and which are rising.",
+  notfound: "That page does not exist.",
+};
+
 /**
- * Two views, no router: `/` is the landing page, `/map` is the application.
- * A deep link (`/?site=43`) goes straight to the map -- someone who was sent a
- * link to a specific corner should land on that corner, not on a pitch.
+ * Five views, no router. `/` is the landing page, `/map` the application,
+ * `/privacy` the privacy and terms page, `/district/N` a printable district
+ * report; anything else is a 404. A deep link (`/?site=43`) goes straight to
+ * the map, because someone sent a link to one corner should land on it.
  */
 function viewFromLocation() {
-  if (typeof window === "undefined") return "landing";
+  if (typeof window === "undefined") return { view: "landing", district: null };
   const { pathname, search } = window.location;
-  if (pathname.startsWith("/map") || new URLSearchParams(search).has("site")) return "map";
-  return "landing";
+  const path = pathname.replace(/\/+$/, "") || "/";
+  if (path === "/map") return { view: "map", district: null };
+  if (path === "/") {
+    return { view: new URLSearchParams(search).has("site") ? "map" : "landing", district: null };
+  }
+  if (path === "/privacy") return { view: "privacy", district: null };
+  const m = /^\/district\/([1-9])$/.exec(path);
+  if (m) return { view: "district", district: Number(m[1]) };
+  return { view: "notfound", district: null };
 }
 
 export default function App() {
   // meta.json is small and independent of the intersections file, so it is
-  // fetched here once and made available everywhere without prop-threading.
+  // fetched once here and read anywhere without prop-threading.
   const meta = useMetaFetch();
   return (
     <AdvancedProvider>
@@ -44,14 +67,18 @@ export default function App() {
 
 function Dashboard() {
   const { intersections, districts, loading, error } = useIntersections();
+  const traffic = useTraffic();
+  const recent = useOptionalJson("/data/recent.json");
+  const control = useOptionalJson("/data/control.json");
   const { dismissWelcome } = useAdvanced();
   const [selectedIntersection, setSelectedIntersection] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [view, setView] = useState(viewFromLocation);
+  const [{ view, district }, setLocation] = useState(viewFromLocation);
+  const [routeOverlay, setRouteOverlay] = useState(null);
   const isPhone = useMediaQuery(PHONE);
 
-  // Deep link in: read once at mount into a ref so the write effect below cannot
-  // strip the parameter before the data has loaded and it has been consumed.
+  // Deep link in: read once at mount into a ref so the write effect below
+  // cannot strip the parameter before the data has loaded and consumed it.
   const initialSite = useRef(readSiteFromUrl());
   useEffect(() => {
     if (!intersections || initialSite.current == null) return;
@@ -67,68 +94,123 @@ function Dashboard() {
     writeSiteToUrl(selectedIntersection?.properties.rank ?? null);
   }, [selectedIntersection, view]);
 
-  // Browser back/forward between landing and map.
+  // Browser back and forward between views.
   useEffect(() => {
-    const onPop = () => setView(viewFromLocation());
+    const onPop = () => setLocation(viewFromLocation());
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
-  // Entering the app from the landing page. Someone who has read the hero has
-  // already had the welcome, so it is marked seen rather than shown again.
+  // Every in-app navigation goes through here so the URL and the view agree.
+  // `path` may carry its own query (`/map?site=12`).
+  const navigate = useCallback((path, { site = null } = {}) => {
+    const url = new URL(path, window.location.origin);
+    if (site) url.searchParams.set("site", String(site));
+    window.history.pushState(null, "", url);
+    window.scrollTo(0, 0);
+    const next = viewFromLocation();
+    setLocation(next);
+    // A link to one corner from a report opens that corner.
+    const wanted = Number(url.searchParams.get("site"));
+    if (next.view === "map" && wanted && intersections) {
+      const feature = intersections.features.find((f) => f.properties.rank === wanted);
+      if (feature) setSelectedIntersection(feature);
+    }
+  }, [intersections]);
+
+  // Entering the map from the landing page. Someone who has read the hero has
+  // had the welcome, so it is marked seen rather than shown again.
   const enterMap = useCallback(
     (feature = null) => {
-      const url = new URL(window.location.href);
-      url.pathname = "/map";
-      if (feature) url.searchParams.set("site", String(feature.properties.rank));
-      else url.searchParams.delete("site");
-      window.history.pushState(null, "", url);
+      navigate("/map", { site: feature?.properties.rank ?? null });
       if (feature) setSelectedIntersection(feature);
       dismissWelcome();
-      setView("map");
     },
-    [dismissWelcome]
+    [navigate, dismissWelcome]
   );
 
-  // The wordmark in the app masthead. Going home clears the selection so the
-  // URL comes back clean; the data stays in memory, so it is instant.
   const goHome = useCallback(() => {
-    const url = new URL(window.location.href);
-    url.pathname = "/";
-    url.search = "";
-    window.history.pushState(null, "", url);
     setSelectedIntersection(null);
-    setView("landing");
-  }, []);
+    navigate("/");
+  }, [navigate]);
 
-  // The landing paints immediately; only the map view needs the data gate.
-  if (view === "landing") {
-    return <Landing intersections={intersections} error={error} onEnter={enterMap} />;
-  }
+  // From a district report: the map, filtered to that district.
+  const openMapForDistrict = useCallback(
+    (d) => {
+      setFilters((f) => ({ ...f, districts: [d] }));
+      dismissWelcome();
+      navigate("/map");
+    },
+    [navigate, dismissWelcome]
+  );
 
-  if (loading) {
+  const sel = selectedIntersection?.properties;
+  usePageMeta({
+    title:
+      view === "map"
+        ? sel
+          ? `#${sel.rank} ${sel.intersection_name}`
+          : "Map"
+        : view === "privacy"
+          ? "Privacy and terms"
+          : view === "district"
+            ? `District ${district} report`
+            : view === "notfound"
+              ? "Page not found"
+              : null,
+    description:
+      view === "map" && sel
+        ? `${sel.intersection_name}, ranked #${sel.rank} of ${CANDIDATE_COUNT.toLocaleString()} San Diego intersections for serious-crash risk in 2025 to 2027, with its crash record and what to do differently there.`
+        : DESCRIPTIONS[view],
+  });
+
+  if (view === "privacy") return <Privacy onNavigate={navigate} />;
+  if (view === "notfound") return <NotFound onNavigate={navigate} />;
+  if (view === "district") {
     return (
-      <div className="flex h-dvh items-center justify-center bg-paper">
-        <div className="text-center">
-          <div className="mx-auto mb-4 h-5 w-5 animate-spin rounded-full border border-rule-strong border-t-ink" />
-          <p className="label">Loading intersections</p>
-        </div>
-      </div>
+      <DistrictReport
+        district={district}
+        intersections={intersections}
+        traffic={traffic}
+        recent={recent}
+        onNavigate={navigate}
+        onOpenMap={openMapForDistrict}
+      />
     );
   }
+
+  // The landing paints at once; only the map view waits for the data.
+  if (view === "landing") {
+    return (
+      <Landing
+        intersections={intersections}
+        error={error}
+        onEnter={enterMap}
+        onNavigate={navigate}
+        notice={<Notice placement="inline" onNavigate={navigate} />}
+      />
+    );
+  }
+
+  if (loading) return <LoadingShell isPhone={isPhone} />;
 
   if (error) {
     return (
       <div className="flex h-dvh items-center justify-center bg-paper p-8">
-        <div className="max-w-sm border-l-2 border-risk-1 pl-5">
-          <p className="label mb-2 text-risk-1">Could not load data</p>
+        <div className="max-w-sm bg-paper-sunk px-6 py-5">
+          <p className="label mb-2 text-risk-1">The data did not load</p>
           <p className="font-serif text-[15px] leading-relaxed text-ink-2">{error}</p>
+          <p className="mt-4 text-[13px]">
+            <a href="/" onClick={(e) => { e.preventDefault(); goHome(); }} className="border-b border-ink/25 text-ink hover:border-ink">
+              Back to the front page
+            </a>
+          </p>
         </div>
       </div>
     );
   }
 
-  // Phone gets its own shell: map, search, info, tap-sheet. Nothing else.
+  // Phone gets its own shell: map, search, route, info, tap-sheet. Nothing else.
   if (isPhone) {
     return (
       <>
@@ -138,7 +220,13 @@ function Dashboard() {
           filters={DEFAULT_FILTERS}
           selected={selectedIntersection}
           onSelect={setSelectedIntersection}
+          traffic={traffic}
+          recent={recent}
+          control={control}
+          routeOverlay={routeOverlay}
+          onRoute={setRouteOverlay}
         />
+        <Notice placement="fixed" onNavigate={navigate} />
       </>
     );
   }
@@ -155,34 +243,82 @@ function Dashboard() {
       />
 
       <main className="relative flex flex-1 overflow-hidden">
-        <aside className="w-[20.5rem] shrink-0 border-r border-rule-strong">
+        <aside className="print-hide w-[20.5rem] shrink-0 border-r border-rule-strong">
           <Sidebar
             intersections={intersections}
             districts={districts}
             filters={filters}
             onFiltersChange={setFilters}
+            traffic={traffic}
+            recent={recent}
+            onNavigate={navigate}
+            onRoute={setRouteOverlay}
+            onSelectIntersection={setSelectedIntersection}
           />
         </aside>
 
-        <div className="relative min-w-0 flex-1">
+        <div className="print-hide relative min-w-0 flex-1">
           <MapView
             intersections={intersections}
             filters={filters}
             selectedIntersection={selectedIntersection}
             onSelectIntersection={setSelectedIntersection}
+            routeOverlay={routeOverlay}
           />
           <RankedTable
             intersections={intersections}
             filters={filters}
             onSelectIntersection={setSelectedIntersection}
+            traffic={traffic}
           />
         </div>
 
         <IntersectionPanel
           intersection={selectedIntersection}
           onClose={() => setSelectedIntersection(null)}
+          traffic={traffic}
+          recent={recent}
+          control={control}
+          intersections={intersections}
+          onSelectIntersection={setSelectedIntersection}
         />
       </main>
+
+      <Notice placement="fixed" onNavigate={navigate} />
+    </div>
+  );
+}
+
+/**
+ * The page's own shape while the 1.6 MB export loads: masthead, column and map
+ * area in place, with grey bars where the text will be. A spinner in the middle
+ * of a blank page tells the reader nothing about what is coming.
+ */
+function LoadingShell({ isPhone }) {
+  const bar = (w, h = "h-3") => <div className={`${h} ${w} animate-pulse bg-paper-edge`} />;
+  return (
+    <div className="flex h-dvh flex-col bg-paper" aria-busy="true" aria-live="polite">
+      <div className="flex h-12 shrink-0 items-center border-b border-rule-strong px-5">
+        {bar("w-36", "h-4")}
+      </div>
+      <div className="flex flex-1 overflow-hidden">
+        {!isPhone && (
+          <div className="w-[20.5rem] shrink-0 space-y-4 border-r border-rule-strong p-6">
+            {bar("w-24", "h-2")}
+            {bar("w-full", "h-6")}
+            {bar("w-5/6", "h-6")}
+            <div className="pt-4">{bar("w-2/3")}</div>
+            {bar("w-1/2")}
+            <div className="pt-6">{bar("w-1/3", "h-2")}</div>
+            {bar("w-full")}
+            {bar("w-11/12")}
+            {bar("w-4/5")}
+          </div>
+        )}
+        <div className="relative flex-1 bg-paper-sunk">
+          <p className="label absolute left-5 top-5">Loading intersections</p>
+        </div>
+      </div>
     </div>
   );
 }
