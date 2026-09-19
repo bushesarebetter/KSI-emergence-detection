@@ -94,6 +94,33 @@
   }
 }
 
+/* ── Print ──────────────────────────────────────────────────────────────────
+   A corner's detail panel prints as a one-page sheet: everything else on the
+   map view is hidden and the panel becomes ordinary flowing text. Pages that
+   are already documents (district report, privacy) print as they are, minus
+   their navigation. */
+@media print {
+  .print-hide {
+    display: none !important;
+  }
+  .print-sheet {
+    position: static !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: auto !important;
+    transform: none !important;
+    box-shadow: none !important;
+    border: 0 !important;
+    overflow: visible !important;
+  }
+  .print-sheet .print-scroll {
+    overflow: visible !important;
+  }
+  a[href]::after {
+    content: "";
+  }
+}
+
 /* ── Scrollbars ─────────────────────────────────────────────────────────────
    Thin and paper-toned, so a scrolling column does not sprout a grey bar that
    breaks the printed-page illusion. */
@@ -110,7 +137,7 @@
 }
 *::-webkit-scrollbar-thumb {
   background: theme("colors.rule.strong");
-  border-radius: 999px;
+  border-radius: 0;
 }
 
 /* ── Google Maps chrome ─────────────────────────────────────────────────────

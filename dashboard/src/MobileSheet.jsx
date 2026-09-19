@@ -1,5 +1,9 @@
 import { useRef, useState } from "react";
 import { humanizeSignal, inclusionReason, sourceLine, sourceOf } from "./lib/signals";
+import { adviceFor } from "./lib/advice";
+import { crashRate, fmtPerYear, roundVehicles } from "./lib/rates";
+import { trafficFor } from "./useTraffic";
+import { recordFor, controlFor } from "./useSiteData";
 
 const TIERS = [
   { max: 50, hex: "#7F1D1D", label: "Highest risk" },
@@ -9,8 +13,8 @@ const TIERS = [
 ];
 const tierFor = (rank) => TIERS.find((t) => rank <= t.max);
 
-// Finger must travel this far downward before a drag counts as a dismiss, so an
-// accidental brush while reading does not close the sheet.
+// A finger must travel this far downward before a drag counts as a dismiss, so
+// a brush while reading does not close the sheet.
 const DISMISS_PX = 64;
 
 function parseProp(v) {
@@ -18,15 +22,14 @@ function parseProp(v) {
 }
 
 /**
- * Phone detail sheet. Deliberately the bare minimum: what it is, how risky, the
- * one main reason, and a way to look at it. Everything else lives on desktop.
+ * Phone detail sheet: what it is, how risky, the one thing to do differently,
+ * and a way to look at it. Everything else lives on desktop.
  *
- * Capped at under half the viewport so the map -- the thing the user came for --
- * stays visible above it. Slides from below (deeper = enters from below), and
- * dismisses on a downward swipe past a threshold or via the explicit close
- * control, so touch users are never gesture-only.
+ * Under half the viewport so the map stays visible above it. Dismisses on a
+ * downward swipe past a threshold or on the close control, so touch users are
+ * never gesture-only.
  */
-export default function MobileSheet({ feature, onClose }) {
+export default function MobileSheet({ feature, onClose, traffic = null, recent = null, control = null }) {
   const [dragY, setDragY] = useState(0);
   const dragging = useRef(false);
   const startY = useRef(0);
@@ -38,8 +41,15 @@ export default function MobileSheet({ feature, onClose }) {
   const source = sourceOf(p);
   const isPrediction = source === "predicted";
   const headColor = source === "known" ? "#7F1D1D" : tier.hex;
-  const reason = isPrediction
-    ? humanizeSignal(parseProp(p.shap_features)?.[0]?.display_label)
+
+  const shap = parseProp(p.shap_features);
+  const rate = crashRate(parseProp(p.crash_history));
+  const t = trafficFor(traffic, feature);
+  const police = recordFor(recent, feature);
+  const sinceYear = (recent?.source?.since || "").slice(0, 4);
+  const [advice] = adviceFor({ shap_features: shap }, { max: 1, control: controlFor(control, feature) });
+  const fallback = isPrediction
+    ? humanizeSignal(shap?.[0]?.display_label) || "Ranked on its crash rate. Slow down and leave more room than usual."
     : inclusionReason(p, false);
 
   const onTouchStart = (e) => {
@@ -64,7 +74,7 @@ export default function MobileSheet({ feature, onClose }) {
       onTouchStart={onTouchStart}
       onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
-      className={`fixed inset-x-0 bottom-0 z-40 max-h-[46dvh] overflow-y-auto border-t border-rule-strong bg-paper shadow-paper ${
+      className={`fixed inset-x-0 bottom-0 z-40 max-h-[48dvh] overflow-y-auto border-t border-rule-strong bg-paper shadow-paper ${
         dragging.current ? "" : "transition-transform duration-250 ease-out"
       }`}
       style={{
@@ -74,9 +84,8 @@ export default function MobileSheet({ feature, onClose }) {
     >
       {open && (
         <>
-          {/* Drag handle: the platform-standard affordance for "this swipes down". */}
           <div className="flex justify-center pt-2.5" aria-hidden="true">
-            <span className="h-1 w-9 rounded-full bg-rule-strong" />
+            <span className="h-[3px] w-9 bg-rule-strong" />
           </div>
 
           <div className="flex items-start justify-between gap-3 px-5 pt-2">
@@ -95,6 +104,11 @@ export default function MobileSheet({ feature, onClose }) {
               <h2 className="mt-1 font-serif text-[21px] font-medium leading-[1.2] text-ink">
                 {p.intersection_name}
               </h2>
+              {p.is_known_emergent && (
+                <span className="mt-2 inline-block bg-risk-1 px-2 py-[3px] text-[10.5px] font-semibold text-paper">
+                  Serious crash in 2025
+                </span>
+              )}
             </div>
 
             <button
@@ -108,26 +122,35 @@ export default function MobileSheet({ feature, onClose }) {
             </button>
           </div>
 
-          {p.is_known_emergent && (
-            <p className="mx-5 mt-3 border-l-2 border-risk-1 pl-3 text-[13px] text-ink-2">
-              Had a serious crash in 2025.
+          <div className="mx-5 mt-3 border-t border-rule pt-3">
+            {advice ? (
+              <>
+                <p className="label">{advice.pattern}</p>
+                <p className="mt-1 text-[14px] leading-[1.5] text-ink">{advice.fact}</p>
+                <p className="mt-1.5 text-[14px] leading-[1.5] text-ink-2">
+                  {advice.driving ?? advice.walking ?? advice.cycling}
+                </p>
+              </>
+            ) : (
+              <p className="text-[14px] leading-[1.5] text-ink-2">{fallback}</p>
+            )}
+          </div>
+
+          {(t || rate) && (
+            <p className="mx-5 mt-3 border-t border-rule pt-3 text-[13px] leading-[1.5] text-ink-3">
+              {t && <>About {roundVehicles(t.entering).toLocaleString()} vehicles a day{t.complete ? "" : " on the counted street"}. </>}
+              {rate && <>{fmtPerYear(rate.perYear)} crashes a year, {rate.trend}. </>}
+              {police && <>Police: {police.count} since {sinceYear}.</>}
             </p>
           )}
-
-          <p className="mx-5 mt-3 border-t border-rule pt-3 text-[14px] leading-[1.5] text-ink-2">
-            {reason}
-          </p>
 
           <a
             href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="mx-5 mt-3 flex min-h-[44px] items-center justify-between border-t border-rule pt-3 text-[15px] font-medium text-ink active:opacity-70"
+            className="mx-5 mt-3 block min-h-[44px] border-t border-rule pt-3 text-[15px] font-medium text-ink active:opacity-70"
           >
-            Look at this intersection
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <span className="border-b border-ink/30">Look at this intersection in Street View</span>
           </a>
         </>
       )}

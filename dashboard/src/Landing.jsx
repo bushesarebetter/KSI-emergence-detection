@@ -1,9 +1,11 @@
 import { useState, useMemo } from "react";
 import SearchBox from "./SearchBox";
 import AboutModal from "./AboutModal";
+import { Footer } from "./PageFrame";
 import { useCatch, useComposition } from "./useMeta";
 import { sourceLine, sourceOf } from "./lib/signals";
-import { DEFAULT_THRESHOLD, CANDIDATE_COUNT, REPO_URL } from "./constants";
+import { patternOf } from "./lib/advice";
+import { DEFAULT_THRESHOLD, CANDIDATE_COUNT } from "./constants";
 
 const TIERS = [
   { max: 50, hex: "#7F1D1D", label: "Highest risk" },
@@ -16,24 +18,18 @@ const tierFor = (rank) => TIERS.find((t) => rank <= t.max);
 /**
  * The front door.
  *
- * Built from three references and one anti-reference. gov.uk: state the purpose
- * in the hero, address the reader as "you", one primary call to action, no
- * hyperbole. Walk Score: the type-an-address-get-an-answer pattern -- but its
- * hero ("Live Where You Love") says nothing, so ours is a plain question. NYC's
- * Vision Zero View: twenty filters on the first screen is the thing to avoid.
+ * One question, one search, one button, one figure, one caveat. The specimen
+ * on the right is the only imagery: three real rows from the ranking, each
+ * with the crash pattern behind it, because the product is the list.
  *
- * So: one question, one search, one button, three numbers, one honest caveat.
- * The specimen on the right is the only "imagery" -- three real rows from the
- * ranking, because showing the actual product beats any illustration.
- *
- * Every number is read from /data/meta.json, so this page can never claim a
+ * Every number is read from /data/meta.json, so this page cannot claim a
  * figure the export did not produce.
  */
-export default function Landing({ intersections, error, onEnter }) {
+export default function Landing({ intersections, error, onEnter, onNavigate, notice }) {
   const [aboutOpen, setAboutOpen] = useState(false);
   const { caught, total, lift, candidates } = useCatch(DEFAULT_THRESHOLD);
   const { isCombined, known, screen, topN } = useComposition();
-  const liftRounded = lift == null ? null : Math.round(lift);
+  const randomCatch = lift ? Math.max(1, Math.round(caught / lift)) : null;
   const listSize = isCombined && topN ? topN : DEFAULT_THRESHOLD;
 
   const specimen = useMemo(() => {
@@ -45,30 +41,26 @@ export default function Landing({ intersections, error, onEnter }) {
 
   return (
     <div className="flex min-h-dvh flex-col bg-paper">
-      {/* Masthead: thinner than the app's -- the search lives in the hero. */}
       <header className="border-b border-rule-strong">
         <div className="mx-auto flex max-w-[76rem] items-center justify-between px-5 py-3 md:px-8">
-          <a
-            href="/"
-            title="Home"
-            className="font-serif text-[17px] font-semibold tracking-[-0.01em] text-ink"
-          >
+          <a href="/" className="font-serif text-[17px] font-semibold tracking-[-0.01em] text-ink">
             Intersection Risk
-            <span className="ml-2 hidden text-[11px] font-normal text-ink-3 sm:inline">San&nbsp;Diego</span>
+            <span className="ml-2 hidden text-[11px] font-normal text-ink-3 sm:inline">San Diego</span>
           </a>
           <button
             onClick={() => setAboutOpen(true)}
-            className="border-b border-ink/25 pb-px text-[12px] text-ink-2 transition-colors hover:border-ink hover:text-ink"
+            className="border-b border-ink/25 pb-px text-[12px] text-ink-2 hover:border-ink hover:text-ink"
           >
             How this works
           </button>
         </div>
       </header>
 
-      <main className="mx-auto grid w-full max-w-[76rem] flex-1 grid-cols-1 gap-12 px-5 pb-16 pt-12 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:gap-16 md:px-8 md:pt-20">
-        {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      {notice}
+
+      <main className="mx-auto grid w-full max-w-[76rem] flex-1 grid-cols-1 gap-12 px-5 pb-28 pt-12 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:gap-16 md:px-8 md:pb-16 md:pt-20">
         <section>
-          <p className="label mb-4">San Diego · Independent research</p>
+          <p className="label mb-4">San Diego, independent research</p>
 
           <h1 className="font-serif text-[40px] font-medium leading-[1.04] tracking-[-0.025em] text-ink sm:text-[52px] md:text-[60px]">
             Is your intersection
@@ -79,13 +71,14 @@ export default function Landing({ intersections, error, onEnter }) {
           <p className="mt-6 max-w-[42ch] font-serif text-[18px] leading-[1.5] text-ink-2 md:text-[20px]">
             {isCombined ? (
               <>
-                The {listSize.toLocaleString()} San Diego intersections most worth a second look —
-                where serious crashes have already happened, and where they are most likely next.
+                The {listSize.toLocaleString()} San Diego intersections most worth a second look:
+                where serious crashes have already happened, and where the model expects the
+                next ones.
               </>
             ) : (
               <>
-                A ranking of San Diego street corners that have never had a serious crash —
-                ordered by how likely they are to have one.
+                San Diego street corners that have never had a serious crash, ranked by how
+                likely they are to have one next.
               </>
             )}
           </p>
@@ -97,78 +90,71 @@ export default function Landing({ intersections, error, onEnter }) {
               threshold={DEFAULT_THRESHOLD}
               onSelect={(feature) => onEnter(feature)}
             />
-            <p className="mt-2 text-[12px] text-ink-3">
-              Try a street name — “El Cajon”, “Genesee”, “Balboa”.
-            </p>
+            <p className="mt-2 text-[12px] text-ink-3">Try one street name, like El Cajon or Genesee.</p>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          <div className="mt-8 flex flex-wrap items-center gap-5">
             <button
               onClick={() => onEnter(null)}
-              className="group inline-flex items-center gap-2.5 bg-ink px-6 py-3 text-[14px] font-semibold text-paper transition-opacity hover:opacity-85"
+              className="bg-ink px-6 py-3 text-[14px] font-semibold text-paper hover:bg-ink-2"
             >
               See the full map
-              <span aria-hidden="true" className="transition-transform group-hover:translate-x-0.5">→</span>
             </button>
             <button
               onClick={() => setAboutOpen(true)}
-              className="border-b border-ink/25 pb-px text-[13px] text-ink-2 transition-colors hover:border-ink hover:text-ink"
+              className="border-b border-ink/25 pb-px text-[13px] text-ink-2 hover:border-ink hover:text-ink"
             >
               How this works
             </button>
           </div>
 
-          {/* ── Three numbers ──────────────────────────────────────────────── */}
-          <dl className="mt-12 grid grid-cols-1 gap-6 border-y border-rule py-6 sm:grid-cols-3 sm:gap-8">
-            <Figure
-              value={(candidates ?? CANDIDATE_COUNT).toLocaleString()}
-              label="intersections ranked, all with no serious-crash history"
-            />
-            <Figure
-              value={<><span>{caught}</span><span className="text-ink-3"> of {total}</span></>}
-              label={`that had a serious crash in 2025 were flagged in advance by the model's top ${DEFAULT_THRESHOLD}`}
-            />
-            <Figure
-              value="Open"
-              label={
-                <>
-                  source, MIT licensed.{" "}
-                  <a href={REPO_URL} target="_blank" rel="noopener noreferrer" className="border-b border-ink/25 text-ink-2 hover:border-ink hover:text-ink">
-                    Read the code
-                  </a>
-                </>
-              }
-            />
-          </dl>
+          {/* The one figure the project rests on, then the caveat at the same size. */}
+          <div className="mt-12 border-t border-rule pt-8">
+            <p className="tnum font-serif text-[56px] font-medium leading-none text-ink">
+              {caught}
+              <span className="text-ink-3"> of {total}</span>
+            </p>
+            <p className="mt-3 max-w-[44ch] text-[14px] leading-[1.5] text-ink-2">
+              intersections that had a serious crash in 2025 were already on the model&rsquo;s
+              list of {DEFAULT_THRESHOLD}.
+              {randomCatch != null && (
+                <> Picking {DEFAULT_THRESHOLD} corners at random would have caught about {randomCatch}.</>
+              )}
+            </p>
+            <p className="mt-4 text-[13px] text-ink-3">
+              <span className="tnum font-medium text-ink-2">
+                {(candidates ?? CANDIDATE_COUNT).toLocaleString()}
+              </span>{" "}
+              intersections ranked, each with no serious crash on record before 2025.
+            </p>
+          </div>
 
-          {/* ── The caveat, given the same weight as the claim ─────────────── */}
           <p className="mt-8 max-w-[46ch] font-serif text-[16px] italic leading-[1.55] text-ink-2">
-            It is right some of the time, not most of the time
-            {liftRounded != null && <> — about {liftRounded} times better than picking at random, and still missing most</>}.
-            Treat it as a place to start looking, not a verdict on any single corner.
+            The list still misses most of them. Use it to decide where to look first, and look
+            before you judge any one corner.
           </p>
 
           {isCombined && (
             <p className="mt-4 max-w-[46ch] text-[13px] leading-[1.55] text-ink-3">
-              This list also includes {known.toLocaleString()} intersections that have already had a
-              serious crash{screen > 0 && <> and {screen.toLocaleString()} on the City&rsquo;s own screening list</>}.
-              Those are records, not predictions, and are marked as such.
+              This list also holds {known.toLocaleString()} intersections that have already had a
+              serious crash
+              {screen > 0 && <> and {screen.toLocaleString()} on the City&rsquo;s own screening list</>}.
+              Those are records rather than predictions, and the map marks them as such.
             </p>
           )}
 
           {error && (
-            <p className="mt-6 border-l-2 border-risk-1 pl-4 text-[13px] text-ink-2">
-              Couldn’t load the ranking right now: {error}
+            <p className="mt-6 bg-paper-sunk px-4 py-3 text-[13px] text-ink-2">
+              The ranking did not load: {error}
             </p>
           )}
         </section>
 
-        {/* ── Specimen: the top of the actual list ───────────────────────── */}
         <aside className="md:pt-16">
-          <div className="border border-rule-strong bg-paper shadow-paper">
+          <div className="border border-rule-strong bg-paper">
             <div className="flex items-baseline justify-between border-b border-rule-strong px-5 py-3">
               <p className="label">{isCombined ? "Top of the list" : "Top of the ranking"}</p>
-              <p className="tnum text-[11px] text-ink-3">2025–2027</p>
+              <p className="tnum text-[11px] text-ink-3">2025 to 2027</p>
             </div>
 
             <ol>
@@ -177,6 +163,7 @@ export default function Landing({ intersections, error, onEnter }) {
                   return (
                     <li key={i} className="border-b border-rule px-5 py-4 last:border-b-0">
                       <div className="h-3 w-2/3 animate-pulse bg-paper-edge" />
+                      <div className="mt-2 h-2.5 w-1/3 animate-pulse bg-paper-edge" />
                     </li>
                   );
                 }
@@ -185,11 +172,12 @@ export default function Landing({ intersections, error, onEnter }) {
                 const source = sourceOf(p);
                 const color = source === "known" ? "#7F1D1D" : tier.hex;
                 const line = source === "predicted" ? tier.label : sourceLine(p, false);
+                const pattern = patternOf(p);
                 return (
                   <li key={p.rank} className="border-b border-rule last:border-b-0">
                     <button
                       onClick={() => onEnter(f)}
-                      className="group flex w-full items-start gap-4 px-5 py-4 text-left transition-colors hover:bg-paper-sunk"
+                      className="flex w-full items-start gap-4 px-5 py-4 text-left hover:bg-paper-sunk"
                     >
                       <span
                         className="tnum shrink-0 pt-[3px] font-serif text-[22px] font-medium leading-none"
@@ -198,11 +186,17 @@ export default function Landing({ intersections, error, onEnter }) {
                         {p.rank}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block text-[14.5px] font-medium leading-snug text-ink group-hover:underline">
+                        <span className="block text-[14.5px] font-medium leading-snug text-ink">
                           {p.intersection_name}
                         </span>
                         <span className="mt-1 block text-[11.5px] text-ink-3">
                           <span style={{ color }} className="font-semibold">{line}</span>
+                          {pattern && (
+                            <>
+                              <span className="mx-1.5 text-rule-strong">/</span>
+                              {pattern}
+                            </>
+                          )}
                           <span className="mx-1.5 text-rule-strong">/</span>
                           District {p.council_district}
                           {p.is_known_emergent && (
@@ -213,7 +207,6 @@ export default function Landing({ intersections, error, onEnter }) {
                           )}
                         </span>
                       </span>
-                      <span aria-hidden="true" className="pt-1 text-ink-3 transition-transform group-hover:translate-x-0.5">→</span>
                     </button>
                   </li>
                 );
@@ -223,38 +216,37 @@ export default function Landing({ intersections, error, onEnter }) {
             <div className="border-t border-rule-strong px-5 py-3">
               <button
                 onClick={() => onEnter(null)}
-                className="text-[12px] text-ink-2 transition-colors hover:text-ink"
+                className="border-b border-ink/25 text-[12px] text-ink-2 hover:border-ink hover:text-ink"
               >
-                See all {listSize.toLocaleString()} on the map →
+                See all {listSize.toLocaleString()} on the map
               </button>
             </div>
           </div>
 
           <p className="mt-4 text-[11px] leading-[1.5] text-ink-3">
-            Darker means higher predicted risk. Ranked by a model trained on crash records
-            2016–2024; it was never retrained, and is being scored against 2025 outcomes it
-            has not seen.
+            Darker means higher predicted risk. The model learned from crash records for 2016
+            through 2024 and has not been retrained since. The 2025 crashes it is scored against
+            came later.
           </p>
         </aside>
       </main>
 
-      <footer className="border-t border-rule">
-        <div className="mx-auto flex max-w-[76rem] flex-col gap-1 px-5 py-4 text-[11px] text-ink-3 sm:flex-row sm:items-center sm:justify-between md:px-8">
-          <p>Crash data: SWITRS via TIMS, UC Berkeley SafeTREC · Road network: OpenStreetMap</p>
-          <p>Independent student research. Not an official City of San Diego assessment.</p>
-        </div>
-      </footer>
+      <Footer onNavigate={onNavigate} />
 
-      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
-    </div>
-  );
-}
+      {/* On a phone the main button scrolls away; keep one within thumb reach. */}
+      <div
+        className="fixed inset-x-0 bottom-0 z-30 border-t border-rule-strong bg-paper px-4 pt-3 md:hidden"
+        style={{ paddingBottom: "max(12px, env(safe-area-inset-bottom))" }}
+      >
+        <button
+          onClick={() => onEnter(null)}
+          className="block w-full bg-ink py-3 text-center text-[15px] font-semibold text-paper"
+        >
+          See the full map
+        </button>
+      </div>
 
-function Figure({ value, label }) {
-  return (
-    <div>
-      <dt className="tnum font-serif text-[34px] font-medium leading-none text-ink">{value}</dt>
-      <dd className="mt-2 max-w-[22ch] text-[12.5px] leading-[1.45] text-ink-2">{label}</dd>
+      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} onNavigate={onNavigate} />}
     </div>
   );
 }

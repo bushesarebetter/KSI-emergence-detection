@@ -1,10 +1,18 @@
+import { useMemo, useState } from "react";
 import CrashHistoryChart from "./CrashHistoryChart";
 import ShapChart from "./ShapChart";
 import StreetViewPanel from "./StreetViewPanel";
 import { useAdvanced } from "./useAdvanced";
 import { useComposition } from "./useMeta";
+import { trafficFor } from "./useTraffic";
+import { recordFor, controlFor, CONTROL_LABEL } from "./useSiteData";
+import { councilUrl } from "./lib/council";
+import { fmtDate } from "./Sidebar";
 import { formatPercentile } from "./lib/format";
 import { inclusionReason, sourceLine, sourceOf } from "./lib/signals";
+import { adviceFor, patternOf } from "./lib/advice";
+import { crashRate, ratePerMillionEntering, roundVehicles, fmtPerYear } from "./lib/rates";
+import { nearbySites } from "./lib/geo";
 import { CANDIDATE_COUNT } from "./constants";
 
 const TIERS = [
@@ -20,14 +28,28 @@ function parseProp(v) {
   return typeof v === "string" ? JSON.parse(v) : (v ?? []);
 }
 
-export default function IntersectionPanel({ intersection, onClose }) {
+/**
+ * The record for one intersection, read top to bottom: what happened here, how
+ * busy it is and how often crashes happen, what to do about it, why the model
+ * ranked it, other flagged corners nearby, and a look at the corner.
+ */
+export default function IntersectionPanel({
+  intersection,
+  onClose,
+  traffic = null,
+  recent = null,
+  control = null,
+  intersections = null,
+  onSelectIntersection = () => {},
+}) {
   const { advanced, copy } = useAdvanced();
   const { isCombined, topN } = useComposition();
+  const [copied, setCopied] = useState(false);
   const visible = intersection !== null;
 
   const raw = intersection?.properties ?? {};
-  // deck.gl hands back the original feature object, so these are normally real
-  // arrays already -- the parse is kept so any caller that round-trips a feature
+  // deck.gl hands back the original feature object, so these are normally
+  // arrays already. The parse is kept so a caller that round-trips a feature
   // through JSON (table click, saved view, deep link) still works.
   const p = {
     ...raw,
@@ -40,23 +62,32 @@ export default function IntersectionPanel({ intersection, onClose }) {
   const isPrediction = source === "predicted";
   const line = sourceLine(p, advanced);
   const reason = inclusionReason(p, advanced);
+  const ctrl = controlFor(control, intersection);
+  const advice = adviceFor(p, { control: ctrl });
+  const nearby = useMemo(() => nearbySites(intersection, intersections), [intersection, intersections]);
 
-  // A known site sits at the top of the combined list by record, not by score,
-  // so its colour is the record's, and the denominator is the list, not the
-  // candidate set it was never part of.
   const headColor = source === "known" ? "#7F1D1D" : tier.hex;
   const denominator = isCombined && topN ? topN : CANDIDATE_COUNT;
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      /* clipboard blocked: the address bar still holds the link */
+    }
+  }
 
   return (
     <aside
       aria-hidden={!visible}
       className={`fixed bottom-0 right-0 top-0 z-40 w-full max-w-[24rem] border-l border-rule-strong bg-paper transition-transform duration-300 ease-out ${
-        visible ? "translate-x-0 shadow-paper" : "translate-x-full"
+        visible ? "translate-x-0 shadow-paper print-sheet" : "translate-x-full"
       }`}
     >
       {visible && (
         <div className="flex h-full flex-col">
-          {/* Masthead of the record */}
           <header className="shrink-0 border-b border-rule-strong px-6 pb-5 pt-5">
             <div className="mb-3 flex items-start justify-between gap-4">
               <div className="flex items-baseline gap-2.5">
@@ -68,17 +99,33 @@ export default function IntersectionPanel({ intersection, onClose }) {
                 </span>
                 <span className="text-[11px] text-ink-3">
                   {isCombined
-                    ? advanced ? `of ${denominator.toLocaleString()} on the combined list` : `of ${denominator.toLocaleString()} on the list`
+                    ? advanced
+                      ? `of ${denominator.toLocaleString()} on the combined list`
+                      : `of ${denominator.toLocaleString()} on the list`
                     : copy.detailOf(denominator.toLocaleString())}
                 </span>
               </div>
-              <button
-                onClick={onClose}
-                aria-label="Close"
-                className="-mr-1 text-[22px] leading-none text-ink-3 transition-colors hover:text-ink"
-              >
-                ×
-              </button>
+              <div className="print-hide flex items-center gap-4">
+                <button
+                  onClick={() => window.print()}
+                  className="border-b border-ink/25 text-[11px] text-ink-3 hover:border-ink hover:text-ink"
+                >
+                  Print
+                </button>
+                <button
+                  onClick={copyLink}
+                  className="border-b border-ink/25 text-[11px] text-ink-3 hover:border-ink hover:text-ink"
+                >
+                  {copied ? "Copied" : "Copy link"}
+                </button>
+                <button
+                  onClick={onClose}
+                  aria-label="Close"
+                  className="-mr-1 text-[22px] leading-none text-ink-3 hover:text-ink"
+                >
+                  ×
+                </button>
+              </div>
             </div>
 
             <h2 className="font-serif text-[20px] font-medium leading-[1.2] text-ink">
@@ -113,12 +160,37 @@ export default function IntersectionPanel({ intersection, onClose }) {
               {p.city_screen && source !== "screen" && (
                 <Tag>{advanced ? "Also on City screen" : "Also on the City's list"}</Tag>
               )}
+              {ctrl && <Tag>{CONTROL_LABEL[ctrl]}</Tag>}
             </div>
           </header>
 
-          <div className="flex-1 overflow-y-auto">
+          <div className="print-scroll flex-1 overflow-y-auto">
             <Block heading={copy.detailHistory}>
               <CrashHistoryChart crash_history={p.crash_history} />
+            </Block>
+
+            <Block heading={copy.detailExposure} note={copy.detailExposureNote}>
+              <Exposure p={p} feature={intersection} traffic={traffic} recent={recent} advanced={advanced} />
+            </Block>
+
+            <Block heading={copy.detailAdvice} note={copy.detailAdviceNote}>
+              {advice.length > 0 ? (
+                <ul>
+                  {advice.map((it) => (
+                    <li key={it.key} className="border-b border-rule py-3 first:pt-0 last:border-b-0">
+                      <p className="label">{it.pattern}</p>
+                      <p className="mt-1.5 text-[13px] leading-[1.5] text-ink">{it.fact}</p>
+                      {it.driving && <Action who="Driving">{it.driving}</Action>}
+                      {it.walking && <Action who="Walking">{it.walking}</Action>}
+                      {it.cycling && <Action who="On a bike">{it.cycling}</Action>}
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-[13px] leading-[1.55] text-ink-2">
+                  {isPrediction ? copy.detailNoAdvice : reason}
+                </p>
+              )}
             </Block>
 
             <Block
@@ -132,17 +204,51 @@ export default function IntersectionPanel({ intersection, onClose }) {
               )}
             </Block>
 
+            {nearby.length > 0 && (
+              <Block heading={copy.detailNearby}>
+                <ul>
+                  {nearby.map(({ feature, meters }) => {
+                    const q = feature.properties;
+                    const pattern = patternOf(q);
+                    return (
+                      <li key={q.rank} className="border-b border-rule last:border-b-0">
+                        <button
+                          onClick={() => onSelectIntersection(feature)}
+                          className="flex w-full items-baseline gap-3 py-2.5 text-left hover:bg-paper-sunk"
+                        >
+                          <span className="tnum shrink-0 font-semibold" style={{ color: tierFor(q.rank).hex }}>
+                            #{q.rank}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block text-[13px] leading-snug text-ink">{q.intersection_name}</span>
+                            <span className="block text-[11px] text-ink-3">
+                              {Math.round(meters / 10) * 10} m away{pattern ? `, ${pattern.toLowerCase()}` : ""}
+                            </span>
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </Block>
+            )}
+
             <Block heading={copy.detailStreetView} last>
-              <StreetViewPanel lat={lat} lon={lon} />
-              <nav className="mt-3">
+              <div className="print-hide">
+                <StreetViewPanel lat={lat} lon={lon} />
+              </div>
+              <nav className="print-hide mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-[13px]">
                 <ExternalLink href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`}>
-                  Full-screen Street View
+                  Street View, full screen
                 </ExternalLink>
                 <ExternalLink href={`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`}>
-                  Open in Google Maps
+                  Google Maps
                 </ExternalLink>
                 <ExternalLink href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`}>
                   Directions
+                </ExternalLink>
+                <ExternalLink href={councilUrl(p.council_district)}>
+                  Tell the District {p.council_district} council office
                 </ExternalLink>
               </nav>
 
@@ -156,6 +262,104 @@ export default function IntersectionPanel({ intersection, onClose }) {
         </div>
       )}
     </aside>
+  );
+}
+
+/**
+ * Vehicles a day from the City's counts, crashes a year from the record, and
+ * the two combined into a rate per million entering vehicles, which is how a
+ * busy arterial and a quiet street can be compared at all.
+ */
+function Exposure({ p, feature, traffic, recent, advanced }) {
+  const rate = crashRate(p.crash_history);
+  const t = trafficFor(traffic, feature);
+  const police = recordFor(recent, feature);
+  const since = recent?.source?.since ? fmtDate(recent.source.since).replace(/ \d+,/, "") : "the cutoff";
+  const entering = t?.entering ?? null;
+  const perMev = rate && entering ? ratePerMillionEntering(rate.perYear, entering) : null;
+
+  return (
+    <div className="space-y-3 text-[13px] leading-[1.5] text-ink-2">
+      {t ? (
+        <p>
+          <Big>{roundVehicles(entering).toLocaleString()}</Big> vehicles a day{" "}
+          {t.complete
+            ? "enter this corner"
+            : "on the one street the City has counted here, so the true total is higher"}
+          :{" "}
+          {t.legs.map((l, i) => (
+            <span key={l.street}>
+              {i > 0 && ", "}
+              {roundVehicles(l.adt).toLocaleString()} on {l.street}
+              {l.year ? ` (${l.method === "nearby" ? "counted a block away, " : ""}${l.year})` : ""}
+            </span>
+          ))}
+          .
+        </p>
+      ) : (
+        <p>The City has no traffic count at or near this corner.</p>
+      )}
+
+      {rate && (
+        <p>
+          <Big>{fmtPerYear(rate.perYear)}</Big> crashes a year over {rate.years} years, {rate.trend}
+          {rate.trend !== "steady" && (
+            <>
+              : {fmtPerYear(rate.recentPerYear)} a year since 2022 against {fmtPerYear(rate.earlierPerYear)} before
+            </>
+          )}
+          .{rate.injuries > 0 && <> {rate.injuries} of the {rate.total} crashes hurt someone.</>}
+        </p>
+      )}
+
+      {recent && (
+        <p className="border-t border-rule pt-3">
+          {police ? (
+            <>
+              Police have logged{" "}
+              <span className="tnum font-medium text-ink">{police.count}</span>{" "}
+              {police.count === 1 ? "crash" : "crashes"} here since {since}
+              {police.injured + police.killed > 0 && (
+                <>, {police.injured + police.killed} {police.injured + police.killed === 1 ? "person" : "people"} hurt</>
+              )}
+              , the latest on {fmtDate(police.last)}.
+            </>
+          ) : (
+            <>No police-reported crash logged at this intersection since {since}.</>
+          )}{" "}
+          <span className="text-ink-3">Reports filed to a block address are not counted.</span>
+        </p>
+      )}
+
+      {perMev != null && (
+        <p className="border-t border-rule pt-3">
+          {advanced ? (
+            <>
+              <span className="tnum font-medium text-ink">{perMev.toFixed(2)}</span> crashes per million
+              entering vehicles{!t.complete && " (one-leg denominator: a ceiling)"}.
+            </>
+          ) : (
+            <>
+              About <span className="tnum font-medium text-ink">{perMev < 0.1 ? perMev.toFixed(2) : perMev.toFixed(1)}</span>{" "}
+              crashes for every million vehicles that pass through
+              {!t.complete && ", or fewer, since only one street is counted"}.
+            </>
+          )}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Big({ children }) {
+  return <span className="tnum font-serif text-[26px] font-medium leading-none text-ink">{children}</span>;
+}
+
+function Action({ who, children }) {
+  return (
+    <p className="mt-1.5 text-[13px] leading-[1.5] text-ink-2">
+      <span className="font-semibold text-ink">{who}:</span> {children}
+    </p>
   );
 }
 
@@ -173,9 +377,7 @@ function Tag({ children, emphasis = false }) {
   return (
     <span
       className={`border px-2 py-[3px] text-[10.5px] font-medium ${
-        emphasis
-          ? "border-risk-1 bg-risk-1 text-paper"
-          : "border-rule-strong bg-paper-sunk text-ink-2"
+        emphasis ? "border-risk-1 bg-risk-1 text-paper" : "border-rule-strong bg-paper-sunk text-ink-2"
       }`}
     >
       {children}
@@ -189,13 +391,9 @@ function ExternalLink({ href, children }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex items-center justify-between border-b border-rule py-2.5 text-[13px] text-ink-2 transition-colors last:border-b-0 hover:text-ink"
+      className="border-b border-ink/25 text-ink-2 hover:border-ink hover:text-ink"
     >
       {children}
-      <span aria-hidden="true" className="text-ink-3 transition-transform group-hover:translate-x-0.5">
-        →
-      </span>
     </a>
   );
 }
-

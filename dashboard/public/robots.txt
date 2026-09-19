@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://ksi-emergence-detection.onrender.com/sitemap.xml

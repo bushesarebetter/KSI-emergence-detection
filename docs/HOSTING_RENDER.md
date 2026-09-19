@@ -111,8 +111,26 @@ Vite 5 wants Node 18+.
 
 This is Render's equivalent of the existing `dashboard/vercel.json`. It makes
 direct navigation to any deep link serve the app rather than a 404. **Action must
-be Rewrite, not Redirect** — a redirect would change the URL in the address bar
+be Rewrite, not Redirect.** A redirect would change the URL in the address bar
 and break deep links.
+
+With the rewrite in place the app renders its own 404 view for unknown paths
+(`/map`, `/privacy` and `/` are the real pages). `dashboard/public/404.html` is
+the static fallback for any host that serves one directly instead.
+
+### 2.2a Optional page-view counter
+
+The site loads no analytics unless you set two build-time variables in the
+Render environment (Settings → Environment). With GoatCounter, a cookie-free
+counter with a free tier for non-commercial sites:
+
+| Key | Value |
+|---|---|
+| `VITE_ANALYTICS_SRC` | `https://gc.zgo.at/count.js` |
+| `VITE_ANALYTICS_SITE` | `https://YOURCODE.goatcounter.com/count` |
+
+Leave both unset and the privacy page states that no analytics run. Set them and
+it names the host the script comes from. Redeploy after changing either.
 
 ### 2.3 Headers
 
@@ -152,13 +170,16 @@ and `*.gstatic.com` origins, and a strict policy will silently blank the map.
 
 ## 4. Updating the data
 
-There is no database and no build-time data generation — the three files in
-`dashboard/public/data/` (`intersections.geojson`, `districts.json`, `meta.json`) are
-committed to the repo. To publish a new model run (add `--combined 800` for the combined
-known + City-screen + predicted list; see the README's Dashboard section):
+There is no database and no build-time data generation. The files in
+`dashboard/public/data/` (`intersections.geojson`, `districts.json`, `meta.json`,
+`traffic.json`, `recent.json`, `control.json`) are committed to the repo. To publish a new model run (add `--combined 800`
+for the combined known + City-screen + predicted list; see the README's Dashboard section):
 
 ```bash
 python scripts/build_export_panel_verified.py --run forward
+python scripts/join_traffic_counts.py
+python scripts/join_recent_collisions.py
+python scripts/fetch_intersection_control.py
 git add dashboard/public/data/
 git commit -m "Update dashboard export"
 git push

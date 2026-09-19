@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useAdvanced } from "./useAdvanced";
+import { passesFilters } from "./lib/filters";
 
 /**
  * districts.json carries a count per district at every shortlist size the
@@ -18,6 +19,22 @@ function countKey(threshold, sample) {
     .filter((k) => k <= threshold)
     .sort((a, b) => b - a);
   return available.length ? `top_${available[0]}_count` : exact;
+}
+
+// Counts per district under every active filter, computed from the loaded
+// export so the bars agree with the map. districts.json only knows the
+// shortlist sizes; it cannot know which kind of crash is selected.
+function useCountsByDistrict(intersections, filters) {
+  return useMemo(() => {
+    if (!intersections) return null;
+    const counts = {};
+    const unrestricted = { ...filters, districts: [] };
+    for (const f of intersections.features) {
+      const p = f.properties;
+      if (passesFilters(p, unrestricted)) counts[p.council_district] = (counts[p.council_district] || 0) + 1;
+    }
+    return counts;
+  }, [intersections, filters.threshold, filters.pattern]);
 }
 
 function useEmergentsByDistrict(intersections, threshold) {
@@ -42,17 +59,19 @@ function useEmergentsByDistrict(intersections, threshold) {
  * rule under each row rather than a rounded track, keeping the one saturated
  * colour in the interface reserved for risk.
  */
-export default function DistrictSummary({ districts, filters, onFiltersChange, intersections }) {
+export default function DistrictSummary({ districts, filters, onFiltersChange, intersections, onNavigate }) {
   const [sortBy, setSortBy] = useState("count");
   const { advanced } = useAdvanced();
   const key = countKey(filters.threshold, districts?.[0]);
   const emergentsByDistrict = useEmergentsByDistrict(intersections, filters.threshold);
+  const live = useCountsByDistrict(intersections, filters);
 
   if (!districts) return null;
 
-  const maxCount = Math.max(...districts.map((d) => d[key] ?? 0), 1);
+  const countFor = (d) => (live ? live[d.district] || 0 : d[key] ?? 0);
+  const maxCount = Math.max(...districts.map(countFor), 1);
   const sorted = [...districts].sort((a, b) =>
-    sortBy === "count" ? (b[key] ?? 0) - (a[key] ?? 0) : a.district - b.district
+    sortBy === "count" ? countFor(b) - countFor(a) : a.district - b.district
   );
   const anySelected = filters.districts.length > 0;
 
@@ -70,7 +89,7 @@ export default function DistrictSummary({ districts, filters, onFiltersChange, i
         <p className="label">{advanced ? "By district" : "By council district"}</p>
         <button
           onClick={() => setSortBy((s) => (s === "count" ? "district" : "count"))}
-          className="text-[11px] text-ink-3 transition-colors hover:text-ink"
+          className="text-[11px] text-ink-3 hover:text-ink"
         >
           {sortBy === "count" ? "by count" : "by number"}
         </button>
@@ -80,7 +99,7 @@ export default function DistrictSummary({ districts, filters, onFiltersChange, i
         {anySelected ? (
           <button
             onClick={() => onFiltersChange({ ...filters, districts: [] })}
-            className="border-b border-ink/25 pb-px transition-colors hover:border-ink hover:text-ink"
+            className="border-b border-ink/25 pb-px hover:border-ink hover:text-ink"
           >
             Clear {filters.districts.length} selected
           </button>
@@ -91,7 +110,7 @@ export default function DistrictSummary({ districts, filters, onFiltersChange, i
 
       <ul>
         {sorted.map((d) => {
-          const count = d[key] ?? 0;
+          const count = countFor(d);
           const emergent = emergentsByDistrict[d.district] || 0;
           const selected = filters.districts.includes(d.district);
           const pct = (count / maxCount) * 100;
@@ -105,7 +124,7 @@ export default function DistrictSummary({ districts, filters, onFiltersChange, i
               >
                 <div className="mb-1.5 flex items-baseline justify-between gap-3">
                   <span
-                    className={`text-[13px] transition-colors ${
+                    className={`text-[13px] ${
                       selected ? "font-semibold text-ink" : "text-ink-2 group-hover:text-ink"
                     }`}
                   >
@@ -135,7 +154,7 @@ export default function DistrictSummary({ districts, filters, onFiltersChange, i
                 {/* Inline bar as a rule, not a track. */}
                 <div className="h-px w-full bg-rule">
                   <div
-                    className={`h-px transition-all duration-300 ${
+                    className={`h-px ${
                       selected ? "bg-ink" : "bg-ink-3 group-hover:bg-ink-2"
                     }`}
                     style={{ width: `${pct}%` }}
@@ -151,6 +170,21 @@ export default function DistrictSummary({ districts, filters, onFiltersChange, i
         <span className="text-risk-1">●</span> marks sites that went on to have a serious
         crash in 2025.
       </p>
+      {onNavigate && (
+        <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[11px] text-ink-3">
+          Printable report:
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+            <a
+              key={d}
+              href={`/district/${d}`}
+              onClick={(e) => { e.preventDefault(); onNavigate(`/district/${d}`); }}
+              className="tnum border-b border-ink/25 text-ink-2 hover:border-ink hover:text-ink"
+            >
+              D{d}
+            </a>
+          ))}
+        </p>
+      )}
     </div>
   );
 }

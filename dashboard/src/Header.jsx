@@ -18,7 +18,7 @@ export default function Header({ intersections, threshold, onSelectIntersection,
 
   return (
     <>
-      <header className="shrink-0 border-b border-rule-strong bg-paper">
+      <header className="print-hide shrink-0 border-b border-rule-strong bg-paper">
         <div className="flex flex-col gap-3 px-5 py-3 lg:flex-row lg:items-center lg:justify-between lg:gap-8 lg:py-2.5">
           {/* Wordmark + edition line. The wordmark is a real link to the home
               page -- so open-in-new-tab and screen readers behave -- with the
@@ -33,7 +33,7 @@ export default function Header({ intersections, threshold, onSelectIntersection,
                   e.preventDefault();
                   onHome();
                 }}
-                className="border-b border-transparent transition-colors hover:border-ink"
+                className="border-b border-transparent hover:border-ink"
               >
                 {advanced ? "KSI Emergence" : "Intersection Risk"}
               </a>
@@ -59,7 +59,7 @@ export default function Header({ intersections, threshold, onSelectIntersection,
 
             <button
               onClick={() => setAboutOpen(true)}
-              className="shrink-0 whitespace-nowrap border-b border-ink/25 pb-px text-[12px] text-ink-2 transition-colors hover:border-ink hover:text-ink"
+              className="shrink-0 whitespace-nowrap border-b border-ink/25 pb-px text-[12px] text-ink-2 hover:border-ink hover:text-ink"
             >
               {advanced ? "Methodology" : "How this works"}
             </button>
@@ -97,7 +97,7 @@ function RegisterToggle({ advanced, onToggle }) {
               ? "Traffic-safety terminology (KSI, recall@K)"
               : "Everyday language"
           }
-          className={`px-2.5 py-1 text-[11px] font-medium transition-colors ${
+          className={`px-2.5 py-1 text-[11px] font-medium ${
             advanced === key
               ? "bg-ink text-paper"
               : "bg-transparent text-ink-3 hover:text-ink"
