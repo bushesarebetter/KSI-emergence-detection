@@ -16,8 +16,7 @@ already collects, road infrastructure, and corridor context.
 
 XGBoost Tweedie regression on 47 features: crash history (20), road infrastructure (21), and
 **spatial-neighbor structure** (6 — local crash pressure, proximity to the City's ≥5-crash sites,
-grid density). Trained only on the 25,699 candidate intersections below the City's screen. Every
-figure below is **out-of-fold**: each site is scored by a model that never trained on it.
+grid density). Trained only on the 25,699 candidate intersections below the City's screen. All results are **out-of-fold**
 
 ## Results
 
@@ -25,7 +24,7 @@ A **top-500 shortlist** of City-ignored intersections:
 
 | Metric | Value |
 |---|---|
-| Future KSI sites caught | **39 / 500** (40 events) |
+| Future KSI sites caught | **39 / 276** (40 events) |
 | Concentration vs. random | **7.3x** |
 | Prevented societal harm (30% treatment effectiveness) | **$62M** |
 | Net of program cost (~$3.2M after 90% HSIP) | **$59M** — **BCR ~19:1** |
@@ -35,6 +34,7 @@ The spatial-neighbor features make this the first model in the project to beat a
 baseline (rank by crash count and trend) on **both** cross-validation splits, by $6–11M prevented
 harm. Infrastructure and corridor context carry the signal: once the sites the City already flags
 are removed, crash counts alone stop discriminating.
+
 
 **Prospective 2025 (predict-only).** Fit once and never retrained, the model scored a fresh
 2016–2024 candidate cohort against true 2025 outcomes it never saw. Top-500: **9 sites / 10 events,
