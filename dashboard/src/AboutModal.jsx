@@ -71,9 +71,9 @@ function Plain() {
 
       <Section heading="What this is">
         <p>
-          A ranking of every San Diego intersection with <em>no</em> serious-crash
-          history, ordered by how likely it is to produce one. It is built from crash
-          records the city already collects, 2016 through 2024 — no new data, no
+          A ranking of the San Diego intersections <em>below</em> the City&rsquo;s five-crash
+          review line, ordered by how likely each is to produce a serious crash. It is built
+          from crash records the city already collects, 2016 through 2024 — no new data, no
           cameras, no sensors.
         </p>
         {isCombined && (
@@ -118,35 +118,37 @@ function Plain() {
 
 function Technical() {
   const { caught, total, lift } = useCatch(DEFAULT_THRESHOLD);
-  const { isCombined, known, screen, topN } = useComposition();
 
   return (
     <>
       <Section heading="Model">
         <p>
-          XGBoost Tweedie regression on 20 crash-history features, hyperparameters fixed
-          by nested cross-validation and frozen thereafter. Trained once on 2016–2021
-          features against 2022–2024 KSI outcomes; applied to the 2025–2027 candidate
-          cohort by predict-only scoring, never refit.
+          XGBoost Tweedie regression on 47 features — crash history (20), road
+          infrastructure (21), and spatial-neighbor structure (6). Hyperparameters fixed
+          by nested cross-validation and frozen. Trained on 2016–2021 features against
+          2022–2024 KSI outcomes on the sub-threshold candidate set; applied to the
+          2025–2027 cohort by predict-only scoring, never refit.
         </p>
       </Section>
 
       <Section heading="Signals">
         <p>
-          Dominant features are crash-timing: recency of last crash, and structural
-          acceleration from a previously stable baseline (changepoint detection).
-          Cumulative volume outweighs short-term recency. Built-environment features
-          showed a consistent +0.02 Spearman on the verified run but did not replicate
-          on the 2025 forward run, so the deployed model stays crash-history only.
+          SHAP splits the decision roughly 53% road infrastructure, 32% crash history,
+          15% corridor context. Top drivers: recency of the last crash, road functional
+          class (arterial vs. local), intersection geometry, and transit proximity. Once
+          the sites the City already flags are removed, crash counts flatten and road
+          design carries the weight — much of it exposure by proxy, since arterials carry
+          more traffic. Adding measured traffic volume (ADT) did not improve the ranking,
+          which points the same way: the signal is substantially exposure.
         </p>
       </Section>
 
       <Section heading="Reported honestly">
         <p>
-          At the ≥2-KSI threshold a persistence baseline — rank by recent crash count
-          and trend — ties the tuned model exactly, 10/21 on the random split. The
-          model’s validated edge is at the broader ≥1-KSI threshold. With 21 positives,
-          the bootstrap CI on recall@500 spans [28.6%, 71.4%].
+          The edge over a crash-count persistence baseline is small — a few events at the
+          top of the list — and consistent across both the random and spatial-block CV
+          splits at the any-KSI threshold. The severe (≥2-KSI) threshold has too few
+          positives to model; a raw crash-count baseline catches more of those.
         </p>
         <p>
           Forward run recall@{DEFAULT_THRESHOLD} (≥1 KSI, {total} positives): {caught}/{total}
@@ -157,18 +159,11 @@ function Technical() {
 
       <Section heading="Candidate set">
         <p>
-          26,045 intersections inside City of San Diego limits with no KSI history
-          through 2024. State-highway crashes excluded; crashes assigned to nodes within
-          a 76.2 m buffer.
+          Intersections inside City of San Diego limits below the City&rsquo;s screening
+          bar — fewer than five injury-or-fatal crashes in the feature window, so none are
+          on its high-crash review. State-highway crashes excluded; crashes assigned to
+          nodes within a 76.2 m buffer.
         </p>
-        {isCombined && (
-          <p>
-            Exported list is the combined top-{topN}: {known} known-KSI sites (feature-window
-            KSI ≥ 1, all spine nodes), then {screen} City-screen sites (≥5 crashes in the last
-            feature year), then model predictions; tiers stacked, not blended
-            (src/export/combined_list.py). Catch statistics above score the model ranking only.
-          </p>
-        )}
       </Section>
 
       <p className="mt-7 border-t border-rule pt-4 font-mono text-[11px] text-ink-3">
