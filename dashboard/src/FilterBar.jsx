@@ -1,20 +1,23 @@
+import { useMemo } from "react";
 import { useAdvanced } from "./useAdvanced";
 import { THRESHOLDS } from "./constants";
-import { FILTER_CHIPS } from "./lib/filters";
+import { chipsFor } from "./lib/filters";
 
 /**
- * Two controls, and only two: how many corners to show, and which kind of
- * crash to show them for.
+ * Two controls, and only two: how many corners to show, and which situation
+ * to show them for.
  *
  * The size control is a row of segments sharing one hairline frame; the choice
- * is one variable with a few settings. The crash-type control filters the map,
- * the table and the district counts to corners whose record includes that kind
- * of crash, so someone who cycles, or walks at night, can see the corners that
- * concern them and nothing else.
+ * is one variable with a few settings. The situation chips filter the map, the
+ * table and the district counts to corners whose signals include that
+ * situation, so someone who cycles, or walks to a bus, can see the corners
+ * that concern them and nothing else. Only situations present in the export
+ * are offered.
  */
-export default function FilterBar({ filters, onFiltersChange }) {
+export default function FilterBar({ filters, onFiltersChange, intersections }) {
   const { advanced } = useAdvanced();
   const pattern = filters.pattern ?? null;
+  const chips = useMemo(() => chipsFor(intersections), [intersections]);
 
   return (
     <div className="px-6 py-5">
@@ -41,28 +44,32 @@ export default function FilterBar({ filters, onFiltersChange }) {
         })}
       </div>
 
-      <div className="mb-2.5 mt-5 flex items-baseline justify-between gap-3">
-        <p className="label">{advanced ? "Crash-type feature" : "Kind of crash"}</p>
-        <p className="text-[11px] text-ink-3">{advanced ? "present in top signals" : "in the record"}</p>
-      </div>
+      {chips.length > 0 && (
+        <>
+          <div className="mb-2.5 mt-5 flex items-baseline justify-between gap-3">
+            <p className="label">{advanced ? "Signal filter" : "What you will meet"}</p>
+            <p className="text-[11px] text-ink-3">{advanced ? "present in top signals" : "in the record"}</p>
+          </div>
 
-      <div role="group" aria-label="Kind of crash" className="flex flex-wrap gap-1.5">
-        {[{ key: null, label: "Any" }, ...FILTER_CHIPS].map(({ key, label }) => {
-          const active = pattern === key;
-          return (
-            <button
-              key={label}
-              onClick={() => onFiltersChange({ ...filters, pattern: key })}
-              aria-pressed={active}
-              className={`border px-2.5 py-1 text-[12px] font-medium ${
-                active ? "border-ink bg-ink text-paper" : "border-ink/20 text-ink-2 hover:bg-paper-edge"
-              }`}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
+          <div role="group" aria-label="Kind of crash" className="flex flex-wrap gap-1.5">
+            {[{ key: null, label: "Any" }, ...chips].map(({ key, label }) => {
+              const active = pattern === key;
+              return (
+                <button
+                  key={label}
+                  onClick={() => onFiltersChange({ ...filters, pattern: key })}
+                  aria-pressed={active}
+                  className={`border px-2.5 py-1 text-[12px] font-medium ${
+                    active ? "border-ink bg-ink text-paper" : "border-ink/20 text-ink-2 hover:bg-paper-edge"
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
     </div>
   );
 }

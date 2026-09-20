@@ -127,9 +127,11 @@ export default function MobileSheet({ feature, onClose, traffic = null, recent =
               <>
                 <p className="label">{advice.pattern}</p>
                 <p className="mt-1 text-[14px] leading-[1.5] text-ink">{advice.fact}</p>
-                <p className="mt-1.5 text-[14px] leading-[1.5] text-ink-2">
-                  {advice.driving ?? advice.walking ?? advice.cycling}
-                </p>
+                {(advice.driving ?? advice.walking ?? advice.cycling) && (
+                  <p className="mt-1.5 text-[14px] leading-[1.5] text-ink-2">
+                    {advice.driving ?? advice.walking ?? advice.cycling}
+                  </p>
+                )}
               </>
             ) : (
               <p className="text-[14px] leading-[1.5] text-ink-2">{fallback}</p>

@@ -1,27 +1,31 @@
 /**
  * From a site's model signals to something a person can do at that corner.
  *
- * The export gives each site up to five signal labels in feature space:
- * "3 left-turn crashes (72 months)", "2 night crashes (72 months)",
- * "16 distinct crash days (72 months)". Those describe what has happened at the
- * corner. This module turns them into a short list of {fact, action} pairs:
- * the fact is the record, the action is the standard countermeasure for that
- * kind of crash, addressed to the person reading.
+ * The export gives each site up to five signal labels in feature space. Two
+ * vocabularies are read. The crash-history model names crash types ("3
+ * left-turn crashes (72 months)"). The E model names the road and its context
+ * ("Transit stop 21 m away", "~5 lanes", "72 km/h speed limit",
+ * "Stop-controlled"). This module turns either into {fact, action} pairs: the
+ * fact quotes what the label says, the action is standard road practice for
+ * that situation, addressed to the person reading.
  *
  * Rules that keep it honest:
- *   - Every fact quotes a count the export contains. No fact is inferred.
- *   - Actions are plain road-safety practice for that crash type. They never
- *     claim the corner is "dangerous" or that the action would have prevented
- *     a specific crash.
- *   - Crash-type items (left turns, dark, bikes, people on foot, side impacts)
- *     rank above tempo items (many separate days, a recent jump), because a
- *     crash type tells you what to change; a tempo tells you how much care.
+ *   - Every fact quotes a value the export contains. No fact is inferred.
+ *   - Actions are plain road-safety practice. They never claim the corner is
+ *     "dangerous" or that the action would have prevented a specific crash.
+ *   - Items about what you will meet (a crash type, a transit stop, a fast
+ *     road, a wide crossing, stop signs) rank above tempo items (a rising
+ *     rate, a recent crash), because the first says what to change and the
+ *     second only how much care.
  */
 
 const YEARS = (months) => Math.max(1, Math.round(months / 12));
+const KMH_TO_MPH = 0.621371;
+const mph = (kmh) => Math.round((kmh * KMH_TO_MPH) / 5) * 5;
 
-// Each rule reads one label pattern and yields a candidate item.
+// Each rule reads one label pattern and yields a candidate item, or null.
 const RULES = [
+  // ── Crash types (crash-history model) ───────────────────────────────────
   {
     key: "ped",
     test: /(\d+)\s*pedestrian crashes? \((\d+) months\)/i,
@@ -75,6 +79,63 @@ const RULES = [
       driving: "When your light turns green, look both ways before you go.",
     }),
   },
+
+  // ── What you will meet (E model) ────────────────────────────────────────
+  {
+    key: "ped",
+    test: /transit stop (\d+) m away/i,
+    make: (m) => ({
+      priority: 95,
+      pattern: "People on foot",
+      fact: `A transit stop is ${m} m away, so people cross here to reach it.`,
+      driving: "Before you turn, look for someone crossing to or from the stop, then look again.",
+      walking: "Cross at the corner with the signal, even when the stop is closer mid-block.",
+    }),
+  },
+  {
+    key: "speed",
+    test: /(\d+) km\/h speed limit/i,
+    make: (kmh) => (mph(kmh) >= 40 ? {
+      priority: 78,
+      pattern: "Fast road",
+      fact: `The speed limit here is ${mph(kmh)} mph.`,
+      driving: "Slow before the corner, not in it. At this speed a late brake is a crash.",
+      walking: `Wait for a fresh walk signal; a car at ${mph(kmh)} mph covers the block in seconds.`,
+    } : null),
+  },
+  {
+    key: "wide",
+    test: /~\s*(\d+) lanes/i,
+    make: (n) => (n >= 5 ? {
+      priority: 72,
+      pattern: "Wide crossing",
+      fact: `About ${n} lanes meet here.`,
+      driving: "Check the far lane before you turn; a wide corner hides a car in the outer lane.",
+      walking: `Start only on a fresh walk signal. It is ${n} lanes to the other side.`,
+    } : null),
+  },
+  {
+    key: "stop",
+    test: /stop-controlled/i,
+    make: () => ({
+      priority: 66,
+      pattern: "Stop signs, no signal",
+      fact: "This corner has stop signs rather than a signal.",
+      driving: "Stop fully. The cross traffic may not have to stop, and a rolling stop is how most of these crashes start.",
+    }),
+  },
+  {
+    key: "complex",
+    test: /^(\d+)-(?:leg|way) intersection$/i,
+    make: (n) => (n >= 5 ? {
+      priority: 60,
+      pattern: "Complex corner",
+      fact: `${n} roads meet here.`,
+      driving: "Take the corner in two looks: one for cross traffic, one for the road you are turning into.",
+    } : null),
+  },
+
+  // ── Tempo ───────────────────────────────────────────────────────────────
   {
     key: "days",
     test: /(\d+)\s*distinct crash days \((\d+) months\)/i,
@@ -82,6 +143,16 @@ const RULES = [
       priority: 40 + Math.min(n, 30),
       pattern: "Crashes are routine here",
       fact: `Crashes here happened on ${n} separate days in the last ${YEARS(months)} years.`,
+      driving: "Leave a car length more than usual and expect the car ahead to brake.",
+    } : null),
+  },
+  {
+    key: "days",
+    test: /recent crash rate ([\d.]+)\/yr/i,
+    make: (rate) => (rate >= 1 ? {
+      priority: 40 + Math.min(Math.round(rate * 4), 30),
+      pattern: "Crashes are routine here",
+      fact: `About ${rate} crashes a year here recently.`,
       driving: "Leave a car length more than usual and expect the car ahead to brake.",
     } : null),
   },
@@ -97,7 +168,7 @@ const RULES = [
   },
   {
     key: "trend",
-    test: /crash trend slope \+([\d.]+)\/yr/i,
+    test: /crash trend slope \+([\d.]+)\/yr|rising crash-rate trend|accelerating crash trend/i,
     make: () => ({
       priority: 30,
       pattern: "Crashes rising",
@@ -106,8 +177,28 @@ const RULES = [
     }),
   },
   {
+    key: "cluster",
+    test: /(\d+) crashes within (\d+) m/i,
+    make: (n, m) => (n >= 5 ? {
+      priority: 28,
+      pattern: "Crashes along this stretch",
+      fact: `${n} crashes within ${m} m of this corner on nearby roads.`,
+      driving: "Treat the whole block with care, not only the corner.",
+    } : null),
+  },
+  {
+    key: "hotspot",
+    test: /(\d+) m to nearest high-crash site/i,
+    make: (m) => (m <= 300 ? {
+      priority: 26,
+      pattern: "Near a corner the City already reviews",
+      fact: `A corner the City already reviews is ${m} m away.`,
+      driving: "The same traffic that fills that corner passes through this one.",
+    } : null),
+  },
+  {
     key: "recent",
-    test: /([\d.]+)\s*years? since last crash/i,
+    test: /([\d.]+)\s*years? since last crash|last crash under a year ago/i,
     make: (yrs) => (yrs < 1 ? {
       priority: 20,
       pattern: "Recent crash",
@@ -115,6 +206,8 @@ const RULES = [
     } : null),
   },
 ];
+
+const TEMPO = new Set(["days", "jump", "trend", "recent", "cluster", "hotspot"]);
 
 // Where the corner's control is known (control.json, from OpenStreetMap), the
 // action for a turn or a side impact can say what the driver will actually meet.
@@ -129,15 +222,36 @@ const CONTROL_ACTIONS = {
   },
 };
 
-function candidates(shapFeatures) {
+const SCHOOL_M = 300;
+
+function candidates(props) {
   const items = [];
-  for (const f of shapFeatures ?? []) {
+  const seen = new Set();
+  // A school within reach is a fact about the corner, not a model signal; it
+  // comes from scripts/fetch_school_proximity.py and outranks most signals
+  // because the people it concerns are children on a timetable.
+  const school = props?.near_school;
+  if (school && school.meters <= SCHOOL_M) {
+    seen.add("school");
+    items.push({
+      key: "school",
+      priority: 98,
+      pattern: "Near a school",
+      fact: `${school.name} is ${school.meters} m away.`,
+      driving: "On school days, expect children crossing anywhere along this block at the start and end of school. Where a school zone is posted and children are present, the California limit is 15 mph.",
+      walking: "Cross with the crossing guard or at the signal, and not from between parked cars.",
+    });
+  }
+  for (const f of props?.shap_features ?? []) {
     const label = f?.display_label ?? "";
     for (const rule of RULES) {
       const m = label.match(rule.test);
       if (!m) continue;
-      const item = rule.make(Number(m[1]), Number(m[2] ?? 0));
-      if (item) items.push({ ...item, key: rule.key });
+      const item = rule.make(Number(m[1] ?? 0), Number(m[2] ?? 0));
+      if (item && !seen.has(rule.key)) {
+        seen.add(rule.key);
+        items.push({ ...item, key: rule.key });
+      }
       break;
     }
   }
@@ -146,15 +260,15 @@ function candidates(shapFeatures) {
 
 /**
  * Up to `max` items for the detail panel: [{key, pattern, fact, driving, walking?, cycling?}].
- * Two tempo items say the same thing ("be more careful"), so only the strongest
- * one is kept; crash-type items are all kept because each asks for a different change.
+ * Tempo items all say "more care", so only the strongest one is kept; the
+ * others are kept because each asks for a different change.
  */
 export function adviceFor(props, { max = 3, control = null } = {}) {
-  const items = candidates(props?.shap_features);
+  const items = candidates(props);
   const out = [];
   let tempoUsed = false;
   for (const it of items) {
-    const isTempo = ["days", "jump", "trend", "recent"].includes(it.key);
+    const isTempo = TEMPO.has(it.key);
     if (isTempo && tempoUsed) continue;
     if (isTempo) tempoUsed = true;
     const specific = control ? CONTROL_ACTIONS[it.key]?.[control] : null;
@@ -164,21 +278,27 @@ export function adviceFor(props, { max = 3, control = null } = {}) {
   return out;
 }
 
-/** Every crash-type pattern present at a site, as rule keys, for filtering. */
+/** The patterns a reader can filter by, in display order, with the key each rule uses. */
 export const FILTER_PATTERNS = [
+  { key: "ped", label: "People on foot" },
+  { key: "bike", label: "Bikes" },
   { key: "left", label: "Left turns" },
   { key: "night", label: "After dark" },
-  { key: "bike", label: "Bikes" },
-  { key: "ped", label: "People on foot" },
+  { key: "speed", label: "Fast roads" },
+  { key: "wide", label: "Wide crossings" },
+  { key: "stop", label: "Stop signs" },
+  { key: "complex", label: "Complex corners" },
+  { key: "school", label: "Near schools" },
 ];
 
+/** Every pattern present at a site, as rule keys, for filtering. */
 export function patternKeys(props) {
-  return new Set(candidates(props?.shap_features).map((it) => it.key));
+  return new Set(candidates(props).map((it) => it.key));
 }
 
-/** Short noun phrase for tables and tooltips: "Left turns", "After dark", or null. */
+/** Short noun phrase for tables and tooltips: "Left turns", "Fast road", or null. */
 export function patternOf(props) {
-  const [first] = candidates(props?.shap_features);
+  const [first] = candidates(props);
   return first?.pattern ?? null;
 }
 

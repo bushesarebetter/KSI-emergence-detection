@@ -1425,7 +1425,9 @@ batches of 100 points, and writes `control.json`. Where the control is known, th
 tags it and the left-turn and side-impact actions change: "wait for the green arrow" at a
 signal, "stop fully, then wait for a gap you are sure of" at a stop sign. On the current
 export all 1,070 sites classified: 587 signalised, 293 stop-controlled, 1 yield, 189 with no
-control node mapped within 25 m (474, 204, 1 and 121 of the top 800).
+control node mapped within 25 m (474, 204, 1 and 121 of the top 800). On the E-model export that
+replaced it (1,000 sites): 341 signalised, 438 stop-controlled, 4 yield, 217 none; the same run
+relabelled 77 single-street names, leaving 33 of 1,000 (26 in the top 800).
 
 **Who do I tell?** A "Tell the District N council office" link on every corner and a
 printable report per district at `/district/N`: the count, the top ten with pattern,
@@ -1448,3 +1450,87 @@ FilterBar,Header,Notice,WelcomeModal,PageFrame,Privacy,AboutModal}.jsx`, `dashbo
 `dashboard/.env.example`, `README.md`, `docs/HOSTING_RENDER.md`.
 
 >>>>>>> Stashed changes
+
+## D24 — The site is an advocacy map, and the model is the evidence, not the product
+
+The City of San Diego already runs proactive screening of its own. A ranking alone is a
+second opinion the City did not ask for. What no one publishes is the resident-facing case
+for spending on a specific corner: how close it is to the City's own review threshold, what
+the record shows, what the matching FHWA countermeasure costs, what a crash costs, and who
+decides. That is what the site now leads with; the model supplies the list and the evidence.
+
+Per corner, "The case for fixing it" shows the injury-crash gap to the City's five-crash
+review threshold in the last full year (D18's rule), up to three FHWA Proven Safety
+Countermeasures matched to the corner's crash patterns and control (leading pedestrian
+interval and protected arrows only at signals, beacons only without them), a rough installed
+cost range for each, FHWA's published reduction, and the societal cost of one serious-injury
+crash from the pipeline's own FHWA figures (FHWA-SA-25-021, 2024 dollars: fatal $15.99M,
+serious injury $1.71M). "Copy a message to the council office" writes a plain-text message
+quoting only what the panel shows, ending with the ask: an engineering review before the
+threshold is reached, and inclusion in the next HSIP or SS4A application. The district
+report adds the count of corners within one injury crash of the threshold, the summed cost
+of the top ten's measures, and a district-level message. `/funding` states the arithmetic,
+the README's program estimate with its two assumptions (cost per corner after the 90% federal
+share, 30% treatment effectiveness; BCR near 19:1 for the top 500), the funding sources, and
+what the map hands a grant application. The landing page leads with the arithmetic.
+
+Countermeasure costs are order-of-magnitude figures kept in one table
+(`dashboard/src/lib/countermeasures.js`) with their sources, so a correction is one edit.
+They are labelled rough wherever they appear; the reductions are FHWA's own.
+
+The export changed under this work to the E model (crash history, infrastructure and
+spatial features; 1,000 sites, 25,034 candidates), whose top signals name the road and its
+context rather than crash types. The advice, chips and countermeasure matching now read both
+vocabularies (transit stop nearby, speed limit, lane count, stop control, legs, neighbouring
+crashes). On that export, 30 of the top 800 corners were within one injury crash of the City's
+threshold in 2024, 16 of them already at it; the suggested measures for all 800 sum to roughly
+$17 million to $95 million before the federal share; 751 of the 800 get at least one action.
+A cleaner design would have the export carry the crash-type counts as fixed fields rather
+than leaving them to whichever features SHAP ranks; that is a pipeline change for the next
+export.
+
+Updated: `dashboard/src/lib/{countermeasures,crashcost,ask}.js` (new), `dashboard/src/FundingCase.jsx`
+(new), `dashboard/src/{Landing,IntersectionPanel,DistrictReport,App,Header,PageFrame,AboutModal}.jsx`,
+`dashboard/src/lib/copy.js`, `dashboard/public/sitemap.xml`, `README.md`.
+
+## D25 — Measure the ask, and make the site a kit
+
+Two decisions from the question "how does this have measurable impact and get big".
+
+**Measure the ask, not the visit.** Page views say nothing about whether a corner was
+reviewed. The site now counts the actions that lead to one, as named events on the opt-in,
+cookie-free counter (`dashboard/src/lib/track.js`): a message to a council office copied, a
+citation copied, a district message copied, a route or an address checked, a corner or a
+report printed. Each corner also offers a one-line citation (authors, year, site, corner,
+rank of candidates, URL, date) so a grant application or a news story can point at it.
+The outcome that matters, crashes at treated corners against matched untreated ones two
+years on, is pre-registered in `docs/EVALUATION_PLAN.md`: units, treatment definition,
+matching on rank stratum, control type, traffic and district, a difference-in-differences
+analysis, an honest power statement (about 30 treated corners detect a 35 to 40 percent
+reduction; ten settle nothing), and what would count against the project.
+
+**A kit, not a site.** Every constant and phrase that named San Diego now comes from one
+object, `dashboard/src/city.js`: names and titles, map centre and bounds, the city's own
+review rule (threshold, unit, reviews a year), districts and council URLs, the transportation
+department, attributions and authors. The pipeline was already adapter-based; the front end
+now is too, and `docs/NEW_CITY.md` is the checklist (crash source, review rule, districts,
+export, the five after-export joins, the config, what still names California). What remains
+local is the funding-source list on `/funding` (California's programs) and two sentences on
+the About page naming the City's traffic-count and police files.
+
+**Schools.** `scripts/fetch_school_proximity.py` flags corners within 300 m of a school
+(OpenStreetMap, batched, cached) as `near_school` in the export. The flag is a situation in
+its own right: it leads the advice (school-day crossing at fixed hours, the California 15 mph
+school-zone limit), adds a "Near schools" chip, routes the pedestrian countermeasures, and
+names Safe Routes to School on the funding page. On the E-model export, 237 of 1,000
+sites lie within 300 m of a school (185 of the top 800: 212 schools, 13 preschools, 6
+universities, 6 colleges). The flag raised the number of top-800 corners with at least one
+action from 751 to 762.
+
+Updated: `dashboard/src/city.js` (new), `dashboard/src/lib/{track,council}.js`,
+`dashboard/src/lib/{ask,advice,countermeasures,copy}.js`, `dashboard/src/{App,Header,Sidebar,
+Landing,WelcomeModal,PageFrame,Privacy,AboutModal,FundingCase,DistrictReport,DistrictSummary,
+IntersectionPanel,RoutePanel,SearchBox}.jsx`, `dashboard/src/{useGoogleMap,usePageMeta}.js`,
+`scripts/fetch_school_proximity.py` (new), `docs/EVALUATION_PLAN.md` (new), `docs/NEW_CITY.md`
+(new), `README.md`, `docs/HOSTING_RENDER.md`.
+

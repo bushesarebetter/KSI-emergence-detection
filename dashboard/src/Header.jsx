@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useAdvanced } from "./useAdvanced";
 import SearchBox from "./SearchBox";
 import AboutModal from "./AboutModal";
+import { CITY } from "./city";
 
 /**
  * Masthead.
@@ -12,7 +13,7 @@ import AboutModal from "./AboutModal";
  * this covers and that it is independent research, which is the context that
  * makes everything below legible.
  */
-export default function Header({ intersections, threshold, onSelectIntersection, onHome }) {
+export default function Header({ intersections, threshold, onSelectIntersection, onHome, onNavigate }) {
   const { advanced, toggle } = useAdvanced();
   const [aboutOpen, setAboutOpen] = useState(false);
 
@@ -35,12 +36,12 @@ export default function Header({ intersections, threshold, onSelectIntersection,
                 }}
                 className="border-b border-transparent hover:border-ink"
               >
-                {advanced ? "KSI Emergence" : "Intersection Risk"}
+                {advanced ? "KSI Emergence" : CITY.shortTitle}
               </a>
             </h1>
             <span aria-hidden="true" className="hidden h-3 w-px bg-rule-strong sm:block" />
             <p className="hidden text-[11px] leading-none text-ink-3 sm:block">
-              San&nbsp;Diego
+              {CITY.name}
               <span className="mx-1.5 text-rule-strong">/</span>
               {advanced ? "Forward run 2025–2027" : "Predicting 2025–2027"}
             </p>
@@ -56,6 +57,18 @@ export default function Header({ intersections, threshold, onSelectIntersection,
             </div>
 
             <RegisterToggle advanced={advanced} onToggle={toggle} />
+
+            <a
+              href="/funding"
+              onClick={(e) => {
+                if (!onNavigate) return;
+                e.preventDefault();
+                onNavigate("/funding");
+              }}
+              className="hidden shrink-0 whitespace-nowrap border-b border-ink/25 pb-px text-[12px] text-ink-2 hover:border-ink hover:text-ink md:inline"
+            >
+              Funding
+            </a>
 
             <button
               onClick={() => setAboutOpen(true)}

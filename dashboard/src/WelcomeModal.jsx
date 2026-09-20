@@ -1,6 +1,7 @@
 import { useAdvanced } from "./useAdvanced";
 import { useCatch } from "./useMeta";
 import { DEFAULT_THRESHOLD } from "./constants";
+import { CITY } from "./city";
 
 /**
  * Shown once, on first visit to the map.
@@ -26,7 +27,7 @@ export default function WelcomeModal() {
     >
       <article className="my-auto w-full max-w-[34rem] border border-rule-strong bg-paper">
         <div className="border-b border-rule-strong px-8 pb-6 pt-7">
-          <p className="label mb-3">San Diego, independent research</p>
+          <p className="label mb-3">{CITY.name}, independent research</p>
           <h1
             id="welcome-title"
             className="font-serif text-[32px] font-medium leading-[1.08] tracking-[-0.02em] text-ink sm:text-[38px]"
@@ -37,7 +38,7 @@ export default function WelcomeModal() {
 
         <div className="space-y-4 px-8 py-6 font-serif text-[16px] leading-[1.55] text-ink-2">
           <p>
-            Every dot is a San Diego corner with no serious crash on record. Darker means the
+            Every dot is a {CITY.name} corner with no serious crash on record. Darker means the
             model expects one sooner.
           </p>
           <p>

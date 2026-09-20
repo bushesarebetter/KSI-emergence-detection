@@ -19,8 +19,10 @@
  *   - No em dashes, no "not X, Y" contrasts, no lists of three for rhythm.
  */
 
+import { CITY } from "../city.js";
+
 const PLAIN = {
-  appName: "San Diego Intersection Risk",
+  appName: CITY.siteTitle,
   tagline: "Where serious crashes are likely to happen next",
 
   // Header
@@ -43,6 +45,8 @@ const PLAIN = {
   detailExposure: "How busy it is, and how often crashes happen",
   detailExposureNote: "City traffic counts, and the crash record for 2016 to 2024",
   detailNearby: "Other corners on this list nearby",
+  detailCase: "The case for fixing it",
+  detailCaseNote: "How close it is to the City's own review, and what a fix would cost",
   detailAdvice: "If you use this corner",
   detailAdviceNote: "What the record shows, and what to do about it",
   detailSignals: "Why the model ranked it here",
@@ -51,7 +55,7 @@ const PLAIN = {
   detailCrashActive: "Has recent crashes",
   detailCrashSilent: "No recent crashes",
   detailEmergent: "Serious crash in 2025",
-  detailNoAdvice: "The record here is a crash rate, with no one crash type standing out. Slow down and leave more room than you would elsewhere.",
+  detailNoAdvice: "Nothing in this corner's top signals names a crash type or a hazard you can act on; the model listed it for the road it sits on and what is around it. Slow down and leave more room than you would elsewhere.",
 
   // Map
   mapHint: "Tap a dot for details",
@@ -59,7 +63,7 @@ const PLAIN = {
 
 const ADVANCED = {
   appName: "KSI Emergence",
-  tagline: "San Diego, forward run 2025 to 2027",
+  tagline: `${CITY.name}, forward run 2025 to 2027`,
 
   aboutButton: "Methodology",
   aboutTitle: "Methodology",
@@ -77,6 +81,8 @@ const ADVANCED = {
   detailExposure: "Exposure and crash rate",
   detailExposureNote: "City ADT counts; rate = crashes/yr ÷ (entering ADT × 365 / 10⁶)",
   detailNearby: "Nearby listed sites",
+  detailCase: "Countermeasures and cost",
+  detailCaseNote: "Distance to the City screen (5 injury crashes/yr); FHWA PSC measures with rough installed cost",
   detailAdvice: "Countermeasure prompts",
   detailAdviceNote: "Crash-type features present in the record, with the standard road-user countermeasure",
   detailSignals: "Model signals",
@@ -85,7 +91,7 @@ const ADVANCED = {
   detailCrashActive: "Crash active",
   detailCrashSilent: "Crash silent",
   detailEmergent: "2025 KSI positive",
-  detailNoAdvice: "No crash-type feature in the top signals; rate and recency features only.",
+  detailNoAdvice: "No actionable feature in the top signals; structural and recency features only.",
 
   mapHint: "Click a dot for details",
 };

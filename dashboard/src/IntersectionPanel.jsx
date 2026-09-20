@@ -3,17 +3,21 @@ import CrashHistoryChart from "./CrashHistoryChart";
 import ShapChart from "./ShapChart";
 import StreetViewPanel from "./StreetViewPanel";
 import { useAdvanced } from "./useAdvanced";
-import { useComposition } from "./useMeta";
+import { useComposition, useCatch } from "./useMeta";
 import { trafficFor } from "./useTraffic";
 import { recordFor, controlFor, CONTROL_LABEL } from "./useSiteData";
 import { councilUrl } from "./lib/council";
+import { measuresFor, fmtRange, screenGap, CITY_SCREEN } from "./lib/countermeasures";
+import { CRASH_COST, CRASH_COST_SOURCE } from "./lib/crashcost";
+import { councilMessage, citation } from "./lib/ask";
+import { track } from "./lib/track";
 import { fmtDate } from "./Sidebar";
 import { formatPercentile } from "./lib/format";
 import { inclusionReason, sourceLine, sourceOf } from "./lib/signals";
 import { adviceFor, patternOf } from "./lib/advice";
 import { crashRate, ratePerMillionEntering, roundVehicles, fmtPerYear } from "./lib/rates";
 import { nearbySites } from "./lib/geo";
-import { CANDIDATE_COUNT } from "./constants";
+import { CANDIDATE_COUNT, DEFAULT_THRESHOLD } from "./constants";
 
 const TIERS = [
   { max: 50, hex: "#7F1D1D", label: "Highest risk" },
@@ -44,7 +48,10 @@ export default function IntersectionPanel({
 }) {
   const { advanced, copy } = useAdvanced();
   const { isCombined, topN } = useComposition();
+  const { candidates } = useCatch(DEFAULT_THRESHOLD);
   const [copied, setCopied] = useState(false);
+  const [messageCopied, setMessageCopied] = useState(false);
+  const [citeCopied, setCiteCopied] = useState(false);
   const visible = intersection !== null;
 
   const raw = intersection?.properties ?? {};
@@ -64,14 +71,47 @@ export default function IntersectionPanel({
   const reason = inclusionReason(p, advanced);
   const ctrl = controlFor(control, intersection);
   const advice = adviceFor(p, { control: ctrl });
+  const measures = visible ? measuresFor(p, ctrl) : [];
+  const gap = screenGap(p.crash_history);
   const nearby = useMemo(() => nearbySites(intersection, intersections), [intersection, intersections]);
 
   const headColor = source === "known" ? "#7F1D1D" : tier.hex;
-  const denominator = isCombined && topN ? topN : CANDIDATE_COUNT;
+  const denominator = isCombined && topN ? topN : (candidates ?? CANDIDATE_COUNT);
+
+  async function copyMessage() {
+    try {
+      const text = councilMessage({
+        feature: intersection,
+        traffic: trafficFor(traffic, intersection),
+        police: recordFor(recent, intersection),
+        control: ctrl,
+        candidates: denominator,
+        url: window.location.href,
+      });
+      await navigator.clipboard.writeText(text);
+      track("copy-message");
+      setMessageCopied(true);
+      setTimeout(() => setMessageCopied(false), 2000);
+    } catch {
+      /* clipboard blocked */
+    }
+  }
+
+  async function copyCitation() {
+    try {
+      await navigator.clipboard.writeText(citation({ feature: intersection, candidates: denominator, url: window.location.href }));
+      track("copy-citation");
+      setCiteCopied(true);
+      setTimeout(() => setCiteCopied(false), 1500);
+    } catch {
+      /* clipboard blocked */
+    }
+  }
 
   async function copyLink() {
     try {
       await navigator.clipboard.writeText(window.location.href);
+      track("copy-link");
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
@@ -107,7 +147,7 @@ export default function IntersectionPanel({
               </div>
               <div className="print-hide flex items-center gap-4">
                 <button
-                  onClick={() => window.print()}
+                  onClick={() => { track("print-corner"); window.print(); }}
                   className="border-b border-ink/25 text-[11px] text-ink-3 hover:border-ink hover:text-ink"
                 >
                   Print
@@ -161,6 +201,7 @@ export default function IntersectionPanel({
                 <Tag>{advanced ? "Also on City screen" : "Also on the City's list"}</Tag>
               )}
               {ctrl && <Tag>{CONTROL_LABEL[ctrl]}</Tag>}
+              {p.near_school && <Tag>{p.near_school.meters} m from {p.near_school.name}</Tag>}
             </div>
           </header>
 
@@ -191,6 +232,49 @@ export default function IntersectionPanel({
                   {isPrediction ? copy.detailNoAdvice : reason}
                 </p>
               )}
+            </Block>
+
+            <Block heading={copy.detailCase} note={copy.detailCaseNote}>
+              {gap && (
+                <p className="text-[13px] leading-[1.5] text-ink-2">
+                  {gap.gap === 0 ? (
+                    <>In {gap.year} this corner met the City&rsquo;s own review threshold of {CITY_SCREEN} injury crashes in a year.</>
+                  ) : (
+                    <>
+                      In {gap.year} it was{" "}
+                      <span className="tnum font-medium text-ink">{gap.gap}</span> injury{" "}
+                      {gap.gap === 1 ? "crash" : "crashes"} short of the {CITY_SCREEN} that trigger the City&rsquo;s own review.
+                    </>
+                  )}
+                </p>
+              )}
+              <ul className="mt-3">
+                {measures.map((m) => (
+                  <li key={m.key} className="border-b border-rule py-2.5 last:border-b-0">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <span className="text-[13px] font-medium text-ink">{m.name}</span>
+                      <span className="tnum shrink-0 text-[11.5px] text-ink-2">{fmtRange(m.cost, m.per)}</span>
+                    </div>
+                    <p className="mt-0.5 text-[12px] leading-[1.45] text-ink-3">{m.what}{m.reduction ? ` ${m.reduction}.` : ""}</p>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-3 text-[12px] leading-[1.5] text-ink-3">
+                One prevented serious-injury crash is worth about {Math.round(CRASH_COST.serious / 1e5) / 10} million
+                dollars to society ({CRASH_COST_SOURCE.short}). Costs are rough; reductions are FHWA&rsquo;s.
+              </p>
+              <div className="print-hide mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
+                <button
+                  onClick={copyMessage}
+                  className="bg-ink px-4 py-2 text-[13px] font-semibold text-paper hover:bg-ink-2"
+                >
+                  {messageCopied ? "Message copied" : "Copy a message to the council office"}
+                </button>
+                <ExternalLink href={councilUrl(p.council_district)}>District {p.council_district} contact page</ExternalLink>
+                <button onClick={copyCitation} className="border-b border-ink/25 text-[12px] text-ink-3 hover:border-ink hover:text-ink">
+                  {citeCopied ? "Citation copied" : "Copy a citation"}
+                </button>
+              </div>
             </Block>
 
             <Block

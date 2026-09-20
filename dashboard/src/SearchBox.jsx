@@ -1,5 +1,6 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { useAdvanced } from "./useAdvanced";
+import { CITY } from "./city";
 
 const MAX_RESULTS = 8;
 
@@ -104,7 +105,7 @@ export default function SearchBox({ intersections, threshold, onSelect, large = 
           onChange={(e) => { setQuery(e.target.value); setOpen(true); }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          placeholder={large ? "Search a San Diego intersection…" : copy.searchPlaceholder}
+          placeholder={large ? `Search a ${CITY.name} intersection` : copy.searchPlaceholder}
           aria-label={copy.searchPlaceholder}
           autoComplete="off"
           className={inputClass}

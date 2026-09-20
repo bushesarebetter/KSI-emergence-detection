@@ -1,4 +1,5 @@
 import { REPO_URL } from "./constants";
+import { CITY } from "./city";
 
 /**
  * The frame for text pages (privacy and terms, 404): the same masthead and
@@ -15,8 +16,8 @@ export default function PageFrame({ onNavigate, children }) {
       <header className="print-hide border-b border-rule-strong">
         <div className="mx-auto flex max-w-[76rem] items-center justify-between px-5 py-3 md:px-8">
           <a href="/" onClick={go("/")} className="font-serif text-[17px] font-semibold tracking-[-0.01em] text-ink">
-            Intersection Risk
-            <span className="ml-2 hidden text-[11px] font-normal text-ink-3 sm:inline">San Diego</span>
+            {CITY.shortTitle}
+            <span className="ml-2 hidden text-[11px] font-normal text-ink-3 sm:inline">{CITY.name}</span>
           </a>
           <a href="/map" onClick={go("/map")} className="border-b border-ink/25 pb-px text-[12px] text-ink-2 hover:border-ink hover:text-ink">
             Open the map
@@ -40,14 +41,13 @@ export function Footer({ onNavigate }) {
     <footer className="print-hide border-t border-rule">
       <div className="mx-auto max-w-[76rem] px-5 py-5 text-[11.5px] leading-[1.6] text-ink-3 md:px-8">
         <p>
-          Independent student research by Chenhao Zhang and Ayan Pendharkar, Canyon Crest Academy,
-          San Diego. It is not an official City of San Diego assessment.
+          Independent student research by {CITY.authors}. It is not an official {CITY.fullName} assessment.
         </p>
-        <p className="mt-1">
-          Crash data: SWITRS via TIMS, UC Berkeley SafeTREC. Road network: OpenStreetMap
-          contributors. Basemap and Street View: Google Maps.
-        </p>
+        <p className="mt-1">{CITY.attributions}</p>
         <p className="mt-2 flex flex-wrap gap-x-5 gap-y-1">
+          <a href="/funding" onClick={go("/funding")} className="border-b border-ink/25 text-ink-2 hover:border-ink hover:text-ink">
+            The funding case
+          </a>
           <a href="/privacy" onClick={go("/privacy")} className="border-b border-ink/25 text-ink-2 hover:border-ink hover:text-ink">
             Privacy and terms
           </a>

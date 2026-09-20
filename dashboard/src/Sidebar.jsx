@@ -4,6 +4,7 @@ import FilterBar from "./FilterBar";
 import RoutePanel from "./RoutePanel";
 import DistrictSummary from "./DistrictSummary";
 import CatchFigure from "./CatchFigure";
+import { CITY } from "./city";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
@@ -55,12 +56,12 @@ export default function Sidebar({
         <p className="mt-3.5 max-w-measure text-[13.5px] leading-[1.55] text-ink-2">
           {advanced ? (
             <>
-              26,045 City-of-San-Diego intersections with no KSI history through 2024,
+              {CITY.fullName} intersections with no KSI history through 2024,
               ranked by predicted KSI count over the label window.
             </>
           ) : (
             <>
-              Every San Diego intersection that has never had a serious crash, ranked by
+              Every {CITY.name} intersection that has never had a serious crash, ranked by
               how likely it is to have one. It uses only the crash records the city already
               keeps.
             </>
@@ -68,14 +69,14 @@ export default function Sidebar({
         </p>
 
         <p className="mt-3 text-[11px] leading-[1.5] text-ink-3">
-          Crash records through December 2024.
+          Crash records through {CITY.crashDataThrough}.
           {trafficYears && <> Traffic counts {trafficYears}.</>}
           {recent?.source?.through && <> Police reports through {fmtDate(recent.source.through)}.</>}
         </p>
       </div>
 
       <hr className="rule" />
-      <FilterBar filters={filters} onFiltersChange={onFiltersChange} />
+      <FilterBar filters={filters} onFiltersChange={onFiltersChange} intersections={intersections} />
 
       <hr className="rule" />
       <RoutePanel

@@ -5,7 +5,10 @@ import { Footer } from "./PageFrame";
 import { useCatch, useComposition } from "./useMeta";
 import { sourceLine, sourceOf } from "./lib/signals";
 import { patternOf } from "./lib/advice";
+import { CRASH_COST, CRASH_COST_SOURCE } from "./lib/crashcost";
+import { MEASURES, fmtMoney, fmtRange } from "./lib/countermeasures";
 import { DEFAULT_THRESHOLD, CANDIDATE_COUNT } from "./constants";
+import { CITY } from "./city";
 
 const TIERS = [
   { max: 50, hex: "#7F1D1D", label: "Highest risk" },
@@ -16,14 +19,12 @@ const TIERS = [
 const tierFor = (rank) => TIERS.find((t) => rank <= t.max);
 
 /**
- * The front door.
+ * The front door of an advocacy map.
  *
- * One question, one search, one button, one figure, one caveat. The specimen
- * on the right is the only imagery: three real rows from the ranking, each
- * with the crash pattern behind it, because the product is the list.
- *
- * Every number is read from /data/meta.json, so this page cannot claim a
- * figure the export did not produce.
+ * One claim, one search, two buttons, the arithmetic, and the caveat. The
+ * specimen on the right is the only imagery: three real rows from the ranking,
+ * each with the crash pattern behind it, because the product is the list.
+ * Every number is read from /data/meta.json or a named source.
  */
 export default function Landing({ intersections, error, onEnter, onNavigate, notice }) {
   const [aboutOpen, setAboutOpen] = useState(false);
@@ -31,6 +32,8 @@ export default function Landing({ intersections, error, onEnter, onNavigate, not
   const { isCombined, known, screen, topN } = useComposition();
   const randomCatch = lift ? Math.max(1, Math.round(caught / lift)) : null;
   const listSize = isCombined && topN ? topN : DEFAULT_THRESHOLD;
+  const cheapest = MEASURES.find((m) => m.key === "lpi");
+  const go = (p) => (e) => { e.preventDefault(); onNavigate(p); };
 
   const specimen = useMemo(() => {
     if (!intersections) return null;
@@ -44,15 +47,20 @@ export default function Landing({ intersections, error, onEnter, onNavigate, not
       <header className="border-b border-rule-strong">
         <div className="mx-auto flex max-w-[76rem] items-center justify-between px-5 py-3 md:px-8">
           <a href="/" className="font-serif text-[17px] font-semibold tracking-[-0.01em] text-ink">
-            Intersection Risk
-            <span className="ml-2 hidden text-[11px] font-normal text-ink-3 sm:inline">San Diego</span>
+            {CITY.shortTitle}
+            <span className="ml-2 hidden text-[11px] font-normal text-ink-3 sm:inline">{CITY.name}</span>
           </a>
-          <button
-            onClick={() => setAboutOpen(true)}
-            className="border-b border-ink/25 pb-px text-[12px] text-ink-2 hover:border-ink hover:text-ink"
-          >
-            How this works
-          </button>
+          <nav className="flex items-center gap-5 text-[12px]">
+            <a href="/funding" onClick={go("/funding")} className="border-b border-ink/25 pb-px text-ink-2 hover:border-ink hover:text-ink">
+              The funding case
+            </a>
+            <button
+              onClick={() => setAboutOpen(true)}
+              className="border-b border-ink/25 pb-px text-ink-2 hover:border-ink hover:text-ink"
+            >
+              How this works
+            </button>
+          </nav>
         </div>
       </header>
 
@@ -60,25 +68,25 @@ export default function Landing({ intersections, error, onEnter, onNavigate, not
 
       <main className="mx-auto grid w-full max-w-[76rem] flex-1 grid-cols-1 gap-12 px-5 pb-28 pt-12 md:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] md:gap-16 md:px-8 md:pb-16 md:pt-20">
         <section>
-          <p className="label mb-4">San Diego, independent research</p>
+          <p className="label mb-4">{CITY.name}, an advocacy map</p>
 
           <h1 className="font-serif text-[40px] font-medium leading-[1.04] tracking-[-0.025em] text-ink sm:text-[52px] md:text-[60px]">
-            Is your intersection
+            The corners to fix
             <br />
-            on the list?
+            before someone is killed.
           </h1>
 
-          <p className="mt-6 max-w-[42ch] font-serif text-[18px] leading-[1.5] text-ink-2 md:text-[20px]">
+          <p className="mt-6 max-w-[44ch] font-serif text-[18px] leading-[1.5] text-ink-2 md:text-[20px]">
             {isCombined ? (
               <>
-                The {listSize.toLocaleString()} San Diego intersections most worth a second look:
-                where serious crashes have already happened, and where the model expects the
-                next ones.
+                The {listSize.toLocaleString()} {CITY.name} intersections most worth fixing next,
+                with what each fix would cost and who decides.
               </>
             ) : (
               <>
-                San Diego street corners that have never had a serious crash, ranked by how
-                likely they are to have one next.
+                {listSize} {CITY.name} intersections the City&rsquo;s own review cannot see yet,
+                ranked by how likely a serious crash is next, with what fixing each would cost
+                and who to ask.
               </>
             )}
           </p>
@@ -90,7 +98,7 @@ export default function Landing({ intersections, error, onEnter, onNavigate, not
               threshold={DEFAULT_THRESHOLD}
               onSelect={(feature) => onEnter(feature)}
             />
-            <p className="mt-2 text-[12px] text-ink-3">Try one street name, like El Cajon or Genesee.</p>
+            <p className="mt-2 text-[12px] text-ink-3">{CITY.searchHint}</p>
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-5">
@@ -100,23 +108,34 @@ export default function Landing({ intersections, error, onEnter, onNavigate, not
             >
               See the full map
             </button>
-            <button
-              onClick={() => setAboutOpen(true)}
+            <a
+              href="/funding"
+              onClick={go("/funding")}
               className="border-b border-ink/25 pb-px text-[13px] text-ink-2 hover:border-ink hover:text-ink"
             >
-              How this works
-            </button>
+              Read the funding case
+            </a>
           </div>
 
-          {/* The one figure the project rests on, then the caveat at the same size. */}
+          {/* The arithmetic, then the record, then the caveat. */}
           <div className="mt-12 border-t border-rule pt-8">
+            <p className="max-w-[46ch] font-serif text-[20px] leading-[1.4] text-ink md:text-[22px]">
+              One fatal crash costs society about {fmtMoney(CRASH_COST.fatal)}. A{" "}
+              {cheapest.name.toLowerCase()} costs {fmtRange(cheapest.cost)}.
+            </p>
+            <p className="mt-2 text-[12px] text-ink-3">
+              {CRASH_COST_SOURCE.short}. Money today follows the crash; this map is the case for spending some of it first.
+            </p>
+          </div>
+
+          <div className="mt-8">
             <p className="tnum font-serif text-[56px] font-medium leading-none text-ink">
               {caught}
               <span className="text-ink-3"> of {total}</span>
             </p>
             <p className="mt-3 max-w-[44ch] text-[14px] leading-[1.5] text-ink-2">
-              intersections that had a serious crash in 2025 were already on the model&rsquo;s
-              list of {DEFAULT_THRESHOLD}.
+              intersections that had a serious crash in 2025 were already on this list of{" "}
+              {DEFAULT_THRESHOLD}.
               {randomCatch != null && (
                 <> Picking {DEFAULT_THRESHOLD} corners at random would have caught about {randomCatch}.</>
               )}
@@ -227,6 +246,15 @@ export default function Landing({ intersections, error, onEnter, onNavigate, not
             Darker means higher predicted risk. The model learned from crash records for 2016
             through 2024 and has not been retrained since. The 2025 crashes it is scored against
             came later.
+          </p>
+
+          <p className="mt-6 border-t border-rule pt-4 text-[13px] leading-[1.55] text-ink-2">
+            Live near one of these? Open it, read what happens there, and use &ldquo;Copy a
+            message&rdquo; to send its record and its fix to your council office.{" "}
+            <a href="/district/1" onClick={go("/district/1")} className="border-b border-ink/25 text-ink hover:border-ink">
+              Printable district reports
+            </a>
+            .
           </p>
         </aside>
       </main>

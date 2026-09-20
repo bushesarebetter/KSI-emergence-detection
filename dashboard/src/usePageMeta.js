@@ -1,6 +1,7 @@
 import { useEffect } from "react";
+import { CITY } from "./city";
 
-const SITE = "San Diego Intersection Risk";
+const SITE = CITY.siteTitle;
 
 /**
  * One title and one description per view. A single-page app otherwise ships

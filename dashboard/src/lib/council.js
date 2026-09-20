@@ -1,10 +1,9 @@
-/**
- * Where to send a corner. Each council district has an office with a public
- * contact page; the member changes, the district page does not.
- */
-export const COUNCIL_INDEX = "https://www.sandiego.gov/citycouncil";
+import { CITY } from "../city.js";
+
+/** Where to send a corner: the district office's public page, from the city config. */
+export const COUNCIL_INDEX = CITY.districts.councilIndex;
 
 export function councilUrl(district) {
   const d = Number(district);
-  return d >= 1 && d <= 9 ? `${COUNCIL_INDEX}/cd${d}` : COUNCIL_INDEX;
+  return d >= 1 && d <= CITY.districts.count ? CITY.districts.councilUrl(d) : COUNCIL_INDEX;
 }

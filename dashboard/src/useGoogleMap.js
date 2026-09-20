@@ -1,7 +1,8 @@
 import { useRef, useEffect, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
+import { CITY } from "./city";
 
-export const SAN_DIEGO_CENTER = { lat: 32.7157, lng: -117.1611 };
+export const SAN_DIEGO_CENTER = CITY.center;
 
 // One loader per page. The Google Maps JS API is a singleton -- calling
 // importLibrary twice with different options throws, so the options are fixed here.

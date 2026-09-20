@@ -5,10 +5,16 @@ import { recordFor } from "./useSiteData";
 import { patternOf, patternKeys, FILTER_PATTERNS } from "./lib/advice";
 import { crashRate, fmtPerYear, roundVehicles } from "./lib/rates";
 import { councilUrl } from "./lib/council";
+import { controlFor } from "./useSiteData";
+import { measuresFor, costRange, fmtMoney, screenGap } from "./lib/countermeasures";
+import { districtMessage } from "./lib/ask";
+import { useState } from "react";
 import { fmtDate } from "./Sidebar";
 import { DEFAULT_THRESHOLD } from "./constants";
+import { CITY, DISTRICT_NUMBERS } from "./city";
+import { track } from "./lib/track";
 
-const DISTRICTS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+const DISTRICTS = DISTRICT_NUMBERS;
 
 /**
  * One page per council district, written to be printed and forwarded: how many
@@ -16,8 +22,9 @@ const DISTRICTS = [1, 2, 3, 4, 5, 6, 7, 8, 9];
  * they carry, which are rising, and what the police have logged since the
  * model's cutoff. Every number comes from the same files the map reads.
  */
-export default function DistrictReport({ district, intersections, traffic, recent, onNavigate, onOpenMap }) {
+export default function DistrictReport({ district, intersections, traffic, recent, control = null, onNavigate, onOpenMap }) {
   const d = Number(district);
+  const [copied, setCopied] = useState(false);
   const go = (p) => (e) => { e.preventDefault(); onNavigate(p); };
 
   const data = useMemo(() => {
@@ -39,12 +46,35 @@ export default function DistrictReport({ district, intersections, traffic, recen
       if (rec) { police += rec.count; policeCorners += 1; hurt += rec.injured + rec.killed; }
     }
     const emergent = listed.filter((f) => f.properties.is_known_emergent).length;
-    return { listed, top100, mix, rising, police, policeCorners, hurt, emergent };
-  }, [intersections, d, recent]);
+    // Within one injury crash of the City's review threshold in the last full year.
+    const nearScreen = listed.filter((f) => { const g = screenGap(f.properties.crash_history); return g && g.gap <= 1; }).length;
+    // The non-review measures suggested for the top ten, summed.
+    let costLo = 0, costHi = 0;
+    for (const f of listed.slice(0, 10)) {
+      const [lo, hi] = costRange(measuresFor(f.properties, controlFor(control, f)));
+      costLo += lo; costHi += hi;
+    }
+    return { listed, top100, mix, rising, police, policeCorners, hurt, emergent, nearScreen, costLo, costHi };
+  }, [intersections, d, recent, control]);
+
+  async function copyAsk() {
+    if (!data) return;
+    try {
+      await navigator.clipboard.writeText(districtMessage({
+        district: d, listed: data.listed.length, top100: data.top100, gapCount: data.nearScreen,
+        costLo: fmtMoney(data.costLo), costHi: fmtMoney(data.costHi), url: window.location.href,
+      }));
+      track("copy-district-message");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      /* clipboard blocked */
+    }
+  }
 
   return (
     <PageFrame onNavigate={onNavigate}>
-      <p className="label mb-4">Council District {d}</p>
+      <p className="label mb-4">{CITY.districts.label} {d}</p>
       <h1 className="font-serif text-[36px] font-medium leading-[1.08] tracking-[-0.02em] text-ink sm:text-[44px]">
         Corners to look at in District {d}
       </h1>
@@ -57,7 +87,7 @@ export default function DistrictReport({ district, intersections, traffic, recen
       ) : (
         <>
           <p className="mt-5 max-w-[52ch] font-serif text-[17px] leading-[1.55] text-ink-2">
-            Of the {DEFAULT_THRESHOLD} San Diego intersections the model ranks most likely to see a
+            Of the {DEFAULT_THRESHOLD} {CITY.name} intersections the model ranks most likely to see a
             serious crash next, {data.listed.length} are in District {d}, {data.top100} of them in the
             top 100. {data.emergent > 0 && <>{data.emergent} already had a serious crash in 2025.</>}
           </p>
@@ -66,7 +96,7 @@ export default function DistrictReport({ district, intersections, traffic, recen
             <button onClick={() => onOpenMap(d)} className="border-b border-ink/25 text-ink hover:border-ink">
               Open the map for District {d}
             </button>
-            <button onClick={() => window.print()} className="border-b border-ink/25 text-ink hover:border-ink">
+            <button onClick={() => { track("print-district"); window.print(); }} className="border-b border-ink/25 text-ink hover:border-ink">
               Print this page
             </button>
             <a href={councilUrl(d)} target="_blank" rel="noopener noreferrer" className="border-b border-ink/25 text-ink hover:border-ink">
@@ -144,6 +174,39 @@ export default function DistrictReport({ district, intersections, traffic, recen
             ) : (
               <p className="text-[13px] text-ink-3">Police reports are not loaded.</p>
             )}
+          </Section>
+
+          <Section heading="Within reach of the City's review">
+            <p className="text-[14px] leading-[1.55] text-ink-2">
+              {data.nearScreen} of the {data.listed.length} listed corners were within one injury crash of the
+              City&rsquo;s five-crash review threshold in 2024. A review now costs a few thousand dollars;
+              waiting for the fifth crash costs whatever that crash costs.
+            </p>
+          </Section>
+
+          <Section heading="What fixing the top ten would cost">
+            <p className="text-[14px] leading-[1.55] text-ink-2">
+              The FHWA proven countermeasures matched to each of the top ten, added up, come to roughly{" "}
+              <span className="tnum font-medium text-ink">{fmtMoney(data.costLo)} to {fmtMoney(data.costHi)}</span>,
+              before the federal share under HSIP. That is less than the societal cost of one serious-injury
+              crash. Each corner&rsquo;s measures and costs are on its panel on the map.
+            </p>
+          </Section>
+
+          <Section heading="The ask">
+            <p className="text-[14px] leading-[1.55] text-ink-2">
+              Request an engineering review of the top ten from {CITY.transportationDept}, and
+              include them in the City&rsquo;s next Highway Safety Improvement Program or Safe Streets
+              and Roads for All application.
+            </p>
+            <p className="print-hide mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
+              <button onClick={copyAsk} className="bg-ink px-4 py-2 text-[13px] font-semibold text-paper hover:bg-ink-2">
+                {copied ? "Message copied" : "Copy a message to the council office"}
+              </button>
+              <a href="/funding" onClick={go("/funding")} className="border-b border-ink/25 text-ink hover:border-ink">
+                The funding case
+              </a>
+            </p>
           </Section>
 
           <Section heading="What to do with this">

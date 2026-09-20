@@ -11,6 +11,7 @@ import Privacy from "./Privacy";
 import NotFound from "./NotFound";
 import Notice from "./Notice";
 import DistrictReport from "./DistrictReport";
+import FundingCase from "./FundingCase";
 import useIntersections from "./useIntersections";
 import useMediaQuery from "./useMediaQuery";
 import usePageMeta from "./usePageMeta";
@@ -20,15 +21,17 @@ import { readSiteFromUrl, writeSiteToUrl } from "./useDeepLink";
 import { AdvancedProvider, useAdvanced } from "./useAdvanced";
 import { MetaProvider, useMetaFetch } from "./useMeta";
 import { DEFAULT_THRESHOLD, CANDIDATE_COUNT } from "./constants";
+import { CITY } from "./city";
 
 const DEFAULT_FILTERS = { threshold: DEFAULT_THRESHOLD, districts: [], pattern: null };
 const PHONE = "(max-width: 767px)";
 
 const DESCRIPTIONS = {
-  landing: "Every San Diego intersection with no serious crash on record, ranked by how likely one is next.",
-  map: "The map of San Diego intersections ranked by serious-crash risk for 2025 to 2027, with the crash record, traffic, and what to do differently at each one.",
+  landing: `Every ${CITY.name} intersection with no serious crash on record, ranked by how likely one is next.`,
+  map: `The map of ${CITY.name} intersections ranked by serious-crash risk for 2025 to 2027, with the crash record, traffic, and what to do differently at each one.`,
   privacy: "What this site collects (nothing of its own), what Google Maps and the host collect, and the terms the ranking is offered under.",
-  district: "A printable report of the listed corners in one San Diego council district: the top ten, the kinds of crashes, and which are rising.",
+  district: `A printable report of the listed corners in one ${CITY.name} council district: the top ten, the kinds of crashes, and which are rising.`,
+  funding: `The case for fixing ${CITY.name} intersections before the crash: what a crash costs, what a fix costs, where the money is, and what to ask for.`,
   notfound: "That page does not exist.",
 };
 
@@ -47,6 +50,7 @@ function viewFromLocation() {
     return { view: new URLSearchParams(search).has("site") ? "map" : "landing", district: null };
   }
   if (path === "/privacy") return { view: "privacy", district: null };
+  if (path === "/funding") return { view: "funding", district: null };
   const m = /^\/district\/([1-9])$/.exec(path);
   if (m) return { view: "district", district: Number(m[1]) };
   return { view: "notfound", district: null };
@@ -155,17 +159,20 @@ function Dashboard() {
           ? "Privacy and terms"
           : view === "district"
             ? `District ${district} report`
+            : view === "funding"
+              ? "The funding case"
             : view === "notfound"
               ? "Page not found"
               : null,
     description:
       view === "map" && sel
-        ? `${sel.intersection_name}, ranked #${sel.rank} of ${CANDIDATE_COUNT.toLocaleString()} San Diego intersections for serious-crash risk in 2025 to 2027, with its crash record and what to do differently there.`
+        ? `${sel.intersection_name}, ranked #${sel.rank} of ${CANDIDATE_COUNT.toLocaleString()} ${CITY.name} intersections for serious-crash risk in 2025 to 2027, with its crash record and what to do differently there.`
         : DESCRIPTIONS[view],
   });
 
   if (view === "privacy") return <Privacy onNavigate={navigate} />;
   if (view === "notfound") return <NotFound onNavigate={navigate} />;
+  if (view === "funding") return <FundingCase onNavigate={navigate} />;
   if (view === "district") {
     return (
       <DistrictReport
@@ -173,6 +180,7 @@ function Dashboard() {
         intersections={intersections}
         traffic={traffic}
         recent={recent}
+        control={control}
         onNavigate={navigate}
         onOpenMap={openMapForDistrict}
       />
@@ -240,6 +248,7 @@ function Dashboard() {
         threshold={filters.threshold}
         onSelectIntersection={setSelectedIntersection}
         onHome={goHome}
+        onNavigate={navigate}
       />
 
       <main className="relative flex flex-1 overflow-hidden">

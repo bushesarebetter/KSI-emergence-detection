@@ -3,9 +3,11 @@ import { loadMaps } from "./useGoogleMap";
 import { cornersAlong, cornersNear, fmtKm } from "./lib/route";
 import { patternOf } from "./lib/advice";
 import { passesFilters } from "./lib/filters";
+import { track } from "./lib/track";
+import { CITY } from "./city";
 
 // Bias address lookups to the city; "Broadway" alone should mean the one here.
-const SAN_DIEGO_BOUNDS = { south: 32.53, west: -117.29, north: 33.12, east: -116.9 };
+const SAN_DIEGO_BOUNDS = CITY.bounds;
 const NEAR_M = 500;
 const ALONG_M = 35;
 
@@ -15,7 +17,7 @@ function explain(err) {
   if (/REQUEST_DENIED|not authorized|ApiNotActivated/i.test(msg)) {
     return "Address lookup is not switched on for this site's Google key (it needs the Geocoding and Directions APIs).";
   }
-  if (/ZERO_RESULTS|NOT_FOUND/i.test(msg)) return "No match for that. Try a street address or a landmark in San Diego.";
+  if (/ZERO_RESULTS|NOT_FOUND/i.test(msg)) return `No match for that. Try a street address or a landmark in ${CITY.name}.`;
   if (/OVER_QUERY_LIMIT/i.test(msg)) return "Too many lookups right now. Try again in a minute.";
   return msg;
 }
@@ -41,6 +43,7 @@ export default function RoutePanel({ intersections, filters, onRoute, onSelect, 
     if (!from.trim() || !intersections) return;
     setBusy(true);
     setError(null);
+    track(to.trim() ? "route-check" : "near-check");
     try {
       const maps = await loadMaps();
       const shown = intersections.features.filter((f) => passesFilters(f.properties, filters));

@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useAdvanced } from "./useAdvanced";
 import { passesFilters } from "./lib/filters";
+import { DISTRICT_NUMBERS } from "./city";
 
 /**
  * districts.json carries a count per district at every shortlist size the
@@ -173,7 +174,7 @@ export default function DistrictSummary({ districts, filters, onFiltersChange, i
       {onNavigate && (
         <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[11px] text-ink-3">
           Printable report:
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((d) => (
+          {DISTRICT_NUMBERS.map((d) => (
             <a
               key={d}
               href={`/district/${d}`}

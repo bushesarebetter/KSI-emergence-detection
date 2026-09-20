@@ -180,6 +180,7 @@ python scripts/build_export_panel_verified.py --run forward
 python scripts/join_traffic_counts.py
 python scripts/join_recent_collisions.py
 python scripts/fetch_intersection_control.py
+python scripts/fetch_school_proximity.py
 git add dashboard/public/data/
 git commit -m "Update dashboard export"
 git push

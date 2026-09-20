@@ -1,5 +1,6 @@
 import PageFrame from "./PageFrame";
 import { REPO_URL } from "./constants";
+import { CITY } from "./city";
 
 const ANALYTICS_SRC = import.meta.env.VITE_ANALYTICS_SRC || "";
 
@@ -74,7 +75,7 @@ export default function Privacy({ onNavigate }) {
       <Section heading="Terms of use">
         <p>
           The ranking is independent student research, provided as is and without warranty of any
-          kind. It is not an official City of San Diego assessment and does not replace one. A
+          kind. It is not an official {CITY.fullName} assessment and does not replace one. A
           dot on the map does not mean a corner is unsafe today, and the absence of one does
           not mean it is safe. The advice shown for a corner is general road practice for the
           kind of crash recorded there; none of it would have prevented any particular crash.
@@ -90,7 +91,7 @@ export default function Privacy({ onNavigate }) {
       <Section heading="Contact">
         <p>
           Questions and corrections: <Link href={`${REPO_URL}/issues`}>open an issue on GitHub</Link>.
-          The authors are Chenhao Zhang and Ayan Pendharkar, Canyon Crest Academy, San Diego.
+          The authors are {CITY.authors}.
         </p>
       </Section>
     </PageFrame>
