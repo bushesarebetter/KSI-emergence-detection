@@ -4,6 +4,12 @@ import { adviceFor } from "./lib/advice";
 import { crashRate, fmtPerYear, roundVehicles } from "./lib/rates";
 import { trafficFor } from "./useTraffic";
 import { recordFor, controlFor } from "./useSiteData";
+import { councilMessage } from "./lib/ask";
+import { councilUrl } from "./lib/council";
+import { track } from "./lib/track";
+import { useCatch } from "./useMeta";
+import { DEFAULT_THRESHOLD } from "./constants";
+import MessageBox from "./MessageBox";
 
 const TIERS = [
   { max: 50, hex: "#7F1D1D", label: "Highest risk" },
@@ -31,6 +37,8 @@ function parseProp(v) {
  */
 export default function MobileSheet({ feature, onClose, traffic = null, recent = null, control = null }) {
   const [dragY, setDragY] = useState(0);
+  const [message, setMessage] = useState(null);
+  const { candidates } = useCatch(DEFAULT_THRESHOLD);
   const dragging = useRef(false);
   const startY = useRef(0);
 
@@ -51,6 +59,22 @@ export default function MobileSheet({ feature, onClose, traffic = null, recent =
   const fallback = isPrediction
     ? humanizeSignal(shap?.[0]?.display_label) || "Ranked on its crash rate. Slow down and leave more room than usual."
     : inclusionReason(p, false);
+
+  async function writeToCouncil() {
+    const text = councilMessage({
+      feature, traffic: t, police, control: controlFor(control, feature),
+      candidates: candidates ?? 26045, url: window.location.href,
+    });
+    track("copy-message");
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(text);
+      ok = true;
+    } catch {
+      ok = false;
+    }
+    setMessage({ text, copied: ok });
+  }
 
   const onTouchStart = (e) => {
     startY.current = e.touches[0].clientY;
@@ -146,6 +170,23 @@ export default function MobileSheet({ feature, onClose, traffic = null, recent =
             </p>
           )}
 
+          <div className="mx-5 mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 border-t border-rule pt-3">
+            <button
+              onClick={writeToCouncil}
+              className="min-h-[44px] bg-ink px-4 text-[14px] font-semibold text-paper active:opacity-80"
+            >
+              Write to the council office
+            </button>
+            <a
+              href={councilUrl(p.council_district)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="border-b border-ink/30 text-[13px] text-ink-2"
+            >
+              District {p.council_district} contact page
+            </a>
+          </div>
+
           <a
             href={`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lon}`}
             target="_blank"
@@ -154,6 +195,15 @@ export default function MobileSheet({ feature, onClose, traffic = null, recent =
           >
             <span className="border-b border-ink/30">Look at this intersection in Street View</span>
           </a>
+
+          {message && (
+            <MessageBox
+              title={`To the District ${p.council_district} council office`}
+              text={message.text}
+              copied={message.copied}
+              onClose={() => setMessage(null)}
+            />
+          )}
         </>
       )}
     </section>

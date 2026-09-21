@@ -7,6 +7,10 @@ import { patternOf } from "./lib/advice";
 import { passesFilters } from "./lib/filters";
 
 const INITIAL_ZOOM = 13;
+
+// The tooltip is built as HTML. Names come from OpenStreetMap and are data,
+// so they are escaped before they are rendered.
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 const FLY_ZOOM = 16;
 
 // Sequential ramp, dark to light, matching MapLegend's RISK_TIERS. Lightness
@@ -117,11 +121,11 @@ export default function MapView({
       iw.setContent(`
         <div style="font-family:'Public Sans',Helvetica,Arial,sans-serif;padding:9px 12px;min-width:150px">
           <div style="font-size:13px;font-weight:600;color:#17150F;line-height:1.3;margin-bottom:5px">
-            ${intersection_name}
+            ${esc(intersection_name)}
           </div>
           <div style="font-size:11px;color:#8A8272;letter-spacing:.02em">
             <span style="font-variant-numeric:tabular-nums;color:#17150F;font-weight:600">#${rank}</span>,
-            District ${council_district}${pattern ? `, ${pattern.toLowerCase()}` : ""}
+            District ${esc(council_district)}${pattern ? `, ${esc(pattern.toLowerCase())}` : ""}
           </div>
         </div>
       `);

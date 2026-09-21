@@ -1,3 +1,9 @@
+/** The key the per-site data files use: the site's coordinates to six decimals. */
+export function pointKey(feature) {
+  const [lon, lat] = feature.geometry.coordinates;
+  return `${lat.toFixed(6)},${lon.toFixed(6)}`;
+}
+
 /** Distance in metres between two [lon, lat] pairs; exact enough within a city. */
 export function metersBetween(a, b) {
   const k = Math.cos((a[1] * Math.PI) / 180);
@@ -10,6 +16,9 @@ export function metersBetween(a, b) {
  * Other exported sites within `maxM` of a feature, nearest first. A person who
  * drives one flagged corner usually drives the next one along the same road.
  */
+/** Two listed nodes closer than this are, in practice, one intersection. */
+export const SAME_NODE_M = 30;
+
 export function nearbySites(feature, fc, maxM = 800, n = 3) {
   if (!feature || !fc?.features) return [];
   const here = feature.geometry.coordinates;

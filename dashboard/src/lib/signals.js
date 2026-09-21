@@ -13,8 +13,12 @@
  * intersection is dangerous", which is a claim about hazard the model does not
  * make. Unmatched labels fall through unchanged.
  */
+import { WALK_M } from "./advice.js";
 
 const KMH_TO_MPH = 0.621371;
+
+/** The label as the export wrote it, with its one grammatical slip mended. */
+export const techLabel = (label) => String(label ?? "").replace(/~1 years ago/i, "~1 year ago");
 const yrs = (months) => Math.round(Number(months) / 12);
 const plural = (n, word) => `${n} ${word}${Number(n) === 1 ? "" : "s"}`;
 
@@ -61,7 +65,7 @@ const RULES = [
   { test: /^secondary arterial$/i, render: () => "On a secondary arterial, a busy through road" },
   { test: /^arterial$/i, render: () => "On an arterial, a through road" },
   { test: /~\s*(\d+) lanes/i, render: (m) => `About ${m[1]} lanes across` },
-  { test: /transit stop (\d+) m away/i, render: (m) => `A transit stop ${m[1]} m away, so people cross here to reach it` },
+  { test: /transit stop (\d+) m away/i, render: (m) => (Number(m[1]) <= WALK_M ? `A transit stop ${m[1]} m away, so people cross here to reach it` : `A transit stop ${m[1]} m away`) },
   { test: /stop-controlled/i, render: () => "Stop signs, no signal" },
   { test: /(\d+) km\/h speed limit/i, render: (m) => `${Math.round(Number(m[1]) * KMH_TO_MPH / 5) * 5} mph speed limit` },
   { test: /(\d+) intersections within (\d+) m/i, render: (m) => `${m[1]} intersections within ${m[2]} m, a dense grid` },

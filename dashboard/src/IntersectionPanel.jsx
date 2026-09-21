@@ -1,9 +1,11 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import MessageBox from "./MessageBox";
 import CrashHistoryChart from "./CrashHistoryChart";
 import ShapChart from "./ShapChart";
 import StreetViewPanel from "./StreetViewPanel";
 import { useAdvanced } from "./useAdvanced";
-import { useComposition, useCatch } from "./useMeta";
+import { useComposition, useCatch, useMeta } from "./useMeta";
+import { liftSentence } from "./lib/tiers";
 import { trafficFor } from "./useTraffic";
 import { recordFor, controlFor, CONTROL_LABEL } from "./useSiteData";
 import { councilUrl } from "./lib/council";
@@ -16,7 +18,7 @@ import { formatPercentile } from "./lib/format";
 import { inclusionReason, sourceLine, sourceOf } from "./lib/signals";
 import { adviceFor, patternOf } from "./lib/advice";
 import { crashRate, ratePerMillionEntering, roundVehicles, fmtPerYear } from "./lib/rates";
-import { nearbySites } from "./lib/geo";
+import { nearbySites, SAME_NODE_M } from "./lib/geo";
 import { CANDIDATE_COUNT, DEFAULT_THRESHOLD } from "./constants";
 
 const TIERS = [
@@ -45,13 +47,17 @@ export default function IntersectionPanel({
   control = null,
   intersections = null,
   onSelectIntersection = () => {},
+  onNavigate = null,
 }) {
   const { advanced, copy } = useAdvanced();
   const { isCombined, topN } = useComposition();
   const { candidates } = useCatch(DEFAULT_THRESHOLD);
+  const meta = useMeta();
   const [copied, setCopied] = useState(false);
   const [messageCopied, setMessageCopied] = useState(false);
   const [citeCopied, setCiteCopied] = useState(false);
+  const [message, setMessage] = useState(null); // { text, copied }
+  const headingRef = useRef(null);
   const visible = intersection !== null;
 
   const raw = intersection?.properties ?? {};
@@ -77,24 +83,32 @@ export default function IntersectionPanel({
 
   const headColor = source === "known" ? "#7F1D1D" : tier.hex;
   const denominator = isCombined && topN ? topN : (candidates ?? CANDIDATE_COUNT);
+  const lift = isPrediction ? liftSentence(p.rank, meta, { advanced }) : null;
+
+  // Keyboard and screen-reader users land on the corner's name when it opens.
+  useEffect(() => {
+    if (visible) headingRef.current?.focus({ preventScroll: true });
+  }, [intersection, visible]);
 
   async function copyMessage() {
+    const text = councilMessage({
+      feature: intersection,
+      traffic: trafficFor(traffic, intersection),
+      police: recordFor(recent, intersection),
+      control: ctrl,
+      candidates: denominator,
+      url: window.location.href,
+    });
+    track("copy-message");
+    let copied = false;
     try {
-      const text = councilMessage({
-        feature: intersection,
-        traffic: trafficFor(traffic, intersection),
-        police: recordFor(recent, intersection),
-        control: ctrl,
-        candidates: denominator,
-        url: window.location.href,
-      });
       await navigator.clipboard.writeText(text);
-      track("copy-message");
-      setMessageCopied(true);
-      setTimeout(() => setMessageCopied(false), 2000);
+      copied = true;
     } catch {
-      /* clipboard blocked */
+      copied = false;
     }
+    setMessageCopied(copied);
+    setMessage({ text, copied });
   }
 
   async function copyCitation() {
@@ -126,6 +140,14 @@ export default function IntersectionPanel({
         visible ? "translate-x-0 shadow-paper print-sheet" : "translate-x-full"
       }`}
     >
+      {message && (
+        <MessageBox
+          title={`To the District ${p.council_district} council office`}
+          text={message.text}
+          copied={message.copied}
+          onClose={() => { setMessage(null); setMessageCopied(false); }}
+        />
+      )}
       {visible && (
         <div className="flex h-full flex-col">
           <header className="shrink-0 border-b border-rule-strong px-6 pb-5 pt-5">
@@ -168,9 +190,12 @@ export default function IntersectionPanel({
               </div>
             </div>
 
-            <h2 className="font-serif text-[20px] font-medium leading-[1.2] text-ink">
+            <h2 ref={headingRef} tabIndex={-1} className="font-serif text-[20px] font-medium leading-[1.2] text-ink focus:outline-none">
               {p.intersection_name}
             </h2>
+            <span className="sr-only" aria-live="polite">
+              {messageCopied ? "Message copied" : citeCopied ? "Citation copied" : copied ? "Link copied" : ""}
+            </span>
 
             <p className="mt-2 text-[11.5px] text-ink-2">
               {isPrediction ? (
@@ -203,6 +228,7 @@ export default function IntersectionPanel({
               {ctrl && <Tag>{CONTROL_LABEL[ctrl]}</Tag>}
               {p.near_school && <Tag>{p.near_school.meters} m from {p.near_school.name}</Tag>}
             </div>
+            {lift && <p className="mt-3 text-[11.5px] leading-[1.5] text-ink-3">{lift}</p>}
           </header>
 
           <div className="print-scroll flex-1 overflow-y-auto">
@@ -253,7 +279,7 @@ export default function IntersectionPanel({
                   <li key={m.key} className="border-b border-rule py-2.5 last:border-b-0">
                     <div className="flex items-baseline justify-between gap-3">
                       <span className="text-[13px] font-medium text-ink">{m.name}</span>
-                      <span className="tnum shrink-0 text-[11.5px] text-ink-2">{fmtRange(m.cost, m.per)}</span>
+                      <span className="tnum shrink-0 text-[11.5px] text-ink-2">{fmtRange(m.cost, m.per)}{advanced && m.life ? ` · ${m.life} yr life` : ""}</span>
                     </div>
                     <p className="mt-0.5 text-[12px] leading-[1.45] text-ink-3">{m.what}{m.reduction ? ` ${m.reduction}.` : ""}</p>
                   </li>
@@ -268,7 +294,7 @@ export default function IntersectionPanel({
                   onClick={copyMessage}
                   className="bg-ink px-4 py-2 text-[13px] font-semibold text-paper hover:bg-ink-2"
                 >
-                  {messageCopied ? "Message copied" : "Copy a message to the council office"}
+                  {messageCopied ? "Message copied" : "Write to the council office"}
                 </button>
                 <ExternalLink href={councilUrl(p.council_district)}>District {p.council_district} contact page</ExternalLink>
                 <button onClick={copyCitation} className="border-b border-ink/25 text-[12px] text-ink-3 hover:border-ink hover:text-ink">
@@ -306,7 +332,9 @@ export default function IntersectionPanel({
                           <span className="min-w-0 flex-1">
                             <span className="block text-[13px] leading-snug text-ink">{q.intersection_name}</span>
                             <span className="block text-[11px] text-ink-3">
-                              {Math.round(meters / 10) * 10} m away{pattern ? `, ${pattern.toLowerCase()}` : ""}
+                              {meters <= SAME_NODE_M
+                                ? `${Math.round(meters)} m away, almost certainly the same intersection mapped twice`
+                                : `${Math.round(meters / 10) * 10} m away${pattern ? `, ${pattern.toLowerCase()}` : ""}`}
                             </span>
                           </span>
                         </button>
@@ -331,6 +359,15 @@ export default function IntersectionPanel({
                 <ExternalLink href={`https://www.google.com/maps/dir/?api=1&destination=${lat},${lon}`}>
                   Directions
                 </ExternalLink>
+                {isPrediction && onNavigate && (
+                  <a
+                    href={`/corner/${p.rank}`}
+                    onClick={(e) => { e.preventDefault(); onNavigate(`/corner/${p.rank}`); }}
+                    className="border-b border-ink/25 text-ink-2 hover:border-ink hover:text-ink"
+                  >
+                    This corner as a page
+                  </a>
+                )}
                 <ExternalLink href={councilUrl(p.council_district)}>
                   Tell the District {p.council_district} council office
                 </ExternalLink>
@@ -392,7 +429,7 @@ function Exposure({ p, feature, traffic, recent, advanced }) {
               : {fmtPerYear(rate.recentPerYear)} a year since 2022 against {fmtPerYear(rate.earlierPerYear)} before
             </>
           )}
-          .{rate.injuries > 0 && <> {rate.injuries} of the {rate.total} crashes hurt someone.</>}
+          .{rate.injuries > 0 && <> {rate.injuries} of the {rate.total} crashes hurt someone, about {fmtPerYear(rate.injuryPerYear)} a year.</>}
         </p>
       )}
 
@@ -420,7 +457,8 @@ function Exposure({ p, feature, traffic, recent, advanced }) {
           {advanced ? (
             <>
               <span className="tnum font-medium text-ink">{perMev.toFixed(2)}</span> crashes per million
-              entering vehicles{!t.complete && " (one-leg denominator: a ceiling)"}.
+              entering vehicles{!t.complete && " (one-leg denominator: a ceiling)"}; injury crashes only,{" "}
+              <span className="tnum font-medium text-ink">{ratePerMillionEntering(rate.injuryPerYear, t.entering).toFixed(2)}</span>.
             </>
           ) : (
             <>

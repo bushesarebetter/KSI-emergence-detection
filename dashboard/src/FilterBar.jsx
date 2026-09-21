@@ -51,7 +51,7 @@ export default function FilterBar({ filters, onFiltersChange, intersections }) {
             <p className="text-[11px] text-ink-3">{advanced ? "present in top signals" : "in the record"}</p>
           </div>
 
-          <div role="group" aria-label="Kind of crash" className="flex flex-wrap gap-1.5">
+          <div role="group" aria-label="What you will meet" className="flex flex-wrap gap-1.5">
             {[{ key: null, label: "Any" }, ...chips].map(({ key, label }) => {
               const active = pattern === key;
               return (

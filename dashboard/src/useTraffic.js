@@ -1,4 +1,7 @@
 import { useEffect, useState } from "react";
+import { pointKey } from "./lib/geo";
+
+export { pointKey };
 
 /**
  * /data/traffic.json: City of San Diego daily traffic counts joined to each
@@ -16,11 +19,6 @@ export default function useTraffic() {
     return () => { cancelled = true; };
   }, []);
   return traffic;
-}
-
-export function pointKey(feature) {
-  const [lon, lat] = feature.geometry.coordinates;
-  return `${lat.toFixed(6)},${lon.toFixed(6)}`;
 }
 
 /** {legs: [{street, adt, year, method}], entering, complete} or null. */

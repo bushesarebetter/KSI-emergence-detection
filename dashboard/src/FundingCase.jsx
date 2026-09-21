@@ -93,7 +93,7 @@ export default function FundingCase({ onNavigate }) {
           {CITY.screen.unit}, about {CITY.screen.reviewsPerYear} corners a year. Everything below that bar is invisible to the
           review until it crosses it, usually because someone was badly hurt. This map ranks
           the corners below the bar by how likely a serious crash is next. Of the {total} corners
-          that had one in 2025, the top {DEFAULT_THRESHOLD} had flagged {caught} a year in advance.
+          that had one in 2025 so far, the top {DEFAULT_THRESHOLD} had flagged {caught} a year in advance.
         </p>
       </Section>
 

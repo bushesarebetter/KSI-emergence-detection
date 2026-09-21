@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import { useAdvanced } from "./useAdvanced";
+import { useMeta } from "./useMeta";
 import FilterBar from "./FilterBar";
 import RoutePanel from "./RoutePanel";
 import DistrictSummary from "./DistrictSummary";
@@ -25,6 +26,7 @@ export default function Sidebar({
   traffic, recent, onNavigate, onRoute, onSelectIntersection,
 }) {
   const { advanced } = useAdvanced();
+  const meta = useMeta();
 
   // The years the traffic counts span, from the counts themselves.
   const trafficYears = useMemo(() => {
@@ -72,6 +74,7 @@ export default function Sidebar({
           Crash records through {CITY.crashDataThrough}.
           {trafficYears && <> Traffic counts {trafficYears}.</>}
           {recent?.source?.through && <> Police reports through {fmtDate(recent.source.through)}.</>}
+          {meta?.generated && <> Model export {fmtDate(meta.generated)}.</>}
         </p>
       </div>
 

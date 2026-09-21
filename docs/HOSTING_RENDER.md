@@ -115,7 +115,7 @@ be Rewrite, not Redirect.** A redirect would change the URL in the address bar
 and break deep links.
 
 With the rewrite in place the app renders its own 404 view for unknown paths
-(`/map`, `/privacy` and `/` are the real pages). `dashboard/public/404.html` is
+(`/`, `/map`, `/privacy`, `/funding`, `/district/N` and `/corner/N` are the real pages). `dashboard/public/404.html` is
 the static fallback for any host that serves one directly instead.
 
 ### 2.2a Optional page-view counter
@@ -131,6 +131,11 @@ counter with a free tier for non-commercial sites:
 
 Leave both unset and the privacy page states that no analytics run. Set them and
 it names the host the script comes from. Redeploy after changing either.
+
+With the counter on, the site also records these named events, which are the
+project's impact measures (see `docs/EVALUATION_PLAN.md`): `copy-message`,
+`copy-district-message`, `copy-citation`, `copy-link`, `route-check`, `near-check`,
+`print-corner`, `print-district`, `print-funding`. They carry no personal data.
 
 ### 2.3 Headers
 

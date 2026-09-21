@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { formatScore, intersectionsToCsv } from "./lib/format";
 import { useAdvanced } from "./useAdvanced";
-import { humanizeSignal, inclusionReason } from "./lib/signals";
+import { humanizeSignal, inclusionReason, techLabel } from "./lib/signals";
 import { patternOf } from "./lib/advice";
 import { passesFilters } from "./lib/filters";
 import { crashRate, fmtPerYear, roundVehicles } from "./lib/rates";
@@ -100,13 +100,13 @@ const makeColumns = (advanced, traffic) => [
     cell: ({ row, getValue }) => {
       const props = row.original.properties;
       const reason = inclusionReason(props, advanced);
-      const text = reason ?? (advanced ? getValue() : patternOf(props) ?? humanizeSignal(getValue()));
+      const text = reason ?? (advanced ? techLabel(getValue()) : patternOf(props) ?? humanizeSignal(getValue()));
       return <span className="text-[12px] text-ink-3">{text}</span>;
     },
   },
 ];
 
-export default function RankedTable({ intersections, filters, onSelectIntersection, traffic = null }) {
+export default function RankedTable({ intersections, filters, onSelectIntersection, traffic = null, recent = null, control = null }) {
   const { advanced } = useAdvanced();
   const columns = useMemo(() => makeColumns(advanced, traffic), [advanced, traffic]);
   const [open, setOpen] = useState(false);
@@ -153,7 +153,7 @@ export default function RankedTable({ intersections, filters, onSelectIntersecti
   function downloadCsv() {
     if (!intersections) return;
     const all = [...intersections.features].sort((a, b) => a.properties.rank - b.properties.rank);
-    const csv = intersectionsToCsv(all, traffic);
+    const csv = intersectionsToCsv(all, { traffic, recent, control });
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

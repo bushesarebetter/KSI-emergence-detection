@@ -61,6 +61,23 @@ pedestrian interval produces, will not be detectable; for those the plan reports
 estimate and its interval rather than a verdict. Ten treated corners will not settle
 anything and the plan says so in advance.
 
+## Equity
+
+Crash counts under-report where crashes are reported less, and exposure-normalised rates
+favour quiet streets. Two checks run alongside the primary analysis: the distribution of
+listed and of treated corners across council districts against each district's share of
+candidate intersections, and the same by CalEnviroScreen quartile of the surrounding
+tract. A treatment effect that holds only in the better-off half of the city is reported
+as such.
+
+## The feedback loop
+
+A corner that is treated because it was listed will, if the treatment works, produce
+fewer crashes and fall in later rankings. That is the desired outcome and a training
+hazard: later models would learn that listed corners are safe. Treated corners are
+therefore recorded in the treatment log, excluded from the label window of any model
+trained after their treatment date, and never used to score the model.
+
 ## What would count against the project
 
 - Treated corners fall no more than controls.

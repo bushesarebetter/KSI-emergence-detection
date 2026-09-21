@@ -199,8 +199,7 @@ and reference it — a generic email to a professor gets deleted.
 > I'm [YOUR NAME], a [GRADE] student at [SCHOOL]. I read your work on
 > [SPECIFIC PAPER] and hoped you might be willing to look at something my collaborator Ayan Pendharkar and I have built.
 >
-<<<<<<< HEAD
-> I've spent the past year on a model predicting which San Diego intersections below the City's
+> My collaborator and I have spent the past year on a model predicting which San Diego intersections below the City's
 > crash screen will produce a killed-or-serious-injury crash within three years. XGBoost with a
 > Tweedie objective on 47 features — crash history, road infrastructure, and spatial-neighbor
 > structure — evaluated with genuine out-of-fold scoring under both random and spatial-block CV,
@@ -211,19 +210,6 @@ and reference it — a generic email to a professor gets deleted.
 > push the model above it, by a modest margin that holds on both splits. With a few hundred
 > positives the bootstrap intervals are wide, so the case rests on consistency across splits and
 > windows rather than a single significant gap. I'd like to know whether that reasoning holds up.
-=======
-> We've spent the past year on a model predicting which San Diego intersections with
-> no severe-crash history will produce a killed-or-serious-injury crash within three
-> years. XGBoost with a Tweedie objective on 20 crash-history features, evaluated
-> with genuine out-of-fold scoring under both random and spatial-block CV, and a
-> prospective test against 2025 outcomes the model never saw.
->
-> The result we keep getting stuck on: a two-term persistence baseline ties the tuned
-> model at the severe threshold. We have 21 positive examples, so every comparison has
-> bootstrap CIs wide enough to swallow any effect. We've written up twelve candidate
-> improvements and my honest read is that the constraint is label sparsity, not
-> architecture — but I'd very much like to know if I'm reasoning about that correctly.
->>>>>>> 63e230a87f95693ce4cfe0e7f46366d55a84a591
 >
 > Code and full write-up: https://github.com/bushesarebetter/KSI-emergence-detection
 > Interactive map: [DASHBOARD URL]
@@ -299,20 +285,11 @@ directors do.
 > history, road infrastructure, and spatial-neighbor structure — over 25,699 candidate
 > intersections, scored entirely out-of-fold, with a prospective 2025 test the model never trained on.
 >
-<<<<<<< HEAD
 > The finding I'd most like your reaction to: crash history alone ranks no better than a
 > persistence baseline (crash count and trend); the lift comes entirely from infrastructure and
 > corridor context, and it is modest — a few sites on 40 at top-500, consistent across both
 > splits. The severe (≥2-KSI) threshold has too few positives to model. The edge is real and
 > small, not a large ML win.
-=======
-> The finding I'd most like your reaction to is a negative one. At the ≥2-KSI
-> threshold a persistence baseline — rank by recent crash count and trend — ties the
-> tuned model exactly (10/21 both). The model only shows a consistent edge at the
-> broader ≥1-KSI threshold. With 21 positives we can't distinguish "ML adds nothing
-> here" from "our sample is too small to tell", and we've written up the twelve things
-> we'd try next.
->>>>>>> 63e230a87f95693ce4cfe0e7f46366d55a84a591
 >
 > Code: https://github.com/bushesarebetter/KSI-emergence-detection
 > Map: [DASHBOARD URL]
@@ -397,15 +374,9 @@ safety engineer.
 > risk instead. Are those compatible framings for SS4A or HSIP purposes, or is
 > location-level prediction outside what the systemic framework contemplates?
 >
-<<<<<<< HEAD
 > The model's edge over a simple crash-count-and-trend heuristic is modest, and it has no signal
 > at the fatal/severe threshold. The value is the injury-crash shortlist, on sites the crash
 > screen does not surface.
-=======
-> I'd also note honestly that at the severe threshold a simple crash-count-and-trend
-> heuristic matches our model's performance. If the practical answer is that
-> agencies should use the simple rule, that seems worth knowing too.
->>>>>>> 63e230a87f95693ce4cfe0e7f46366d55a84a591
 >
 > Respectfully,
 > [YOUR NAME]
@@ -431,17 +402,10 @@ subject line.
 >
 > High-injury networks are built from crashes that have already happened. That's the
 > right foundation, but it means a location can only become a priority after someone
-<<<<<<< HEAD
-> is seriously hurt there. My model ranks intersections below the City's crash screen by
+> is seriously hurt there. Our model ranks intersections below the City's crash screen by
 > predicted risk over the next three years. On a held-out test, a top-500 shortlist out of
 > 25,699 caught 39 of the sites that went on to become injury-crash locations, about 7x the
 > rate of chance.
-=======
-> is seriously hurt there. Our model ranks intersections with *no* severe-crash
-> history by predicted risk over the next three years. On a held-out test, a top-500
-> shortlist out of 26,423 caught about 48% of the sites that went on to become
-> severe-crash locations (10 of 21).
->>>>>>> 63e230a87f95693ce4cfe0e7f46366d55a84a591
 >
 > It needs only two public inputs — state crash records and OpenStreetMap — so it
 > should replicate in any US city with a comparable crash database.

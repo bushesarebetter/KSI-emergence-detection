@@ -51,7 +51,11 @@ jobs:
           cache-dependency-path: dashboard/package-lock.json
 
       - run: npm ci
+      - run: npm test
       - run: npm run build
+      # Fails if the export's signal vocabulary drifted past the plain-language
+      # rewrites, or if most corners would get no advice (DECISIONS.md D24).
+      - run: npm run check
 
   mobile:
     name: Mobile typecheck

@@ -25,7 +25,7 @@ export default defineConfig({
         name: "San Diego Intersection Risk",
         short_name: "Intersection Risk",
         description:
-          "A ranking of San Diego intersections with no serious-crash history, ordered by how likely they are to have one.",
+          "The San Diego corners to fix before someone is killed, with what each fix would cost and who to ask.",
         start_url: "/",
         scope: "/",
         display: "standalone",

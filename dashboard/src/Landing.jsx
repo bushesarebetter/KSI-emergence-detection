@@ -134,7 +134,7 @@ export default function Landing({ intersections, error, onEnter, onNavigate, not
               <span className="text-ink-3"> of {total}</span>
             </p>
             <p className="mt-3 max-w-[44ch] text-[14px] leading-[1.5] text-ink-2">
-              intersections that had a serious crash in 2025 were already on this list of{" "}
+              intersections that had a serious crash in 2025 so far were already on this list of{" "}
               {DEFAULT_THRESHOLD}.
               {randomCatch != null && (
                 <> Picking {DEFAULT_THRESHOLD} corners at random would have caught about {randomCatch}.</>

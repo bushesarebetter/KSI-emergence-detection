@@ -12,14 +12,15 @@ import NotFound from "./NotFound";
 import Notice from "./Notice";
 import DistrictReport from "./DistrictReport";
 import FundingCase from "./FundingCase";
+import CornerCard from "./CornerCard";
 import useIntersections from "./useIntersections";
 import useMediaQuery from "./useMediaQuery";
 import usePageMeta from "./usePageMeta";
 import useTraffic from "./useTraffic";
 import { useOptionalJson } from "./useSiteData";
-import { readSiteFromUrl, writeSiteToUrl } from "./useDeepLink";
+import { readSiteFromUrl, writeSiteToUrl, readDistrictFromUrl, writeDistrictToUrl } from "./useDeepLink";
 import { AdvancedProvider, useAdvanced } from "./useAdvanced";
-import { MetaProvider, useMetaFetch } from "./useMeta";
+import { MetaProvider, useMetaFetch, useCatch } from "./useMeta";
 import { DEFAULT_THRESHOLD, CANDIDATE_COUNT } from "./constants";
 import { CITY } from "./city";
 
@@ -32,13 +33,14 @@ const DESCRIPTIONS = {
   privacy: "What this site collects (nothing of its own), what Google Maps and the host collect, and the terms the ranking is offered under.",
   district: `A printable report of the listed corners in one ${CITY.name} council district: the top ten, the kinds of crashes, and which are rising.`,
   funding: `The case for fixing ${CITY.name} intersections before the crash: what a crash costs, what a fix costs, where the money is, and what to ask for.`,
+  corner: `One ${CITY.name} intersection on a page: its crash record, how busy it is, what to do differently there, and what fixing it might involve.`,
   notfound: "That page does not exist.",
 };
 
 /**
  * Five views, no router. `/` is the landing page, `/map` the application,
  * `/privacy` the privacy and terms page, `/district/N` a printable district
- * report; anything else is a 404. A deep link (`/?site=43`) goes straight to
+ * report, `/corner/N` one corner as a page; anything else is a 404. A deep link (`/?site=43`) goes straight to
  * the map, because someone sent a link to one corner should land on it.
  */
 function viewFromLocation() {
@@ -47,12 +49,15 @@ function viewFromLocation() {
   const path = pathname.replace(/\/+$/, "") || "/";
   if (path === "/map") return { view: "map", district: null };
   if (path === "/") {
-    return { view: new URLSearchParams(search).has("site") ? "map" : "landing", district: null };
+    const q = new URLSearchParams(search);
+    return { view: q.has("site") || q.has("district") ? "map" : "landing", district: null };
   }
   if (path === "/privacy") return { view: "privacy", district: null };
   if (path === "/funding") return { view: "funding", district: null };
   const m = /^\/district\/([1-9])$/.exec(path);
   if (m) return { view: "district", district: Number(m[1]) };
+  const c = /^\/corner\/([1-9]\d{0,4})$/.exec(path);
+  if (c) return { view: "corner", district: null, corner: Number(c[1]) };
   return { view: "notfound", district: null };
 }
 
@@ -76,8 +81,11 @@ function Dashboard() {
   const control = useOptionalJson("/data/control.json");
   const { dismissWelcome } = useAdvanced();
   const [selectedIntersection, setSelectedIntersection] = useState(null);
-  const [filters, setFilters] = useState(DEFAULT_FILTERS);
-  const [{ view, district }, setLocation] = useState(viewFromLocation);
+  const [filters, setFilters] = useState(() => {
+    const d = readDistrictFromUrl();
+    return d ? { ...DEFAULT_FILTERS, districts: [d] } : DEFAULT_FILTERS;
+  });
+  const [{ view, district, corner }, setLocation] = useState(viewFromLocation);
   const [routeOverlay, setRouteOverlay] = useState(null);
   const isPhone = useMediaQuery(PHONE);
 
@@ -97,6 +105,12 @@ function Dashboard() {
     if (initialSite.current != null || view !== "map") return;
     writeSiteToUrl(selectedIntersection?.properties.rank ?? null);
   }, [selectedIntersection, view]);
+
+  // A single selected district is part of the share link too.
+  useEffect(() => {
+    if (view !== "map") return;
+    writeDistrictToUrl(filters.districts.length === 1 ? filters.districts[0] : null);
+  }, [filters.districts, view]);
 
   // Browser back and forward between views.
   useEffect(() => {
@@ -149,6 +163,7 @@ function Dashboard() {
   );
 
   const sel = selectedIntersection?.properties;
+  const { candidates } = useCatch(DEFAULT_THRESHOLD);
   usePageMeta({
     title:
       view === "map"
@@ -161,18 +176,32 @@ function Dashboard() {
             ? `District ${district} report`
             : view === "funding"
               ? "The funding case"
+            : view === "corner"
+              ? `Corner ${corner}`
             : view === "notfound"
               ? "Page not found"
               : null,
     description:
       view === "map" && sel
-        ? `${sel.intersection_name}, ranked #${sel.rank} of ${CANDIDATE_COUNT.toLocaleString()} ${CITY.name} intersections for serious-crash risk in 2025 to 2027, with its crash record and what to do differently there.`
+        ? `${sel.intersection_name}, ranked #${sel.rank} of ${(candidates ?? CANDIDATE_COUNT).toLocaleString()} ${CITY.name} intersections for serious-crash risk in 2025 to 2027, with its crash record and what to do differently there.`
         : DESCRIPTIONS[view],
   });
 
   if (view === "privacy") return <Privacy onNavigate={navigate} />;
   if (view === "notfound") return <NotFound onNavigate={navigate} />;
   if (view === "funding") return <FundingCase onNavigate={navigate} />;
+  if (view === "corner") {
+    return (
+      <CornerCard
+        rank={corner}
+        intersections={intersections}
+        traffic={traffic}
+        recent={recent}
+        control={control}
+        onNavigate={navigate}
+      />
+    );
+  }
   if (view === "district") {
     return (
       <DistrictReport
@@ -251,6 +280,13 @@ function Dashboard() {
         onNavigate={navigate}
       />
 
+      <a
+        href="#map-area"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-3 focus:top-3 focus:z-[90] focus:bg-ink focus:px-3 focus:py-2 focus:text-[13px] focus:text-paper"
+      >
+        Skip to the map and list
+      </a>
+
       <main className="relative flex flex-1 overflow-hidden">
         <aside className="print-hide w-[20.5rem] shrink-0 border-r border-rule-strong">
           <Sidebar
@@ -266,7 +302,7 @@ function Dashboard() {
           />
         </aside>
 
-        <div className="print-hide relative min-w-0 flex-1">
+        <div id="map-area" tabIndex={-1} className="print-hide relative min-w-0 flex-1 focus:outline-none">
           <MapView
             intersections={intersections}
             filters={filters}
@@ -279,6 +315,8 @@ function Dashboard() {
             filters={filters}
             onSelectIntersection={setSelectedIntersection}
             traffic={traffic}
+            recent={recent}
+            control={control}
           />
         </div>
 
@@ -290,6 +328,7 @@ function Dashboard() {
           control={control}
           intersections={intersections}
           onSelectIntersection={setSelectedIntersection}
+          onNavigate={navigate}
         />
       </main>
 

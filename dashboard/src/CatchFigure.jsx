@@ -36,7 +36,7 @@ export default function CatchFigure({ threshold }) {
           ) : (
             <>
               of the <span className="tnum font-medium text-ink">{total}</span> intersections
-              that had a serious crash in 2025 were already on this list of{" "}
+              that had a serious crash in 2025 so far were already on this list of{" "}
               <span className="tnum font-medium text-ink">{threshold}</span>.
             </>
           )}

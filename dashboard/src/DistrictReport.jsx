@@ -1,5 +1,6 @@
 import { useMemo } from "react";
 import PageFrame from "./PageFrame";
+import MessageBox from "./MessageBox";
 import { trafficFor } from "./useTraffic";
 import { recordFor } from "./useSiteData";
 import { patternOf, patternKeys, FILTER_PATTERNS } from "./lib/advice";
@@ -25,6 +26,7 @@ const DISTRICTS = DISTRICT_NUMBERS;
 export default function DistrictReport({ district, intersections, traffic, recent, control = null, onNavigate, onOpenMap }) {
   const d = Number(district);
   const [copied, setCopied] = useState(false);
+  const [message, setMessage] = useState(null);
   const go = (p) => (e) => { e.preventDefault(); onNavigate(p); };
 
   const data = useMemo(() => {
@@ -59,21 +61,32 @@ export default function DistrictReport({ district, intersections, traffic, recen
 
   async function copyAsk() {
     if (!data) return;
+    const text = districtMessage({
+      district: d, listed: data.listed.length, top100: data.top100, gapCount: data.nearScreen,
+      costLo: fmtMoney(data.costLo), costHi: fmtMoney(data.costHi), url: window.location.href,
+    });
+    track("copy-district-message");
+    let ok = false;
     try {
-      await navigator.clipboard.writeText(districtMessage({
-        district: d, listed: data.listed.length, top100: data.top100, gapCount: data.nearScreen,
-        costLo: fmtMoney(data.costLo), costHi: fmtMoney(data.costHi), url: window.location.href,
-      }));
-      track("copy-district-message");
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(text);
+      ok = true;
     } catch {
-      /* clipboard blocked */
+      ok = false;
     }
+    setCopied(ok);
+    setMessage({ text, copied: ok });
   }
 
   return (
     <PageFrame onNavigate={onNavigate}>
+      {message && (
+        <MessageBox
+          title={`To the ${CITY.districts.short} ${d} council office`}
+          text={message.text}
+          copied={message.copied}
+          onClose={() => { setMessage(null); setCopied(false); }}
+        />
+      )}
       <p className="label mb-4">{CITY.districts.label} {d}</p>
       <h1 className="font-serif text-[36px] font-medium leading-[1.08] tracking-[-0.02em] text-ink sm:text-[44px]">
         Corners to look at in District {d}
@@ -201,7 +214,7 @@ export default function DistrictReport({ district, intersections, traffic, recen
             </p>
             <p className="print-hide mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px]">
               <button onClick={copyAsk} className="bg-ink px-4 py-2 text-[13px] font-semibold text-paper hover:bg-ink-2">
-                {copied ? "Message copied" : "Copy a message to the council office"}
+                {copied ? "Message copied" : "Write to the council office"}
               </button>
               <a href="/funding" onClick={go("/funding")} className="border-b border-ink/25 text-ink hover:border-ink">
                 The funding case

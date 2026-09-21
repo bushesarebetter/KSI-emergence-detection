@@ -19,6 +19,7 @@ export const CMF_CLEARINGHOUSE = "https://www.cmfclearinghouse.org/";
 export const MEASURES = [
   {
     key: "lpi",
+    life: 10,
     name: "Leading pedestrian interval",
     what: "The walk signal starts a few seconds before the green, so people are in the crosswalk before cars turn.",
     cost: [1000, 5000],
@@ -29,6 +30,7 @@ export const MEASURES = [
   },
   {
     key: "rrfb",
+    life: 10,
     name: "Rapid-flashing beacon at the crossing",
     what: "Bright yellow lights a walker turns on, at a crossing with no signal.",
     cost: [15000, 40000],
@@ -39,6 +41,7 @@ export const MEASURES = [
   },
   {
     key: "refuge",
+    life: 20,
     name: "Pedestrian refuge island",
     what: "A raised island in the middle so a walker crosses one direction of traffic at a time.",
     cost: [10000, 40000],
@@ -48,6 +51,7 @@ export const MEASURES = [
   },
   {
     key: "crosswalk",
+    life: 8,
     name: "High-visibility crosswalk and lighting",
     what: "Ladder markings, a crossing light and cut-back parking so drivers see the crossing.",
     cost: [5000, 30000],
@@ -57,6 +61,7 @@ export const MEASURES = [
   },
   {
     key: "protectedLeft",
+    life: 10,
     name: "Protected left-turn arrow",
     what: "A green arrow, so a left turn never has to find a gap in oncoming traffic.",
     cost: [10000, 60000],
@@ -67,6 +72,7 @@ export const MEASURES = [
   },
   {
     key: "turnLane",
+    life: 20,
     name: "Dedicated left-turn lane",
     what: "A separate lane, so a car waiting to turn is out of the through traffic and can see what is coming.",
     cost: [20000, 150000],
@@ -76,6 +82,7 @@ export const MEASURES = [
   },
   {
     key: "backplates",
+    life: 10,
     name: "Signal backplates with reflective borders",
     what: "A dark frame with a yellow edge around each signal head, so it stands out by day and at night.",
     cost: [1000, 5000],
@@ -86,6 +93,7 @@ export const MEASURES = [
   },
   {
     key: "yellow",
+    life: 10,
     name: "Longer yellow light",
     what: "Retiming the yellow to the actual speed of the road.",
     cost: [500, 2000],
@@ -96,6 +104,7 @@ export const MEASURES = [
   },
   {
     key: "lighting",
+    life: 15,
     name: "Intersection lighting",
     what: "Lights aimed at the crossings and the corner itself.",
     cost: [5000, 30000],
@@ -105,6 +114,7 @@ export const MEASURES = [
   },
   {
     key: "bike",
+    life: 8,
     name: "Bike lane carried through the corner",
     what: "Green markings and a waiting box that put the bike where a turning driver looks.",
     cost: [5000, 25000],
@@ -114,6 +124,7 @@ export const MEASURES = [
   },
   {
     key: "roadDiet",
+    life: 10,
     name: "Road diet on the approach",
     what: "Four lanes restriped to two plus a turn lane and bike lanes; slower, fewer conflicts.",
     cost: [25000, 200000],
@@ -124,6 +135,7 @@ export const MEASURES = [
   },
   {
     key: "feedback",
+    life: 8,
     name: "Speed feedback sign on the approach",
     what: "A sign that shows each driver their speed as they come to the corner.",
     cost: [5000, 15000],
@@ -133,6 +145,7 @@ export const MEASURES = [
   },
   {
     key: "allway",
+    life: 10,
     name: "All-way stop or signal warrant study",
     what: "An engineer checks whether the corner now meets the standard for an all-way stop or a signal.",
     cost: [2000, 10000],
@@ -143,6 +156,7 @@ export const MEASURES = [
   },
   {
     key: "roundabout",
+    life: 25,
     name: "Roundabout",
     what: "Replaces the signal or stop signs; nobody turns across oncoming traffic.",
     cost: [500000, 3000000],

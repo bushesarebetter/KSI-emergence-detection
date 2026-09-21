@@ -79,6 +79,8 @@ export default function Privacy({ onNavigate }) {
           dot on the map does not mean a corner is unsafe today, and the absence of one does
           not mean it is safe. The advice shown for a corner is general road practice for the
           kind of crash recorded there; none of it would have prevented any particular crash.
+          Where a school is named, it marks the crossing its pupils use; it says nothing about
+          the school.
         </p>
         <p>
           You may quote or reuse the ranking with attribution. The code is released under the

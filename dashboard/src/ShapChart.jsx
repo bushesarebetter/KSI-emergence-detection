@@ -1,5 +1,5 @@
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts";
-import { humanizeSignal } from "./lib/signals";
+import { humanizeSignal, techLabel } from "./lib/signals";
 import { useAdvanced } from "./useAdvanced";
 
 const PAPER_TOOLTIP = {
@@ -47,7 +47,7 @@ export default function ShapChart({ shap_features }) {
     <ResponsiveContainer width="100%" height={170}>
       <BarChart
         layout="vertical"
-        data={features}
+        data={features.map((f) => ({ ...f, display_label: techLabel(f.display_label) }))}
         margin={{ top: 0, right: 8, left: 8, bottom: 0 }}
       >
         <XAxis type="number" hide />

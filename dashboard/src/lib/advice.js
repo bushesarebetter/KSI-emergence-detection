@@ -19,6 +19,9 @@
  *     second only how much care.
  */
 
+/** A transit stop farther than this does not put people in this crosswalk. */
+export const WALK_M = 250;
+
 const YEARS = (months) => Math.max(1, Math.round(months / 12));
 const KMH_TO_MPH = 0.621371;
 const mph = (kmh) => Math.round((kmh * KMH_TO_MPH) / 5) * 5;
@@ -82,15 +85,17 @@ const RULES = [
 
   // ── What you will meet (E model) ────────────────────────────────────────
   {
+    // The model scores a stop at any distance; the crossing claim only holds
+    // within a short walk. Beyond WALK_M the label is shown without advice.
     key: "ped",
     test: /transit stop (\d+) m away/i,
-    make: (m) => ({
+    make: (m) => (Number(m) <= WALK_M ? {
       priority: 95,
       pattern: "People on foot",
       fact: `A transit stop is ${m} m away, so people cross here to reach it.`,
       driving: "Before you turn, look for someone crossing to or from the stop, then look again.",
       walking: "Cross at the corner with the signal, even when the stop is closer mid-block.",
-    }),
+    } : null),
   },
   {
     key: "speed",
@@ -238,7 +243,7 @@ function candidates(props) {
       priority: 98,
       pattern: "Near a school",
       fact: `${school.name} is ${school.meters} m away.`,
-      driving: "On school days, expect children crossing anywhere along this block at the start and end of school. Where a school zone is posted and children are present, the California limit is 15 mph.",
+      driving: "On school days, expect children crossing anywhere along this block at the start and end of school. In California the school-zone limit is 25 mph when children are present, and 15 mph where a 15 mph zone is posted.",
       walking: "Cross with the crossing guard or at the signal, and not from between parked cars.",
     });
   }

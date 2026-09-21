@@ -18,6 +18,24 @@ export function readSiteFromUrl() {
   return Number.isFinite(rank) && rank > 0 ? rank : null;
 }
 
+const DISTRICT = "district";
+
+/** `/map?district=3` opens the map filtered to one council district. */
+export function readDistrictFromUrl() {
+  if (typeof window === "undefined") return null;
+  const raw = new URLSearchParams(window.location.search).get(DISTRICT);
+  const d = raw == null ? NaN : parseInt(raw, 10);
+  return Number.isFinite(d) && d > 0 ? d : null;
+}
+
+export function writeDistrictToUrl(district) {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  if (district) url.searchParams.set(DISTRICT, String(district));
+  else url.searchParams.delete(DISTRICT);
+  window.history.replaceState(null, "", url);
+}
+
 export function writeSiteToUrl(rank) {
   if (typeof window === "undefined") return;
   const url = new URL(window.location.href);

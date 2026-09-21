@@ -46,7 +46,7 @@ export default function WelcomeModal() {
             to do differently the next time you pass through.
           </p>
           <p className="border-t border-rule pt-4 text-[15px] text-ink-3">
-            Of the {total} corners that had a serious crash in 2025, this list of{" "}
+            Of the {total} corners that had a serious crash in 2025 so far, this list of{" "}
             {DEFAULT_THRESHOLD} had flagged {caught}. It misses most of them. Use it to decide
             where to look, and look before you judge.
           </p>

@@ -36,6 +36,7 @@ export function crashRate(history) {
     years: full.length,
     total: counts.reduce((a, b) => a + b, 0),
     injuries: full.reduce((a, h) => a + (h.injury || 0) + (h.ksi || 0), 0),
+    injuryPerYear: mean(full.map((h) => (h.injury || 0) + (h.ksi || 0))),
     perYear: mean(counts),
     recentPerYear,
     earlierPerYear,
