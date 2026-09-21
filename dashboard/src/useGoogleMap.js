@@ -7,6 +7,8 @@ export const SAN_DIEGO_CENTER = CITY.center;
 // One loader per page. The Google Maps JS API is a singleton -- calling
 // importLibrary twice with different options throws, so the options are fixed here.
 let loaderPromise = null;
+let loader = null;
+let placesPromise = null;
 
 export function loadMaps() {
   if (!loaderPromise) {
@@ -19,7 +21,7 @@ export function loadMaps() {
         )
       );
     }
-    const loader = new Loader({ apiKey, version: "weekly" });
+    loader = new Loader({ apiKey, version: "weekly" });
     // `streetView` powers StreetViewPanel and `geometry` gives us computeHeading,
     // used to aim the pano camera back at the intersection.
     loaderPromise = Promise.all([
@@ -32,6 +34,19 @@ export function loadMaps() {
     ]).then(() => window.google.maps);
   }
   return loaderPromise;
+}
+
+/**
+ * The Places library, loaded on first use rather than with the map: only the
+ * address fields need it, and a key without Places access should not stop
+ * the map from drawing.
+ */
+export function loadPlaces() {
+  if (!placesPromise) {
+    placesPromise = loadMaps().then(() => loader.importLibrary("places"));
+    placesPromise.catch(() => { placesPromise = null; });
+  }
+  return placesPromise;
 }
 
 /**

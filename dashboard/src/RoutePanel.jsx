@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { loadMaps } from "./useGoogleMap";
+import AddressInput from "./AddressInput";
+import { resolvePlace } from "./places";
 import { cornersAlong, cornersNear, fmtKm } from "./lib/route";
 import { patternOf } from "./lib/advice";
 import { passesFilters } from "./lib/filters";
@@ -11,14 +13,14 @@ const SAN_DIEGO_BOUNDS = CITY.bounds;
 const NEAR_M = 500;
 const ALONG_M = 35;
 
-function explain(err) {
+export function explain(err) {
   const msg = typeof err === "string" ? err : err?.message || err?.code || String(err);
   if (/VITE_GOOGLE_MAPS_API_KEY/.test(msg)) return "The map is not available here, so addresses cannot be looked up.";
-  if (/REQUEST_DENIED|not authorized|ApiNotActivated/i.test(msg)) {
-    return "Address lookup is not switched on for this site's Google key (it needs the Geocoding and Directions APIs).";
+  if (/REQUEST_DENIED|not authorized|ApiNotActivated|PERMISSION_DENIED/i.test(msg)) {
+    return "Address lookup is not switched on for this site's Google key. In Google Cloud, enable the Places API (New), Geocoding API and Directions API for the project, and add them to the key's API restrictions.";
   }
   if (/ZERO_RESULTS|NOT_FOUND/i.test(msg)) return `No match for that. Try a street address or a landmark in ${CITY.name}.`;
-  if (/OVER_QUERY_LIMIT/i.test(msg)) return "Too many lookups right now. Try again in a minute.";
+  if (/OVER_QUERY_LIMIT|RESOURCE_EXHAUSTED/i.test(msg)) return "Too many lookups right now. Try again in a minute.";
   return msg;
 }
 
@@ -28,12 +30,16 @@ function explain(err) {
  * distance along the way. Both answer the question the map alone does not:
  * does any of this apply to me?
  *
- * Only the corners currently shown (shortlist size, district, crash type) are
- * considered, so the answer matches what is on the map.
+ * Addresses are suggested as you type (Google Places). A chosen suggestion is
+ * located directly; typed text goes to the geocoder. Only the corners
+ * currently shown (shortlist size, district, crash type) are considered, so
+ * the answer matches what is on the map.
  */
 export default function RoutePanel({ intersections, filters, onRoute, onSelect, compact = false }) {
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
+  const [fromPick, setFromPick] = useState(null);
+  const [toPick, setToPick] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
@@ -49,18 +55,27 @@ export default function RoutePanel({ intersections, filters, onRoute, onSelect, 
       const shown = intersections.features.filter((f) => passesFilters(f.properties, filters));
 
       if (!to.trim()) {
-        const { results } = await new maps.Geocoder().geocode({
-          address: from, bounds: SAN_DIEGO_BOUNDS, region: "us",
-        });
-        if (!results?.length) throw new Error("ZERO_RESULTS");
-        const loc = results[0].geometry.location;
-        const point = [loc.lng(), loc.lat()];
+        let point, label;
+        if (fromPick) {
+          ({ point, label } = await resolvePlace(fromPick));
+        } else {
+          const { results } = await new maps.Geocoder().geocode({
+            address: from, bounds: SAN_DIEGO_BOUNDS, region: "us",
+          });
+          if (!results?.length) throw new Error("ZERO_RESULTS");
+          const loc = results[0].geometry.location;
+          point = [loc.lng(), loc.lat()];
+          label = results[0].formatted_address;
+        }
         const corners = cornersNear(point, shown, NEAR_M);
-        setResult({ mode: "near", label: results[0].formatted_address, corners });
+        setResult({ mode: "near", label, corners });
         onRoute?.({ path: null, point });
       } else {
         const res = await new maps.DirectionsService().route({
-          origin: from, destination: to, travelMode: maps.TravelMode.DRIVING, region: "us",
+          origin: fromPick ? { placeId: fromPick.id } : from,
+          destination: toPick ? { placeId: toPick.id } : to,
+          travelMode: maps.TravelMode.DRIVING,
+          region: "us",
         });
         const route = res.routes?.[0];
         if (!route) throw new Error("ZERO_RESULTS");
@@ -73,7 +88,7 @@ export default function RoutePanel({ intersections, filters, onRoute, onSelect, 
           corners,
           meters,
         });
-        onRoute?.({ path, point });
+        onRoute?.({ path, point: path[0] });
       }
     } catch (err) {
       setError(explain(err));
@@ -87,6 +102,8 @@ export default function RoutePanel({ intersections, filters, onRoute, onSelect, 
   function clear() {
     setFrom("");
     setTo("");
+    setFromPick(null);
+    setToPick(null);
     setResult(null);
     setError(null);
     onRoute?.(null);
@@ -104,21 +121,24 @@ export default function RoutePanel({ intersections, filters, onRoute, onSelect, 
       )}
 
       <form onSubmit={run} className="space-y-2">
-        <input
-          type="text"
+        <AddressInput
+          id={compact ? "route-from-m" : "route-from"}
           value={from}
-          onChange={(e) => setFrom(e.target.value)}
+          onChange={setFrom}
+          onPick={setFromPick}
           placeholder="Your address, or a place"
           aria-label="Start address"
-          autoComplete="street-address"
+          autoComplete="off"
           className={field}
         />
-        <input
-          type="text"
+        <AddressInput
+          id={compact ? "route-to-m" : "route-to"}
           value={to}
-          onChange={(e) => setTo(e.target.value)}
+          onChange={setTo}
+          onPick={setToPick}
           placeholder="Where you are going (optional)"
           aria-label="Destination address"
+          autoComplete="off"
           className={field}
         />
         <div className="flex items-center gap-4">

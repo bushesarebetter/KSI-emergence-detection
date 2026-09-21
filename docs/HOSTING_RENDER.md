@@ -28,6 +28,14 @@ this before deploying.
 3. **APIs & Services → Library** → enable exactly these:
    - **Maps JavaScript API** — the basemap and the deck.gl overlay
    - **Street View Static API** — the embedded pano in the detail panel
+   - **Places API (New)** — address suggestions as you type in "Where do you drive?"
+   - **Geocoding API** — locating an address that was typed rather than picked
+   - **Directions API** — the driving route between two addresses
+
+   The last three are only used by the route check. Without them the map still
+   works and the route check says "Address lookup is not switched on for this
+   site's Google key". Each has a monthly free allowance that this site's traffic
+   will not approach.
 4. **APIs & Services → Credentials → Create credentials → API key**. Copy it.
 
 ### 1.2 Restrict the key (do not skip this)
@@ -41,8 +49,11 @@ run up against your quota. On the key's settings page:
   https://your-custom-domain.org/*
   http://localhost:5173/*
   ```
-- **API restrictions → Restrict key** → select only Maps JavaScript API and
-  Street View Static API.
+- **API restrictions → Restrict key** → select Maps JavaScript API, Street View
+  Static API, Places API (New), Geocoding API and Directions API. A key restricted
+  to fewer APIs than the site uses fails with `REQUEST_DENIED` on the missing ones,
+  which the route check reports as "Address lookup is not switched on". Changes to
+  a key can take a few minutes to apply.
 
 The key is necessarily visible in the client bundle — that is normal and expected
 for browser Maps keys. The referrer restriction is what protects it, not secrecy.

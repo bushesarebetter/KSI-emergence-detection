@@ -1006,3 +1006,28 @@ Privacy,AboutModal,Landing,CatchFigure,WelcomeModal,FundingCase}.jsx`,
 `dashboard/scripts/check-export.mjs`, `dashboard/tests/*`, `scripts/log_treatment.py` (new),
 `data/evaluation/treatments.csv` (new), `tests/test_log_treatment.py` (new),
 `docs/{EVALUATION_PLAN,REVIEW_LOG}.md`.
+
+## D28 — Addresses and intersections are suggested, not typed out
+
+**Decision.** The two address fields in "Where do you drive?" suggest addresses as
+you type, from Google Places, biased to the city; a chosen suggestion is located
+directly and a typed address still goes to the geocoder. The intersection search
+matches the way people write a crossing: words in any order, "and", "&", "x" or "/"
+between them, street-type abbreviations expanded, with the district and crash pattern
+under each suggestion.
+
+**Why.** Typing a full address exactly, and a full intersection name in the export's
+own order, was the first thing people got wrong. Every maps app suggests; this one
+did not.
+
+**How.** Places API (New) through the `AutocompleteSuggestion` class, one session
+token per search so Google bills a session rather than keystrokes, resolved with
+`Place.fetchFields` for the point; `DirectionsService` takes the place id. The Places
+library loads on first use, so a key without Places access still draws the map, and
+the fields fall back to plain text after the first refused request. The key needs
+Places API (New), Geocoding API and Directions API enabled and allowed (HOSTING_RENDER.md
+1.1 and 1.2). Suggestions send keystrokes to Google; the privacy page says so.
+
+Updated: `dashboard/src/lib/search.js` (new), `dashboard/src/{places.js,AddressInput.jsx}`
+(new), `dashboard/src/{SearchBox,RoutePanel,Privacy}.jsx`, `dashboard/src/useGoogleMap.js`,
+`dashboard/tests/search.test.mjs` (new), `docs/HOSTING_RENDER.md`.

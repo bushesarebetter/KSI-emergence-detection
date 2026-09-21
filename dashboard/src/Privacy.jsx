@@ -38,8 +38,9 @@ export default function Privacy({ onNavigate }) {
       <Section heading="What this site collects">
         <p>
           Nothing of its own. There is no account and no cookie set by this site. The one form,
-          the route check, sends the addresses you type to Google to locate them and plot a
-          route; this site does not store them. Three settings live in your browser&rsquo;s
+          the route check, sends what you type in the address fields to Google, as you type,
+          to suggest addresses, and then to locate the one you choose and plot a route; this
+          site does not store any of it. Three settings live in your browser&rsquo;s
           local storage: whether you have seen the welcome note, whether you dismissed the
           cookie note, and whether you chose technical wording. Clearing site data removes
           them.
