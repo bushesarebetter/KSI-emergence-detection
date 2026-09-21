@@ -142,7 +142,7 @@ export default function SearchBox({ intersections, threshold, onSelect, large = 
                       </span>
                       <span className="block truncate text-[11px] text-ink-3">
                         {CITY.districts.short} {p.council_district}
-                        {pattern ? ` · ${pattern.toLowerCase()}` : ""}
+                        {pattern ? `, ${pattern.toLowerCase()}` : ""}
                       </span>
                     </span>
                     <span

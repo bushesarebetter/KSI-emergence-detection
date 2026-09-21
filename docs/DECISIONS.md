@@ -1031,3 +1031,50 @@ Places API (New), Geocoding API and Directions API enabled and allowed (HOSTING_
 Updated: `dashboard/src/lib/search.js` (new), `dashboard/src/{places.js,AddressInput.jsx}`
 (new), `dashboard/src/{SearchBox,RoutePanel,Privacy}.jsx`, `dashboard/src/useGoogleMap.js`,
 `dashboard/tests/search.test.mjs` (new), `docs/HOSTING_RENDER.md`.
+
+## D29 — A second site, food-safety risk, built before its model
+
+**Decision.** `food-dashboard/` is a second deployable on the same stack and design as the
+intersection site: San Diego retail food facilities ranked by how likely the County's next
+routine inspection is to find a major violation. The model does not exist yet, so the site
+is built against a written contract (`docs/FOOD_DATA_CONTRACT.md`) and runs on an invented
+sample export that says so on every page. The real export replaces two files and nothing
+else changes.
+
+**Why a contract and a sample rather than waiting.** The interface is where the wording,
+the filters and the honesty rules get decided, and those decide what the export must carry.
+Writing the contract first means the pipeline is built to feed pages that already exist and
+have been read, rather than pages being bent to whatever the pipeline happened to write.
+
+**Why invented data, and why it is marked.** Real facility names with invented inspection
+records would be defamation. The sample uses names beginning "Sample", `meta.sample: true`,
+a banner on every page, and a check that refuses a non-sample export containing such a
+name. The County's permit list (open data, public domain) is real and is the candidate
+universe; the sample does not use it.
+
+**What carries over, and what is new.** Copied unchanged: styles and tokens, the Maps
+loader, the page frame, the notice, the message box, Street View, address suggestions,
+the page-meta and media-query hooks, geo helpers, "what a rank is worth". New: inspection
+statistics (last score and grade, majors and minors in the 36 months before the last visit,
+closures, reinspections, trend), violations by theme, "If you eat here" (what to look for,
+from what inspectors found), the signal vocabulary, filters by kind of place and by finding,
+"Near an address", a place page. Copying rather than sharing a package keeps the two sites
+independently deployable; extraction to a shared package is a later decision.
+
+**Honesty rules carried across.** The rank is an ordering; the panel says what a rank is
+worth with counts and withholds a ratio below three events. Every fact about a place is
+the County's record, shown as published; the posted grade card is the official statement.
+The "If you eat here" checks are general practice and say so. "Not yet scored" replaces
+every catch figure until the label window closes. Terms say the County's record wins any
+disagreement and how a business gets a correction.
+
+**Open.** The County publishes results through a search page, not a bulk file; the
+pipeline needs a collection method and its date recorded in `meta.source`. The advice
+themes map the numbered items of the California retail food inspection report; the mapping
+is in the contract and should be checked against the County's current form. The
+complaint line and phone in `site.js` should be confirmed before launch.
+
+Updated: `food-dashboard/` (new), `scripts/food/{make_sample_export,fetch_facilities}.py`
+(new), `tests/test_food_{sample_export,fetch_facilities}.py` (new),
+`docs/FOOD_DATA_CONTRACT.md` (new), `docs/HOSTING_RENDER.md`, `.github/workflows/ci.yml`,
+`README.md`.

@@ -122,9 +122,9 @@ function Plain() {
 
       <Section heading="How to read it">
         <p>
-          Darker dots carry higher predicted risk. The rank is an ordering, not a probability: a
-          corner&rsquo;s panel says how often corners ranked that high had a serious crash in
-          2025 so far, with the counts, and those counts are small. Click a dot and you get its
+          Darker dots carry higher predicted risk. A rank is a position in the ordering and
+          carries no probability of its own; a corner&rsquo;s panel says how often corners ranked
+          that high had a serious crash in 2025 so far, with the counts, and those counts are small. Click a dot and you get its
           crash record year by year, the pattern behind it, and what the model saw.
         </p>
         <p>

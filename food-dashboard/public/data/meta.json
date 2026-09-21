@@ -1,0 +1,40 @@
+{
+  "sample": true,
+  "model": "sample export, no model yet",
+  "run": "sample",
+  "generated": "2026-09-21",
+  "candidates": 8200,
+  "label": "at least one major violation at the next routine inspection",
+  "label_window": "2026-09-01 to 2027-08-31",
+  "inspections_through": "2026-08-31",
+  "catch": {
+    "50": {
+      "caught": 19,
+      "total": 697
+    },
+    "100": {
+      "caught": 33,
+      "total": 697
+    },
+    "200": {
+      "caught": 49,
+      "total": 697
+    },
+    "500": {
+      "caught": 53,
+      "total": 697
+    },
+    "800": {
+      "caught": 53,
+      "total": 697
+    },
+    "1000": {
+      "caught": 53,
+      "total": 697
+    }
+  },
+  "source": {
+    "name": "invented sample; no real facility or inspection",
+    "url": null
+  }
+}

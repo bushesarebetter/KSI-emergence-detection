@@ -76,3 +76,24 @@ jobs:
       # and import errors, which is most of what breaks in practice.
       - name: Parse check
         run: npx --yes esbuild@0.24.0 App.js src/*.js src/lib/*.js --loader:.js=jsx --outdir=/tmp/check
+
+  food:
+    name: Food-safety site build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: food-dashboard
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: food-dashboard/package-lock.json
+
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      # Fails if the export breaks docs/FOOD_DATA_CONTRACT.md.
+      - run: npm run check

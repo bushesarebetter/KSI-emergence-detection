@@ -279,7 +279,7 @@ export default function IntersectionPanel({
                   <li key={m.key} className="border-b border-rule py-2.5 last:border-b-0">
                     <div className="flex items-baseline justify-between gap-3">
                       <span className="text-[13px] font-medium text-ink">{m.name}</span>
-                      <span className="tnum shrink-0 text-[11.5px] text-ink-2">{fmtRange(m.cost, m.per)}{advanced && m.life ? ` · ${m.life} yr life` : ""}</span>
+                      <span className="tnum shrink-0 text-[11.5px] text-ink-2">{fmtRange(m.cost, m.per)}{advanced && m.life ? `, ${m.life} yr life` : ""}</span>
                     </div>
                     <p className="mt-0.5 text-[12px] leading-[1.45] text-ink-3">{m.what}{m.reduction ? ` ${m.reduction}.` : ""}</p>
                   </li>

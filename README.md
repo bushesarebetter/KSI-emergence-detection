@@ -72,6 +72,10 @@ council office. `/funding` states the funding case; `/district/N` prints a distr
 `/corner/N` is one corner as a page. A simulated ten-lens expert review is in [docs/REVIEW_LOG.md](docs/REVIEW_LOG.md).
 Built on React, Google Maps with a deck.gl overlay, and Street View.
 
+A second site, [food-dashboard/](food-dashboard/), ranks San Diego food facilities by the risk of a
+major violation at the next County inspection, on the same stack and design. It runs on a
+sample export until its model exists; the export it needs is in [docs/FOOD_DATA_CONTRACT.md](docs/FOOD_DATA_CONTRACT.md).
+
 ```bash
 python scripts/build_export_panel_verified.py --run forward                 # predicted-only shortlist
 python scripts/build_export_panel_verified.py --run forward --combined 800  # "most unsafe" list, see below

@@ -69,17 +69,17 @@ export default function CornerCard({ rank, intersections, traffic, recent, contr
   return (
     <PageFrame onNavigate={onNavigate}>
       <p className="label mb-3">
-        {CITY.name} · rank <span className="tnum">{p.rank}</span> of {denominator.toLocaleString()} · {CITY.districts.short} {p.council_district}
+        {CITY.name}, rank <span className="tnum">{p.rank}</span> of {denominator.toLocaleString()}, {CITY.districts.short} {p.council_district}
       </p>
       <h1 className="font-serif text-[34px] font-medium leading-[1.08] tracking-[-0.02em] text-ink sm:text-[42px]">
         {p.intersection_name}
       </h1>
       <p className="mt-3 text-[13px] text-ink-2">
         <span style={{ color: tier.hex }} className="font-semibold">{tier.label}</span>
-        {pattern && <> · {pattern}</>}
-        {ctrl && <> · {CONTROL_LABEL[ctrl]}</>}
-        {p.near_school && <> · {p.near_school.meters} m from {p.near_school.name}</>}
-        {p.is_known_emergent && <> · <span className="text-risk-1">serious crash in 2025</span></>}
+        {pattern && <>, {pattern.toLowerCase()}</>}
+        {ctrl && <>, {CONTROL_LABEL[ctrl].toLowerCase()}</>}
+        {p.near_school && <>, {p.near_school.meters} m from {p.near_school.name}</>}
+        {p.is_known_emergent && <>, <span className="text-risk-1">serious crash in 2025</span></>}
       </p>
       {lift && <p className="mt-2 max-w-[60ch] text-[12.5px] leading-[1.5] text-ink-3">{lift}</p>}
 

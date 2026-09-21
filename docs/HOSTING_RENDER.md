@@ -277,3 +277,14 @@ Before sending the link to anyone on the outreach list:
 That last one matters more than it sounds. The outreach emails cite specific
 numbers, and the fastest way to lose a technical reader is a dashboard that
 disagrees with the email that brought them to it.
+
+## 8. The second site, food-safety risk
+
+`food-dashboard/` deploys the same way as a second Render static site: root directory
+`food-dashboard`, build command `npm ci && npm run build`, publish directory `dist`, the
+same rewrite rule (section 2.2), the same environment variables (section 2.1). The Google
+key from section 1 serves both sites once this site's domain is added to its referrer list;
+it needs Maps JavaScript, Street View Static, Places (New) and Geocoding. Until the model's
+export lands the site runs on the invented sample in `food-dashboard/public/data/` and says
+so on every page; a real export replaces `facilities.geojson` and `meta.json` there
+(docs/FOOD_DATA_CONTRACT.md) and is checked by `npm run check`.
