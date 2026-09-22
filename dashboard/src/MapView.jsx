@@ -88,19 +88,13 @@ export default function MapView({
     layer.setMap(trafficOn ? map : null);
   }, [trafficOn, mapReady]);
 
-  // Ranked dots obey every filter; emergent rings obey only the district
-  // filter, so sites the shortlist missed stay visible at every tier.
-  const { shown, emergents } = useMemo(() => {
-    if (!intersections) return { shown: [], emergents: [] };
-    const districtSet = new Set(filters.districts);
-    const inDistrict = (p) => districtSet.size === 0 || districtSet.has(p.council_district);
-    return {
-      shown: intersections.features.filter((f) => passesFilters(f.properties, filters)),
-      emergents: intersections.features.filter(
-        (f) => f.properties.is_known_emergent && inDistrict(f.properties)
-      ),
-    };
-  }, [intersections, filters]);
+  // Ranked dots obey every filter. Sites that went on to have a serious crash
+  // are not drawn as a separate mark: the map shows the ranking, and what the
+  // ranking missed belongs in the catch figure, not on the map.
+  const shown = useMemo(
+    () => (intersections ? intersections.features.filter((f) => passesFilters(f.properties, filters)) : []),
+    [intersections, filters]
+  );
 
   // Rebuild deck.gl layers whenever the filtered data changes.
   useEffect(() => {
@@ -172,36 +166,6 @@ export default function MapView({
             getLineColor: [23, 21, 15, 255],
           })]
         : []),
-      // Emergent rings: hollow outline under the ranked dots. Ink means the site
-      // was caught at the current top-K tier; a thin slate ring means it was
-      // not. See docs/DECISIONS.md D12.
-      new ScatterplotLayer({
-        id: "emergents-layer",
-        data: emergents,
-        pickable: false,
-        stroked: true,
-        filled: false,
-        radiusUnits: "meters",
-        radiusMinPixels: 7,
-        radiusMaxPixels: 16,
-        lineWidthUnits: "pixels",
-        getPosition: (f) => f.geometry.coordinates,
-        getRadius: (f) => rankRadius(f.properties.rank) + 6,
-        getLineColor: (f) => {
-          const r = f.properties.oof_rank;
-          const caught = r != null && r <= filters.threshold;
-          return caught ? [23, 21, 15, 255] : [138, 130, 114, 150];
-        },
-        getLineWidth: (f) => {
-          const r = f.properties.oof_rank;
-          return r != null && r <= filters.threshold ? 2 : 1.2;
-        },
-        updateTriggers: {
-          getLineColor: filters.threshold,
-          getLineWidth: filters.threshold,
-        },
-      }),
-
       // Ranked shortlist dots.
       new ScatterplotLayer({
         id: "intersections-layer",
@@ -231,7 +195,7 @@ export default function MapView({
     ];
 
     overlay.setProps({ layers });
-  }, [shown, emergents, filters.threshold, mapReady, onSelectIntersection, routeOverlay]);
+  }, [shown, mapReady, onSelectIntersection, routeOverlay]);
 
   // Frame a checked route, or centre on the address.
   useEffect(() => {

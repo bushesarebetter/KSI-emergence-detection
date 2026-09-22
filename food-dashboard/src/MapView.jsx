@@ -54,17 +54,13 @@ export default function MapView({
 
   const { mapRef, error } = useGoogleMap(containerRef, handleMapLoad, INITIAL_ZOOM);
 
-  // Ranked dots obey every filter; positive rings obey only the district
-  // filter, so places the shortlist missed stay visible at every tier.
-  const { shown, positives } = useMemo(() => {
-    if (!facilities) return { shown: [], positives: [] };
-    const districtSet = new Set(filters.districts);
-    const inDistrict = (p) => districtSet.size === 0 || districtSet.has(p.council_district);
-    return {
-      shown: facilities.features.filter((f) => passesFilters(f.properties, filters)),
-      positives: facilities.features.filter((f) => f.properties.is_known_positive && inDistrict(f.properties)),
-    };
-  }, [facilities, filters]);
+  // Ranked dots obey every filter. Places that went on to have a major
+  // violation are not drawn as a separate mark: the map shows the ranking, and
+  // what the ranking missed belongs in the catch figure, not on the map.
+  const shown = useMemo(
+    () => (facilities ? facilities.features.filter((f) => passesFilters(f.properties, filters)) : []),
+    [facilities, filters]
+  );
 
   useEffect(() => {
     const overlay = overlayRef.current;
@@ -117,28 +113,6 @@ export default function MapView({
           })]
         : []),
       new ScatterplotLayer({
-        id: "positives-layer",
-        data: positives,
-        pickable: false,
-        stroked: true,
-        filled: false,
-        radiusUnits: "meters",
-        radiusMinPixels: 7,
-        radiusMaxPixels: 16,
-        lineWidthUnits: "pixels",
-        getPosition: (f) => f.geometry.coordinates,
-        getRadius: (f) => rankRadius(f.properties.rank) + 6,
-        getLineColor: (f) => {
-          const r = f.properties.oof_rank ?? f.properties.rank;
-          return r != null && r <= filters.threshold ? [23, 21, 15, 255] : [138, 130, 114, 150];
-        },
-        getLineWidth: (f) => {
-          const r = f.properties.oof_rank ?? f.properties.rank;
-          return r != null && r <= filters.threshold ? 2 : 1.2;
-        },
-        updateTriggers: { getLineColor: filters.threshold, getLineWidth: filters.threshold },
-      }),
-      new ScatterplotLayer({
         id: "places-layer",
         data: shown,
         pickable: true,
@@ -162,7 +136,7 @@ export default function MapView({
     ];
 
     overlay.setProps({ layers });
-  }, [shown, positives, filters.threshold, mapReady, onSelect, pointOverlay]);
+  }, [shown, mapReady, onSelect, pointOverlay]);
 
   useEffect(() => {
     const map = mapRef.current;

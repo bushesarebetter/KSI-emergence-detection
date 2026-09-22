@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useAdvanced } from "./useAdvanced";
-import { useMeta } from "./useMeta";
 
 // Sequential ramp, dark to light; lightness carries the order so the tiers
 // survive greyscale and colourblind viewing.
@@ -15,8 +14,6 @@ const TIER_LABELS = ["Highest risk", "High", "Elevated", "Moderate"];
 
 export default function MapLegend({ threshold }) {
   const { advanced } = useAdvanced();
-  const meta = useMeta();
-  const scored = Boolean(meta?.catch);
   const [open, setOpen] = useState(() => typeof window === "undefined" || window.innerWidth >= 768);
 
   const visible = RISK_TIERS.filter((t) => t.lo <= threshold);
@@ -50,23 +47,6 @@ export default function MapLegend({ threshold }) {
               </li>
             ))}
           </ul>
-
-          {scored && (
-            <div className="mt-3.5 space-y-[9px] border-t border-rule pt-3">
-              <div className="flex items-center gap-3">
-                <svg width="16" height="16" className="shrink-0" aria-hidden="true">
-                  <circle cx="8" cy="8" r={5} fill="#7F1D1D" />
-                  <circle cx="8" cy="8" r={7.4} fill="none" stroke="#17150F" strokeWidth="1.6" />
-                </svg>
-                <span className="text-[12px] leading-[1.3] text-ink">
-                  {advanced ? "Positive, caught" : "Major violation at the next inspection"}
-                  <span className="block text-[11px] text-ink-3">
-                    {advanced ? `top-${threshold} hit` : "this list had flagged it"}
-                  </span>
-                </span>
-              </div>
-            </div>
-          )}
 
           <p className="mt-3.5 border-t border-rule pt-2.5 text-[11px] leading-[1.4] text-ink-3">
             {advanced

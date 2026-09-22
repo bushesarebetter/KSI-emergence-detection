@@ -16,7 +16,9 @@ const TIER_LABELS = ["Highest risk", "High", "Elevated", "Moderate"];
 /**
  * Map key. Opaque, with a hairline border, like the key box on a printed map.
  * The last tier's range follows the selected shortlist size, and a combined
- * export adds a row for known sites.
+ * export adds a row for known sites. Sites that went on to have a serious crash
+ * are not drawn as a separate mark: the map shows the ranking, and what the
+ * ranking missed is reported in the catch figure, not pointed at.
  */
 export default function MapLegend({ threshold, trafficOn = false }) {
   const { advanced } = useAdvanced();
@@ -82,34 +84,6 @@ export default function MapLegend({ threshold, trafficOn = false }) {
               )}
             </div>
           )}
-
-          <div className="mt-3.5 space-y-[9px] border-t border-rule pt-3">
-            <div className="flex items-center gap-3">
-              <svg width="16" height="16" className="shrink-0" aria-hidden="true">
-                <circle cx="8" cy="8" r={5} fill="#7F1D1D" />
-                <circle cx="8" cy="8" r={7.4} fill="none" stroke="#17150F" strokeWidth="1.6" />
-              </svg>
-              <span className="text-[12px] leading-[1.3] text-ink">
-                {advanced ? "2025 KSI, caught" : "Serious crash in 2025"}
-                <span className="block text-[11px] text-ink-3">
-                  {advanced ? `top-${threshold} hit` : "this list had flagged it"}
-                </span>
-              </span>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <svg width="16" height="16" className="shrink-0" aria-hidden="true">
-                <circle cx="8" cy="8" r={5} fill="#7F1D1D" />
-                <circle cx="8" cy="8" r={7.4} fill="none" stroke="#8A8272" strokeWidth="1.2" strokeDasharray="2.2 2" />
-              </svg>
-              <span className="text-[12px] leading-[1.3] text-ink">
-                {advanced ? "2025 KSI, missed" : "Serious crash in 2025"}
-                <span className="block text-[11px] text-ink-3">
-                  {advanced ? `outside top-${threshold}` : "this list had missed it"}
-                </span>
-              </span>
-            </div>
-          </div>
 
           {trafficOn && (
             <p className="mt-3.5 border-t border-rule pt-2.5 text-[11px] leading-[1.4] text-ink-2">

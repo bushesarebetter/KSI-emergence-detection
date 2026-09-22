@@ -1078,3 +1078,15 @@ Updated: `food-dashboard/` (new), `scripts/food/{make_sample_export,fetch_facili
 (new), `tests/test_food_{sample_export,fetch_facilities}.py` (new),
 `docs/FOOD_DATA_CONTRACT.md` (new), `docs/HOSTING_RENDER.md`, `.github/workflows/ci.yml`,
 `README.md`.
+
+## D30 — The map does not point at what the model missed
+
+**Decision.** The map keys on both sites lose their bottom section, and the maps no longer
+draw a ring around sites that went on to have a serious crash (or, on the food site, a major
+violation), whether the list had flagged them or not. Ayan's call, September 21 2026: the
+site does not show what the model missed. The catch figure in the sidebar and the About
+page still report the count the list caught and the count it missed, in numbers; the map
+shows the ranking only. A caught site still carries its "Serious crash in 2025" tag in the
+panel and in the district counts, because that is a fact about the site.
+
+Updated: `dashboard/src/{MapLegend,MapView}.jsx`, `food-dashboard/src/{MapLegend,MapView}.jsx`.
